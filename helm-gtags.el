@@ -49,6 +49,17 @@
 (require 'helm)
 (require 'gtags)
 
+(defgroup helm-gtags nil
+  "GNU GLOBAL for helm"
+  :group 'helm)
+
+(defcustom helm-c-gtags-path-style 'root
+  "*Controls the style of path in [GTAGS SELECT MODE]."
+  :type '(choice (const :tag "Root of the current project" root)
+                 (const :tag "Relative from the current directory" relative)
+                 (const :tag "Absolute Path" absolute))
+  :group 'helm-gtags)
+
 (defvar helm-c-global-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -86,38 +97,51 @@
         (setq helm-c-global-tag-location
               (file-name-as-directory (buffer-substring cur (point))))))))
 
+(defun helm-c-source-base-directory ()
+  (case helm-c-gtags-path-style
+    (root helm-c-global-tag-location)
+    (otherwise default-directory)))
+
 (defun helm-c-source-exec-global-command (cmd)
   (helm-c-source-gtags-find-tag-directory)
   (gtags-push-context)
   (with-current-buffer (helm-candidate-buffer 'global)
-    (let ((default-directory helm-c-global-tag-location))
+    (let ((default-directory (helm-c-source-base-directory)))
       (call-process-shell-command cmd nil t nil))))
 
+(defvar helm-c-gtags-command-option-alist
+  '((:tag    . "")
+    (:rtag   . "-r")
+    (:symbol . "-s")
+    (:file   . "-Po")))
+
+(defun helm-c-source-gtags-construct-command (type)
+  (let ((input (helm-c-source-gtags-input type))
+        (option (assoc-default type helm-c-gtags-command-option-alist))
+        (abs-option (or (and (eq helm-c-gtags-path-style 'absolute) "-a") "")))
+    (format "global --result=grep %s %s %s" option abs-option input)))
+
 (defun helm-c-source-gtags-tags-init ()
-  (let ((input (helm-c-source-gtags-input :tag)))
-    (helm-c-source-exec-global-command
-     (format "global --result=grep %s" input))))
+  (let ((cmd (helm-c-source-gtags-construct-command :tag)))
+    (helm-c-source-exec-global-command cmd)))
 
 (defun helm-c-source-gtags-rtags-init ()
-  (let ((input (helm-c-source-gtags-input :rtag)))
-    (helm-c-source-exec-global-command
-     (format "global --result=grep -r %s" input))))
+  (let ((cmd (helm-c-source-gtags-construct-command :rtag)))
+    (helm-c-source-exec-global-command cmd)))
 
 (defun helm-c-source-gtags-gsyms-init ()
-  (let ((input (helm-c-source-gtags-input :symbol)))
-    (helm-c-source-exec-global-command
-     (format "global --result=grep -s %s" input))))
+  (let ((cmd (helm-c-source-gtags-construct-command :symbol)))
+    (helm-c-source-exec-global-command cmd)))
 
 (defun helm-c-source-gtags-files-init ()
-  (let ((input (helm-c-source-gtags-input :file)))
-    (helm-c-source-exec-global-command
-     (format "global --result=grep -Po %s" input))))
+  (let ((cmd (helm-c-source-gtags-construct-command :file)))
+    (helm-c-source-exec-global-command cmd)))
 
 (defun helm-c-gtags-action-openfile (elm)
   (let* ((elems (split-string elm ":"))
          (filename (first elems))
          (line (string-to-number (second elems)))
-         (default-directory helm-c-global-tag-location))
+         (default-directory (helm-c-source-base-directory)))
     (find-file filename)
     (forward-line (1- line))))
 
