@@ -1,9 +1,9 @@
 ;;; helm-gtags.el --- GNU GLOBAL helm interface
 
-;; Copyright (C) 2012 syohex
+;; Copyright (C) 2012 by Syohei YOSHIDA
 
-;; Author: syohex <syohex@gmail.com>
-;; URL:
+;; Author: Syohei YOSHIDA <syohex@gmail.com>
+;; URL: https://github.com/syohex/emacs-helm-gtags
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
