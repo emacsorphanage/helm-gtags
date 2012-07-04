@@ -143,7 +143,7 @@
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-rtags)))
 
-(defun helm-gtags-find-gsyms ()
+(defun helm-gtags-find-symbol ()
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-gsyms)))
 
