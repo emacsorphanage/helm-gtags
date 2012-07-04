@@ -156,6 +156,7 @@
          (line (string-to-number (second elems)))
          (default-directory (helm-c-source-base-directory)))
     (find-file filename)
+    (goto-char (point-min))
     (forward-line (1- line))))
 
 (defvar helm-c-source-gtags-tags
