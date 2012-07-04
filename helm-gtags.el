@@ -54,21 +54,26 @@
 
 (defvar helm-c-gtags-buffer "*helm gtags*")
 
-(defun helm-c-source-gtags-tags-completion (prompt)
-  (completing-read prompt 'gtags-completing-gtags
-                   nil nil nil gtags-history-list))
+(defvar helm-c-gtags-prompt-alist
+  '((:tag    . "Find Definition: ")
+    (:rtag   . "Find Reference: ")
+    (:symbol . "Find Symbol: ")
+    (:file   . "Find File:")))
 
-(defun helm-c-source-gtags-rtags-completion (prompt)
-  (completing-read prompt 'gtags-completing-grtags
-                   nil nil nil gtags-history-list))
+(defvar helm-c-gtags-comp-func-alist
+  '((:tag    . gtags-completing-gtags)
+    (:rtag   . gtags-completing-grtags)
+    (:symbol . gtags-completing-gsyms)
+    (:file   . gtags-completing-files)))
 
-(defun helm-c-source-gtags-gsyms-completion (prompt)
-  (completing-read prompt 'gtags-completing-gsyms
-                   nil nil nil gtags-history-list))
-
-(defun helm-c-source-gtags-files-completion (prompt)
-  (completing-read prompt 'gtags-completing-files
-                   nil nil nil gtags-history-list))
+(defun helm-c-source-gtags-input (type)
+  (let ((tagname (gtags-current-token))
+        (prompt (assoc-default type helm-c-gtags-prompt-alist))
+        (comp-func (assoc-default type helm-c-gtags-comp-func-alist)))
+    (if tagname
+        (setq prompt (format "%s(default \"%s\") " prompt tagname)))
+    (message prompt)
+    (completing-read prompt comp-func nil nil nil gtags-history-list tagname)))
 
 (defun helm-c-source-gtags-find-tag-directory ()
   (with-temp-buffer
@@ -89,22 +94,22 @@
       (call-process-shell-command cmd nil t nil))))
 
 (defun helm-c-source-gtags-tags-init ()
-  (let ((input (helm-c-source-gtags-tags-completion "Find Definition: ")))
+  (let ((input (helm-c-source-gtags-input :tag)))
     (helm-c-source-exec-global-command
      (format "global --result=grep %s" input))))
 
 (defun helm-c-source-gtags-rtags-init ()
-  (let ((input (helm-c-source-gtags-rtags-completion "Find Reference: ")))
+  (let ((input (helm-c-source-gtags-input :rtag)))
     (helm-c-source-exec-global-command
      (format "global --result=grep -r %s" input))))
 
 (defun helm-c-source-gtags-gsyms-init ()
-  (let ((input (helm-c-source-gtags-gsyms-completion "Find Symbol: ")))
+  (let ((input (helm-c-source-gtags-input :symbol)))
     (helm-c-source-exec-global-command
      (format "global --result=grep -s %s" input))))
 
 (defun helm-c-source-gtags-files-init ()
-  (let ((input (helm-c-source-gtags-files-completion "Find File: ")))
+  (let ((input (helm-c-source-gtags-input :file)))
     (helm-c-source-exec-global-command
      (format "global --result=grep -Po %s" input))))
 
