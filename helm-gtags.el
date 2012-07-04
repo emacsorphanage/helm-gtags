@@ -56,7 +56,7 @@
   :group 'helm)
 
 (defcustom helm-c-gtags-path-style 'root
-  "*Controls the style of path in [GTAGS SELECT MODE]."
+  "Style of file path"
   :type '(choice (const :tag "Root of the current project" root)
                  (const :tag "Relative from the current directory" relative)
                  (const :tag "Absolute Path" absolute))
