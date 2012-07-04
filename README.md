@@ -3,7 +3,7 @@ helm-gtags.el
 
 Introduction
 ------------
-`helm-gtags.el` is front-end of `gtags.el` with `helm`
+`helm-gtags.el` is GNU GLOBAL helm interface.
 
 **helm-gtags.el** is not compatible **anything-gtags.el**
 
