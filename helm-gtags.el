@@ -22,6 +22,22 @@
 
 ;;; Commentary:
 
+;; `helm-gtags.el' is GNU GLOBAL `helm' interface.
+;; `helm-gtags.el' is not compatible `anything-gtags.el'
+
+;;
+;; To use this package, add these lines to your .emacs file:
+;;     (require 'gtags)
+;;     (require 'helm-gtags)
+;;
+;;     (setq gtags-mode-hook
+;;           '(lambda ()
+;;              (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
+;;              (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
+;;              (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
+;;              (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)))
+;;
+
 ;;; History:
 ;; Revision 0.1  2012/07/???? syohex
 ;; Initial version
