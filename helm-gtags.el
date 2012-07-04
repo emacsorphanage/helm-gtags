@@ -54,7 +54,7 @@
   (completing-read prompt 'gtags-completing-files
                    nil nil nil gtags-history-list))
 
-(defun helm-c-source-find-tag-directory ()
+(defun helm-c-source-gtags-find-tag-directory ()
   (with-temp-buffer
     (let ((status (call-process "global" nil t nil "-p")))
       (unless (= status 0)
@@ -66,7 +66,7 @@
               (file-name-as-directory (buffer-substring cur (point))))))))
 
 (defun helm-c-source-exec-global-command (cmd)
-  (helm-c-source-find-tag-directory)
+  (helm-c-source-gtags-find-tag-directory)
   (gtags-push-context)
   (with-current-buffer (helm-candidate-buffer 'global)
     (let ((default-directory helm-c-global-tag-location))
