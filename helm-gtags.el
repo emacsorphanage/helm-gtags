@@ -26,9 +26,11 @@
 ;; `helm-gtags.el' is not compatible `anything-gtags.el'
 
 ;;
-;; To use this package, add these lines to your .emacs file:
-;;     (require 'gtags)
+;; To use this package, add these lines to your init.el or .emacs file:
+;;     (require 'helm-config)
 ;;     (require 'helm-gtags)
+;;
+;;     (setq helm-c-gtags-path-style 'relative)
 ;;
 ;;     (setq gtags-mode-hook
 ;;           '(lambda ()
