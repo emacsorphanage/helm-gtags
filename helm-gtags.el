@@ -135,23 +135,23 @@
     (helm :sources srcs
           :buffer buf)))
 
-(defun helm-c-gtags-find-tag ()
+(defun helm-gtags-find-tag ()
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-tags)))
 
-(defun helm-c-gtags-find-rtag ()
+(defun helm-gtags-find-rtag ()
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-rtags)))
 
-(defun helm-c-gtags-find-gsyms ()
+(defun helm-gtags-find-gsyms ()
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-gsyms)))
 
-(defun helm-c-gtags-find-files ()
+(defun helm-gtags-find-files ()
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-files)))
 
-(defun helm-c-gtags-pop-stack ()
+(defun helm-gtags-pop-stack ()
   (interactive)
   (gtags-pop-stack))
 
