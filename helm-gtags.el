@@ -62,6 +62,12 @@
                  (const :tag "Absolute Path" absolute))
   :group 'helm-gtags)
 
+
+(defcustom helm-c-gtags-ignore-case nil
+  "Ignore case in each search."
+  :type 'boolean
+  :group 'helm-gtags)
+
 (defvar helm-c-global-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -117,11 +123,16 @@
     (:symbol . "-s")
     (:file   . "-Po")))
 
+(defun helm-c-source-gtags-construct-option (type)
+  (let ((type-option (assoc-default type helm-c-gtags-command-option-alist))
+        (abs-option (or (and (eq helm-c-gtags-path-style 'absolute) "-a") ""))
+        (case-option (or (and helm-c-gtags-ignore-case "-i") "")))
+    (format "%s %s %s" type-option abs-option case-option)))
+
 (defun helm-c-source-gtags-construct-command (type)
   (let ((input (helm-c-source-gtags-input type))
-        (option (assoc-default type helm-c-gtags-command-option-alist))
-        (abs-option (or (and (eq helm-c-gtags-path-style 'absolute) "-a") "")))
-    (format "global --result=grep %s %s %s" option abs-option input)))
+        (option (helm-c-source-gtags-construct-option type)))
+    (format "global --result=grep %s %s" option input)))
 
 (defun helm-c-source-gtags-tags-init ()
   (let ((cmd (helm-c-source-gtags-construct-command :tag)))
