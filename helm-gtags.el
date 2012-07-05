@@ -92,7 +92,8 @@
     (if tagname
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
     (message prompt)
-    (completing-read prompt comp-func nil nil nil gtags-history-list tagname)))
+    (let ((completion-ignore-case helm-c-gtags-ignore-case))
+      (completing-read prompt comp-func nil nil nil gtags-history-list tagname))))
 
 (defun helm-c-source-gtags-find-tag-directory ()
   (with-temp-buffer
