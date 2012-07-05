@@ -35,19 +35,31 @@ Input symbol and move to the locations.
 
     M-x helm-gtags-find-files
 
+Customize
+---------
+
+File path style, root or relative or absolute (Default is root)
+
+    helm-c-gtags-path-style
+
+Ignore case for searching flag (Default is nil)
+
+    helm-c-gtags-ignore-case
+
 
 Sample Configuration
 --------------------
-You add
 
     (require 'helm-config)
     (require 'helm-gtags)
 
     (add-hook 'c-mode-hook (lambda () (gtags-mode)))
 
-    ;; path-style is 'root, 'relative or 'absolute. Default is 'root
+    ;; customize
     (setq helm-c-gtags-path-style 'relative)
+    (setq helm-c-gtags-ignore-case t)
 
+    ;; key bindings
     (setq gtags-mode-hook
           '(lambda ()
              (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
