@@ -115,8 +115,11 @@
   (helm-c-source-gtags-find-tag-directory)
   (gtags-push-context)
   (with-current-buffer (helm-candidate-buffer 'global)
-    (let ((default-directory (helm-c-source-base-directory)))
-      (call-process-shell-command cmd nil t nil))))
+    (let ((default-directory (helm-c-source-base-directory))
+          (input (car (last (split-string cmd)))))
+      (call-process-shell-command cmd nil t nil)
+      (if (helm-empty-buffer-p (current-buffer))
+          (error (format "%s: not found" input))))))
 
 (defvar helm-c-gtags-command-option-alist
   '((:tag    . "")
