@@ -30,9 +30,7 @@
 ;;     (require 'helm-config)
 ;;     (require 'helm-gtags)
 ;;
-;;     (setq helm-c-gtags-path-style 'relative)
-;;
-;;     (setq gtags-mode-hook
+;;     (setq helm-gtags-mode-hook
 ;;           '(lambda ()
 ;;              (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
 ;;              (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
@@ -49,7 +47,6 @@
 
 (eval-when-compile (require 'cl))
 (require 'helm)
-(require 'gtags)
 
 (defgroup helm-gtags nil
   "GNU GLOBAL for helm"
@@ -61,7 +58,6 @@
                  (const :tag "Relative from the current directory" relative)
                  (const :tag "Absolute Path" absolute))
   :group 'helm-gtags)
-
 
 (defcustom helm-c-gtags-ignore-case nil
   "Ignore case in each search."
@@ -79,21 +75,59 @@
     (:symbol . "Find Symbol: ")
     (:file   . "Find File:")))
 
+;; completsion function for completing-read.
+(defun helm-c-gtags-completing-gtags (string predicate code)
+  (helm-c-gtags-complete :tag string predicate code))
+(defun helm-c-gtags-completing-grtags (string predicate code)
+  (helm-c-gtags-complete :rtag string predicate code))
+(defun helm-c-gtags-completing-gsyms (string predicate code)
+  (helm-c-gtags-complete :symbol string predicate code))
+(defun helm-c-gtags-completing-files (string predicate code)
+  (helm-c-gtags-complete :file string predicate code))
+
 (defvar helm-c-gtags-comp-func-alist
-  '((:tag    . gtags-completing-gtags)
-    (:rtag   . gtags-completing-grtags)
-    (:symbol . gtags-completing-gsyms)
-    (:file   . gtags-completing-files)))
+  '((:tag    . helm-c-gtags-completing-gtags)
+    (:rtag   . helm-c-gtags-completing-grtags)
+    (:symbol . helm-c-gtags-completing-gsyms)
+    (:file   . helm-c-gtags-completing-files)))
+
+(defun helm-c-gtags-construct-completion-command (type input)
+  (let ((option (helm-c-gtags-construct-option type t)))
+    (format "global %s %s" option input)))
+
+(defun helm-c-gtags-complete (type string predicate code)
+  (let ((candidates-list nil)
+        (cmd (helm-c-gtags-construct-completion-command type string)))
+    (with-temp-buffer
+      (call-process-shell-command cmd nil t nil)
+      (goto-char (point-min))
+      (while (re-search-forward "^\\(.+\\)$" nil t)
+        (push (buffer-substring-no-properties
+               (match-beginning 1) (match-end 1)) candidates-list)))
+    (cond ((eq code nil)
+           (try-completion string candidates-list predicate))
+          ((eq code t)
+           (all-completions string candidates-list predicate)))))
+
+(defun helm-c-gtags-token-at-point ()
+  (save-excursion
+    (let (start)
+      (if (looking-at "[a-zA-Z0-9_]")
+          (progn
+            (skip-chars-backward "a-zA-Z0-9_")
+            (setq start (point))
+            (skip-chars-forward "a-zA-Z0-9_")
+            (buffer-substring-no-properties start (point)))))))
 
 (defun helm-c-gtags-input (type)
-  (let ((tagname (gtags-current-token))
+  (let ((tagname (helm-c-gtags-token-at-point))
         (prompt (assoc-default type helm-c-gtags-prompt-alist))
         (comp-func (assoc-default type helm-c-gtags-comp-func-alist)))
     (if tagname
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
     (message prompt)
     (let ((completion-ignore-case helm-c-gtags-ignore-case))
-      (completing-read prompt comp-func nil nil nil gtags-history-list tagname))))
+      (completing-read prompt comp-func nil nil nil nil tagname))))
 
 (defun helm-c-gtags-find-tag-directory ()
   (with-temp-buffer
@@ -122,7 +156,7 @@
 (defun helm-c-gtags-pop-context ()
   (let ((file-and-point (pop helm-c-gtags-context-stack)))
     (unless file-and-point
-      (error "helm-gtags: context stack is empty"))
+      (error "helm-gtags: Context stack is empty"))
     (let ((file (car file-and-point))
           (curpoint (cdr file-and-point)))
       (find-file file)
@@ -144,11 +178,12 @@
     (:symbol . "-s")
     (:file   . "-Po")))
 
-(defun helm-c-gtags-construct-option (type)
+(defun helm-c-gtags-construct-option (type &optional comp)
   (let ((type-option (assoc-default type helm-c-gtags-command-option-alist))
         (abs-option (or (and (eq helm-c-gtags-path-style 'absolute) "-a") ""))
-        (case-option (or (and helm-c-gtags-ignore-case "-i") "")))
-    (format "%s %s %s" type-option abs-option case-option)))
+        (case-option (or (and helm-c-gtags-ignore-case "-i") ""))
+        (comp-option (or (and comp "-c") "")))
+    (format "%s %s %s %s" comp-option type-option abs-option case-option)))
 
 (defun helm-c-gtags-construct-command (type)
   (let ((input (helm-c-gtags-input type))
@@ -235,6 +270,16 @@
 (defun helm-gtags-pop-stack ()
   (interactive)
   (helm-c-gtags-pop-context))
+
+(defvar helm-c-gtags-mode-name "Helm-Gtags")
+(defvar helm-c-gtags-mode-map (make-sparse-keymap))
+
+(defun helm-gtags-mode ()
+  "Major mode for helm-gtags"
+  (setq mode-name helm-c-gtags-mode-name)
+  (setq major-mode 'helm-gtags-mode)
+  (use-local-map helm-c-gtags-mode-map)
+  (run-hooks 'helm-gtags-mode-hook))
 
 (provide 'helm-gtags)
 
