@@ -274,6 +274,7 @@
 (defvar helm-c-gtags-mode-name " Helm Gtags")
 (defvar helm-c-gtags-mode-map (make-sparse-keymap))
 
+;;;###autoload
 (define-minor-mode helm-gtags-mode ()
   "Enable for helm-gtags"
   :group      'helm-gtags
