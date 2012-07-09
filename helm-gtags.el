@@ -140,10 +140,14 @@
         (setq helm-c-global-tag-location
               (file-name-as-directory (buffer-substring cur (point))))))))
 
+(defvar helm-c-gtags-local-directory nil)
+
 (defun helm-c-gtags-base-directory ()
-  (case helm-c-gtags-path-style
-    (root helm-c-global-tag-location)
-    (otherwise default-directory)))
+  (cond (current-prefix-arg helm-c-gtags-local-directory)
+        (t
+         (case helm-c-gtags-path-style
+           (root helm-c-global-tag-location)
+           (otherwise default-directory)))))
 
 (defvar helm-c-gtags-context-stack nil)
 (defvar helm-c-gtags-saved-context nil)
@@ -164,6 +168,9 @@
 
 (defun helm-c-gtags-exec-global-command (cmd)
   (helm-c-gtags-find-tag-directory)
+  (if current-prefix-arg
+      (let ((dir (read-directory-name "Input Directory: ")))
+        (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
   (helm-c-gtags-save-current-context)
   (with-current-buffer (helm-candidate-buffer 'global)
     (let ((default-directory (helm-c-gtags-base-directory))
@@ -182,8 +189,10 @@
   (let ((type-option (assoc-default type helm-c-gtags-command-option-alist))
         (abs-option (or (and (eq helm-c-gtags-path-style 'absolute) "-a") ""))
         (case-option (or (and helm-c-gtags-ignore-case "-i") ""))
-        (comp-option (or (and comp "-c") "")))
-    (format "%s %s %s %s" comp-option type-option abs-option case-option)))
+        (comp-option (or (and comp "-c") ""))
+        (local-option (or (and current-prefix-arg "-l") "")))
+    (format "%s %s %s %s %s"
+            comp-option type-option abs-option case-option local-option)))
 
 (defun helm-c-gtags-construct-command (type)
   (let ((input (helm-c-gtags-input type))
