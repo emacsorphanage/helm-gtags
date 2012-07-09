@@ -276,6 +276,7 @@
 
 (defun helm-gtags-mode ()
   "Major mode for helm-gtags"
+  (interactive)
   (setq mode-name helm-c-gtags-mode-name)
   (setq major-mode 'helm-gtags-mode)
   (use-local-map helm-c-gtags-mode-map)
