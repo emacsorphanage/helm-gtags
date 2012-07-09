@@ -168,9 +168,6 @@
 
 (defun helm-c-gtags-exec-global-command (cmd)
   (helm-c-gtags-find-tag-directory)
-  (if current-prefix-arg
-      (let ((dir (read-directory-name "Input Directory: ")))
-        (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
   (helm-c-gtags-save-current-context)
   (with-current-buffer (helm-candidate-buffer 'global)
     (let ((default-directory (helm-c-gtags-base-directory))
@@ -195,6 +192,9 @@
             comp-option type-option abs-option case-option local-option)))
 
 (defun helm-c-gtags-construct-command (type)
+  (if current-prefix-arg
+      (let ((dir (read-directory-name "Input Directory: ")))
+        (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
   (let ((input (helm-c-gtags-input type))
         (option (helm-c-gtags-construct-option type)))
     (format "global --result=grep %s %s" option input)))
