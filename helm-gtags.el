@@ -187,7 +187,8 @@
         (abs-option (or (and (eq helm-c-gtags-path-style 'absolute) "-a") ""))
         (case-option (or (and helm-c-gtags-ignore-case "-i") ""))
         (comp-option (or (and comp "-c") ""))
-        (local-option (or (and current-prefix-arg "-l") "")))
+        (local-option (or (and current-prefix-arg
+                               (not (eq type :file)) "-l") "")))
     (format "%s %s %s %s %s"
             comp-option type-option abs-option case-option local-option)))
 
