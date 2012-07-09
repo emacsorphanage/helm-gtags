@@ -119,11 +119,14 @@
             (skip-chars-forward "a-zA-Z0-9_")
             (buffer-substring-no-properties start (point)))))))
 
+(defun helm-c-gtags-type-is-not-file-p (type)
+  (not (eq type :file)))
+
 (defun helm-c-gtags-input (type)
   (let ((tagname (helm-c-gtags-token-at-point))
         (prompt (assoc-default type helm-c-gtags-prompt-alist))
         (comp-func (assoc-default type helm-c-gtags-comp-func-alist)))
-    (if tagname
+    (if (and tagname (helm-c-gtags-type-is-not-file-p type))
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
     (message prompt)
     (let ((completion-ignore-case helm-c-gtags-ignore-case))
@@ -143,11 +146,10 @@
 (defvar helm-c-gtags-local-directory nil)
 
 (defun helm-c-gtags-base-directory ()
-  (cond (current-prefix-arg helm-c-gtags-local-directory)
-        (t
-         (case helm-c-gtags-path-style
-           (root helm-c-global-tag-location)
-           (otherwise default-directory)))))
+  (or helm-c-gtags-local-directory
+      (case helm-c-gtags-path-style
+        (root helm-c-global-tag-location)
+        (otherwise default-directory))))
 
 (defvar helm-c-gtags-context-stack nil)
 (defvar helm-c-gtags-saved-context nil)
@@ -188,12 +190,13 @@
         (case-option (or (and helm-c-gtags-ignore-case "-i") ""))
         (comp-option (or (and comp "-c") ""))
         (local-option (or (and current-prefix-arg
-                               (not (eq type :file)) "-l") "")))
+                               (helm-c-gtags-type-is-not-file-p type) "-l") "")))
     (format "%s %s %s %s %s"
             comp-option type-option abs-option case-option local-option)))
 
 (defun helm-c-gtags-construct-command (type)
-  (if current-prefix-arg
+  (setq helm-c-gtags-local-directory nil)
+  (if (and (helm-c-gtags-type-is-not-file-p type) current-prefix-arg)
       (let ((dir (read-directory-name "Input Directory: ")))
         (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
   (let ((input (helm-c-gtags-input type))
