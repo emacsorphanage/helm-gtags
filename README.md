@@ -6,6 +6,7 @@ Introduction
 `helm-gtags.el` is GNU GLOBAL helm interface.
 
 **helm-gtags.el** is not compatible **anything-gtags.el**
+
 `anything-gtags.el` is slow in large source tree such as Linux kernel,
 FreeBSD, Android etc. Because `anything-gtags.el` creates candidates
 by processing output of `gtags.el`. `helm-gtags.el` creates candidates
@@ -24,6 +25,10 @@ Requirements
 
 Basic Usage
 -----------
+
+Enable `helm-gtags-mode`
+
+    M-x helm-gtags-mode
 
 Input tag name and move to the definition
 
