@@ -111,9 +111,26 @@
     (root helm-c-global-tag-location)
     (otherwise default-directory)))
 
+(defvar helm-c-gtags-context-stack nil)
+(defvar helm-c-gtags-saved-context nil)
+
+(defun helm-c-source-gtags-save-current-context ()
+  (let ((file (buffer-file-name (current-buffer)))
+        (curpoint (point)))
+    (setf helm-c-gtags-saved-context (cons file curpoint))))
+
+(defun helm-c-source-gtags-pop-context ()
+  (let ((file-and-point (pop helm-c-gtags-context-stack)))
+    (unless file-and-point
+      (error "helm-gtags: context stack is empty"))
+    (let ((file (car file-and-point))
+          (curpoint (cdr file-and-point)))
+      (find-file file)
+      (goto-char curpoint))))
+
 (defun helm-c-source-exec-global-command (cmd)
   (helm-c-source-gtags-find-tag-directory)
-  (gtags-push-context)
+  (helm-c-source-gtags-save-current-context)
   (with-current-buffer (helm-candidate-buffer 'global)
     (let ((default-directory (helm-c-source-base-directory))
           (input (car (last (split-string cmd)))))
@@ -161,7 +178,8 @@
          (default-directory (helm-c-source-base-directory)))
     (find-file filename)
     (goto-char (point-min))
-    (forward-line (1- line))))
+    (forward-line (1- line))
+    (push helm-c-gtags-saved-context helm-c-gtags-context-stack)))
 
 (defvar helm-c-source-gtags-tags
   '((name . "GNU GLOBAL")
@@ -216,7 +234,7 @@
 
 (defun helm-gtags-pop-stack ()
   (interactive)
-  (gtags-pop-stack))
+  (helm-c-source-gtags-pop-context))
 
 (provide 'helm-gtags)
 
