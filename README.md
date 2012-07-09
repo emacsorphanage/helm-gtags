@@ -26,11 +26,11 @@ Requirements
 Basic Usage
 -----------
 
-Enable `helm-gtags-mode`
+Enable `helm-gtags-mode`.
 
     M-x helm-gtags-mode
 
-Input tag name and move to the definition
+Input tag name and move to the definition.
 
     M-x helm-gtags-find-tag
 
@@ -42,9 +42,13 @@ Input symbol and move to the locations.
 
     M-x helm-gtags-find-symbol
 
-Input file name and open it
+Input file name and open it.
 
     M-x helm-gtags-find-files
+
+If you use `C-u`(prefix argument) before `helm-gtags-find-(tag|rtag|symbol)` functions,
+then `helm-gtags.el` lets you input directory and searchs
+(definition|reference|symbol) under specified directory.
 
 Customize
 ---------
