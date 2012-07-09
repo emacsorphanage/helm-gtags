@@ -271,16 +271,18 @@
   (interactive)
   (helm-c-gtags-pop-context))
 
-(defvar helm-c-gtags-mode-name "Helm-Gtags")
+(defvar helm-c-gtags-mode-name " Helm Gtags")
 (defvar helm-c-gtags-mode-map (make-sparse-keymap))
 
-(defun helm-gtags-mode ()
-  "Major mode for helm-gtags"
-  (interactive)
-  (setq mode-name helm-c-gtags-mode-name)
-  (setq major-mode 'helm-gtags-mode)
-  (use-local-map helm-c-gtags-mode-map)
-  (run-hooks 'helm-gtags-mode-hook))
+(define-minor-mode helm-gtags-mode ()
+  "Enable for helm-gtags"
+  :group      'helm-gtags
+  :init-value nil
+  :global     nil
+  :keymap     helm-c-gtags-mode-map
+  :lighter    helm-c-gtags-mode-name
+  (if helm-gtags-mode
+      (run-hooks 'helm-gtags-mode-hook)))
 
 (provide 'helm-gtags)
 
