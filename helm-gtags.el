@@ -100,8 +100,7 @@
       (call-process-shell-command cmd nil t nil)
       (goto-char (point-min))
       (while (re-search-forward "^\\(.+\\)$" nil t)
-        (push (buffer-substring-no-properties
-               (match-beginning 1) (match-end 1)) candidates-list)))
+        (push (match-string 1) candidates-list)))
     (cond ((eq code nil)
            (try-completion string candidates-list predicate))
           ((eq code t)
