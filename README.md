@@ -61,6 +61,10 @@ Ignore case for searching flag (Default is nil)
 
     helm-c-gtags-ignore-case
 
+Readonly flag, when open file searched.
+
+    helm-c-gtags-read-only(Default is nil)
+
 
 Sample Configuration
 --------------------
@@ -73,6 +77,7 @@ Sample Configuration
     ;; customize
     (setq helm-c-gtags-path-style 'relative)
     (setq helm-c-gtags-ignore-case t)
+    (setq helm-c-gtags-read-only t)
 
     ;; key bindings
     (add-hook 'helm-gtags-mode-hook
