@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((helm "1.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,6 +39,9 @@
 ;;
 
 ;;; History:
+;; Revision 0.2  2012/07/17 syohex
+;; Implement read only flag
+;;
 ;; Revision 0.1  2012/07/16 syohex
 ;; Initial version
 ;;
@@ -61,6 +64,11 @@
 
 (defcustom helm-c-gtags-ignore-case nil
   "Ignore case in each search."
+  :type 'boolean
+  :group 'helm-gtags)
+
+(defcustom helm-c-gtags-read-only nil
+  "Gtags read only mode."
   :type 'boolean
   :group 'helm-gtags)
 
@@ -156,15 +164,24 @@
 (defun helm-c-gtags-save-current-context ()
   (let ((file (buffer-file-name (current-buffer)))
         (curpoint (point)))
-    (setf helm-c-gtags-saved-context (cons file curpoint))))
+    (setf helm-c-gtags-saved-context
+          `((:file . ,file)
+            (:point . ,curpoint)
+            (:readonly . ,buffer-file-read-only)))))
+
+(defun helm-c-gtags-open-file (file readonly)
+  (if readonly
+      (find-file-read-only file)
+    (find-file file)))
 
 (defun helm-c-gtags-pop-context ()
-  (let ((file-and-point (pop helm-c-gtags-context-stack)))
-    (unless file-and-point
+  (let ((context (pop helm-c-gtags-context-stack)))
+    (unless context
       (error "helm-gtags: Context stack is empty"))
-    (let ((file (car file-and-point))
-          (curpoint (cdr file-and-point)))
-      (find-file file)
+    (let ((file (assoc-default :file context))
+          (curpoint (assoc-default :point context))
+          (readonly (assoc-default :readonly context)))
+      (helm-c-gtags-open-file file readonly)
       (goto-char curpoint))))
 
 (defun helm-c-gtags-exec-global-command (cmd)
@@ -223,7 +240,7 @@
          (filename (first elems))
          (line (string-to-number (second elems)))
          (default-directory (helm-c-gtags-base-directory)))
-    (find-file filename)
+    (helm-c-gtags-open-file filename helm-c-gtags-read-only)
     (goto-char (point-min))
     (forward-line (1- line))
     (push helm-c-gtags-saved-context helm-c-gtags-context-stack)))
