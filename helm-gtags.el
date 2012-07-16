@@ -37,7 +37,7 @@
 ;;
 
 ;;; History:
-;; Revision 0.1  2012/07/???? syohex
+;; Revision 0.1  2012/07/16 syohex
 ;; Initial version
 ;;
 
