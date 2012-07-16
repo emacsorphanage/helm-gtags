@@ -12,8 +12,6 @@ FreeBSD, Android etc. Because `anything-gtags.el` creates candidates
 by processing output of `gtags.el`. `helm-gtags.el` creates candidates
 by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 
-*WARNINGS: THIS IS ALPHA VERSION.*
-
 
 Requirements
 ------------
