@@ -169,10 +169,18 @@
             (:point . ,curpoint)
             (:readonly . ,buffer-file-read-only)))))
 
+(defvar helm-c-gtags-use-otherwin nil)
+
 (defun helm-c-gtags-open-file (file readonly)
   (if readonly
       (find-file-read-only file)
     (find-file file)))
+
+(defun helm-c-gtags-open-file-other-window (file readonly)
+  (setq helm-c-gtags-use-otherwin nil)
+  (if readonly
+      (find-file-read-only-other-window file)
+    (find-file-other-window file)))
 
 (defun helm-c-gtags-pop-context ()
   (let ((context (pop helm-c-gtags-context-stack)))
@@ -210,21 +218,21 @@
     (format "%s %s %s %s %s"
             comp-option type-option abs-option case-option local-option)))
 
-(defun helm-c-gtags-construct-command (type)
+(defun helm-c-gtags-construct-command (type &optional in)
   (setq helm-c-gtags-local-directory nil)
   (if (and (helm-c-gtags-type-is-not-file-p type) current-prefix-arg)
       (let ((dir (read-directory-name "Input Directory: ")))
         (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
-  (let ((input (helm-c-gtags-input type))
+  (let ((input (or in (helm-c-gtags-input type)))
         (option (helm-c-gtags-construct-option type)))
     (format "global --result=grep %s %s" option input)))
 
-(defun helm-c-gtags-tags-init ()
-  (let ((cmd (helm-c-gtags-construct-command :tag)))
+(defun helm-c-gtags-tags-init (&optional input)
+  (let ((cmd (helm-c-gtags-construct-command :tag input)))
     (helm-c-gtags-exec-global-command cmd)))
 
-(defun helm-c-gtags-rtags-init ()
-  (let ((cmd (helm-c-gtags-construct-command :rtag)))
+(defun helm-c-gtags-rtags-init (&optional input)
+  (let ((cmd (helm-c-gtags-construct-command :rtag input)))
     (helm-c-gtags-exec-global-command cmd)))
 
 (defun helm-c-gtags-gsyms-init ()
@@ -239,8 +247,11 @@
   (let* ((elems (split-string elm ":"))
          (filename (first elems))
          (line (string-to-number (second elems)))
+         (open-func (if helm-c-gtags-use-otherwin
+                        #'helm-c-gtags-open-file-other-window
+                      #'helm-c-gtags-open-file))
          (default-directory (helm-c-gtags-base-directory)))
-    (helm-c-gtags-open-file filename helm-c-gtags-read-only)
+    (funcall open-func filename helm-c-gtags-read-only)
     (goto-char (point-min))
     (forward-line (1- line))
     (push helm-c-gtags-saved-context helm-c-gtags-context-stack)))
@@ -272,6 +283,52 @@
     (candidates-in-buffer)
     (candidate-number-limit . 9999)
     (action . helm-c-gtags-action-openfile)))
+
+(defun helm-gtags-select ()
+  (interactive)
+  (helm-c-gtags-common '(helm-c-source-gtags-select)))
+
+(defun helm-c-source-gtags-select-tag (candidate)
+  `((name . "GNU GLOBAL")
+    (init . (lambda ()
+              (helm-c-gtags-tags-init ,candidate)))
+    (candidates-in-buffer)
+    (candidate-number-limit . 9999)
+    (action . helm-c-gtags-action-openfile)))
+
+(defun helm-c-source-gtags-select-rtag (candidate)
+  `((name . "GNU GLOBAL")
+    (init . (lambda ()
+              (helm-c-gtags-rtags-init ,candidate)))
+    (candidates-in-buffer)
+    (candidate-number-limit . 9999)
+    (action . helm-c-gtags-action-openfile)))
+
+(defun helm-c-source-gtags-select-tag-action (c)
+  (helm-run-after-quit
+   `(lambda ()
+      (helm-c-gtags-common (list (helm-c-source-gtags-select-tag ,c))))))
+
+(defun helm-c-source-gtags-select-rtag-action (c)
+  (helm-run-after-quit
+   `(lambda ()
+      (helm-c-gtags-common (list (helm-c-source-gtags-select-rtag ,c))))))
+
+(defvar helm-c-source-gtags-select
+  '((name . "GNU GLOBAL SELECT")
+    (init .
+          (lambda ()
+            (with-current-buffer (helm-candidate-buffer 'global)
+              (call-process-shell-command "global -c" nil t nil))))
+    (candidates-in-buffer)
+    (candidate-number-limit . 9999)
+    (action . (("Goto the location" . helm-c-source-gtags-select-tag-action)
+               ("Goto the location(other buffer)" .
+                (lambda (c)
+                  (setq helm-c-gtags-use-otherwin t)
+                  (helm-c-source-gtags-select-tag-action c)))
+               ("Move to the referenced point" .
+                helm-c-source-gtags-select-rtag-action)))))
 
 (defun helm-c-gtags-common (srcs)
   (let ((helm-quit-if-no-candidate t)
