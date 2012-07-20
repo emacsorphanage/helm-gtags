@@ -39,6 +39,9 @@
 ;;
 
 ;;; History:
+;; Revision 0.3  2012/07/20 syohex
+;; Implement helm-gtags-select(Experimental)
+;;
 ;; Revision 0.2  2012/07/17 syohex
 ;; Implement read only flag
 ;;

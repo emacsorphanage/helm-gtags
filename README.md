@@ -16,6 +16,7 @@ by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 Requirements
 ------------
 * Emacs 22.1 or higher.
+* helm 1.0 or higher
 * GNU Global 5.7.1 or higher
 
 `helm-gtags.el` does not require `gtags.el`.
@@ -47,6 +48,11 @@ Input file name and open it.
 If you use `C-u`(prefix argument) before `helm-gtags-find-(tag|rtag|symbol)` functions,
 then `helm-gtags.el` lets you input directory and searchs
 (definition|reference|symbol) under specified directory.
+
+Tag jump using gtags and helm(experimental)
+
+    M-x helm-gtags-select
+
 
 Customize
 ---------
