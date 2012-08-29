@@ -138,8 +138,8 @@
         (comp-func (assoc-default type helm-c-gtags-comp-func-alist)))
     (if (and tagname (helm-c-gtags-type-is-not-file-p type))
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
-    (message prompt)
-    (let ((completion-ignore-case helm-c-gtags-ignore-case))
+    (let ((completion-ignore-case helm-c-gtags-ignore-case)
+          (completing-read-function 'completing-read-default))
       (completing-read prompt comp-func nil nil nil nil tagname))))
 
 (defun helm-c-gtags-find-tag-directory ()
