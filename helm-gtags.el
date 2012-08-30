@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Version: 0.2
+;; Version: 0.4
 ;; Package-Requires: ((helm "1.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,17 +36,6 @@
 ;;                  (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
 ;;                  (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
 ;;                  (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)))
-;;
-
-;;; History:
-;; Revision 0.3  2012/07/20 syohex
-;; Implement helm-gtags-select(Experimental)
-;;
-;; Revision 0.2  2012/07/17 syohex
-;; Implement read only flag
-;;
-;; Revision 0.1  2012/07/16 syohex
-;; Initial version
 ;;
 
 ;;; Code:

@@ -1,0 +1,13 @@
+Revision history for helm-gtags.el
+
+Revision 0.4 2012/08/30 syohex
+Fixed problem using helm-gtags.el with helm-mode
+
+Revision 0.3  2012/07/20 syohex
+Implement helm-gtags-select(Experimental)
+
+Revision 0.2  2012/07/17 syohex
+Implement read only flag
+
+Revision 0.1  2012/07/16 syohex
+Initial version
