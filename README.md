@@ -53,6 +53,11 @@ Tag jump using gtags and helm(experimental)
 
     M-x helm-gtags-select
 
+Move to previous point on the stack.
+helm-gtags pushes current point to stack before executing each jump functions.
+
+    M-x helm-gtags-pop-stack
+
 
 Customize
 ---------
