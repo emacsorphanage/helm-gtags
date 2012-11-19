@@ -329,23 +329,33 @@
     (helm :sources srcs
           :buffer buf)))
 
+;;;###autoload
 (defun helm-gtags-find-tag ()
+  "Jump to definition"
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-tags)))
 
+;;;###autoload
 (defun helm-gtags-find-rtag ()
+  "Jump to referenced point"
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-rtags)))
 
+;;;###autoload
 (defun helm-gtags-find-symbol ()
+  "Jump to the symbol location"
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-gsyms)))
 
+;;;###autoload
 (defun helm-gtags-find-files ()
+  "Find file with gnu global"
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-files)))
 
+;;;###autoload
 (defun helm-gtags-pop-stack ()
+  "Jump to previous point on the stack"
   (interactive)
   (helm-c-gtags-pop-context))
 
