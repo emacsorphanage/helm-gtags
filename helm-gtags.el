@@ -349,6 +349,12 @@
   (interactive)
   (helm-c-gtags-pop-context))
 
+;;;###autoload
+(defun helm-gtags-clear-stack ()
+  "Clear jumped point stack"
+  (interactive)
+  (setq helm-c-gtags-context-stack))
+
 (defvar helm-c-gtags-mode-name " Helm Gtags")
 (defvar helm-c-gtags-mode-map (make-sparse-keymap))
 
