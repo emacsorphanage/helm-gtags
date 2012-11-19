@@ -58,6 +58,10 @@ helm-gtags pushes current point to stack before executing each jump functions.
 
     M-x helm-gtags-pop-stack
 
+Clean helm point stack.
+
+    M-x helm-gtags-clear-stack
+
 
 Customize
 ---------
