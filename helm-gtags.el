@@ -111,12 +111,11 @@
 (defun helm-c-gtags-token-at-point ()
   (save-excursion
     (let (start)
-      (if (looking-at "[a-zA-Z0-9_]")
-          (progn
-            (skip-chars-backward "a-zA-Z0-9_")
-            (setq start (point))
-            (skip-chars-forward "a-zA-Z0-9_")
-            (buffer-substring-no-properties start (point)))))))
+      (when (looking-at "[a-zA-Z0-9_]")
+        (skip-chars-backward "a-zA-Z0-9_")
+        (setq start (point))
+        (skip-chars-forward "a-zA-Z0-9_")
+        (buffer-substring-no-properties start (point))))))
 
 (defun helm-c-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
@@ -125,8 +124,8 @@
   (let ((tagname (helm-c-gtags-token-at-point))
         (prompt (assoc-default type helm-c-gtags-prompt-alist))
         (comp-func (assoc-default type helm-c-gtags-comp-func-alist)))
-    (if (and tagname (helm-c-gtags-type-is-not-file-p type))
-        (setq prompt (format "%s(default \"%s\") " prompt tagname)))
+    (when (and tagname (helm-c-gtags-type-is-not-file-p type))
+      (setq prompt (format "%s(default \"%s\") " prompt tagname)))
     (let ((completion-ignore-case helm-c-gtags-ignore-case)
           (completing-read-function 'completing-read-default))
       (completing-read prompt comp-func nil nil nil nil tagname))))
@@ -191,8 +190,8 @@
     (let ((default-directory (helm-c-gtags-base-directory))
           (input (car (last (split-string cmd)))))
       (call-process-shell-command cmd nil t nil)
-      (if (helm-empty-buffer-p (current-buffer))
-          (error (format "%s: not found" input))))))
+      (when (helm-empty-buffer-p (current-buffer))
+        (error (format "%s: not found" input))))))
 
 (defvar helm-c-gtags-command-option-alist
   '((:tag    . "")
@@ -212,9 +211,9 @@
 
 (defun helm-c-gtags-construct-command (type &optional in)
   (setq helm-c-gtags-local-directory nil)
-  (if (and (helm-c-gtags-type-is-not-file-p type) current-prefix-arg)
-      (let ((dir (read-directory-name "Input Directory: ")))
-        (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
+  (when (and (helm-c-gtags-type-is-not-file-p type) current-prefix-arg)
+    (let ((dir (read-directory-name "Input Directory: ")))
+      (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
   (let ((input (or in (helm-c-gtags-input type)))
         (option (helm-c-gtags-construct-option type)))
     (when (string= input "")
@@ -378,8 +377,8 @@
   :global     nil
   :keymap     helm-c-gtags-mode-map
   :lighter    helm-c-gtags-mode-name
-  (if helm-gtags-mode
-      (run-hooks 'helm-gtags-mode-hook)))
+  (when helm-gtags-mode
+    (run-hooks 'helm-gtags-mode-hook)))
 
 (provide 'helm-gtags)
 
