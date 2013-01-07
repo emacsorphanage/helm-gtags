@@ -217,6 +217,8 @@
         (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
   (let ((input (or in (helm-c-gtags-input type)))
         (option (helm-c-gtags-construct-option type)))
+    (when (string= input "")
+      (error "Input is empty!!"))
     (format "global --result=grep %s %s" option input)))
 
 (defun helm-c-gtags-tags-init (&optional input)
