@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 0.6 2013/01/07 syohex
+  - Raise error if input string is empty
+  - Refactoring some functions
+
 Revision 0.5 2012/11/19 syohex
   - Add `helm-gtags-clear-stack' which clear point stack
   - Add function document
