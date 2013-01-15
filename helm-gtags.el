@@ -277,6 +277,7 @@
     (candidate-number-limit . 9999)
     (action . helm-c-gtags-action-openfile)))
 
+;;;###autoload
 (defun helm-gtags-select ()
   (interactive)
   (helm-c-gtags-common '(helm-c-source-gtags-select)))
