@@ -209,11 +209,16 @@
     (format "%s %s %s %s %s"
             comp-option type-option abs-option case-option local-option)))
 
+(defun helm-c-gtags-read-local-directory ()
+  (case (prefix-numeric-value current-prefix-arg)
+    (4 (let ((dir (read-directory-name "Input Directory: ")))
+         (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
+    (16 (file-name-directory (buffer-file-name)))))
+
 (defun helm-c-gtags-construct-command (type &optional in)
   (setq helm-c-gtags-local-directory nil)
   (when (and (helm-c-gtags-type-is-not-file-p type) current-prefix-arg)
-    (let ((dir (read-directory-name "Input Directory: ")))
-      (setq helm-c-gtags-local-directory (file-name-as-directory dir))))
+    (helm-c-gtags-read-local-directory))
   (let ((input (or in (helm-c-gtags-input type)))
         (option (helm-c-gtags-construct-option type)))
     (when (string= input "")
