@@ -48,6 +48,8 @@ Input file name and open it.
 If you use `C-u`(prefix argument) before `helm-gtags-find-(tag|rtag|symbol)` functions,
 then `helm-gtags.el` lets you input directory and searchs
 (definition|reference|symbol) under specified directory.
+And `helm-gtags.el` searchs them under current directory with
+`C-u C-u` prefix argument
 
 Tag jump using gtags and helm(experimental)
 
