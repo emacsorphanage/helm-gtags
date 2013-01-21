@@ -36,13 +36,17 @@
 ;;                  (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
 ;;                  (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
 ;;                  (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
-;;                  (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)))
+;;                  (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)
+;;                  (local-set-key (kbd "M-s") 'helm-gtags-find-files)))
 ;;
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl))
+
 (require 'helm)
+(require 'helm-files)
 
 (defgroup helm-gtags nil
   "GNU GLOBAL for helm"
@@ -65,7 +69,7 @@
   :type 'boolean
   :group 'helm-gtags)
 
-(defvar helm-c-global-tag-location nil
+(defvar helm-c-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
 (defvar helm-c-gtags-buffer "*helm gtags*")
@@ -74,7 +78,7 @@
   '((:tag    . "Find Definition: ")
     (:rtag   . "Find Reference: ")
     (:symbol . "Find Symbol: ")
-    (:file   . "Find File:")))
+    (:file   . "Find File: ")))
 
 ;; completsion function for completing-read.
 (defun helm-c-gtags-completing-gtags (string predicate code)
@@ -133,21 +137,20 @@
 
 (defun helm-c-gtags-find-tag-directory ()
   (with-temp-buffer
-    (let ((status (call-process "global" nil t nil "-p")))
-      (unless (= status 0)
+    (let ((status (call-process-shell-command "global -p" nil t)))
+      (unless (zerop status)
         (error "GTAGS not found"))
       (goto-char (point-min))
-      (let ((cur (point)))
-        (end-of-line)
-        (setq helm-c-global-tag-location
-              (file-name-as-directory (buffer-substring cur (point))))))))
+      (let ((tagroot (buffer-substring-no-properties
+                      (point) (line-end-position))))
+        (setq helm-c-gtags-tag-location (file-name-as-directory tagroot))))))
 
 (defvar helm-c-gtags-local-directory nil)
 
 (defun helm-c-gtags-base-directory ()
   (or helm-c-gtags-local-directory
       (case helm-c-gtags-path-style
-        (root helm-c-global-tag-location)
+        (root helm-c-gtags-tag-location)
         (otherwise default-directory))))
 
 (defvar helm-c-gtags-context-stack nil)
@@ -190,7 +193,7 @@
   (with-current-buffer (helm-candidate-buffer 'global)
     (let ((default-directory (helm-c-gtags-base-directory))
           (input (car (last (split-string cmd)))))
-      (call-process-shell-command cmd nil t nil)
+      (call-process-shell-command cmd nil t)
       (when (helm-empty-buffer-p (current-buffer))
         (error (format "%s: not found" input))))))
 
@@ -198,17 +201,18 @@
   '((:tag    . "")
     (:rtag   . "-r")
     (:symbol . "-s")
-    (:file   . "-Po")))
+    (:file   . "-Poa")))
 
 (defun helm-c-gtags-construct-option (type &optional comp)
-  (let ((type-option (assoc-default type helm-c-gtags-command-option-alist))
-        (abs-option (or (and (eq helm-c-gtags-path-style 'absolute) "-a") ""))
-        (case-option (or (and helm-c-gtags-ignore-case "-i") ""))
-        (comp-option (or (and comp "-c") ""))
-        (local-option (or (and current-prefix-arg
-                               (helm-c-gtags-type-is-not-file-p type) "-l") "")))
-    (format "%s %s %s %s %s"
-            comp-option type-option abs-option case-option local-option)))
+  (let ((type-opt (assoc-default type helm-c-gtags-command-option-alist))
+        (result-opt (or (and (eq type :file) "") "--result=grep"))
+        (abs-opt (or (and (eq helm-c-gtags-path-style 'absolute) "-a") ""))
+        (case-opt (or (and helm-c-gtags-ignore-case "-i") ""))
+        (comp-opt (or (and comp "-c") ""))
+        (local-opt (or (and current-prefix-arg
+                            (helm-c-gtags-type-is-not-file-p type) "-l") "")))
+    (format "%s %s %s %s %s %s"
+            result-opt comp-opt type-opt abs-opt case-opt local-opt)))
 
 (defun helm-c-gtags-read-local-directory ()
   (case (prefix-numeric-value current-prefix-arg)
@@ -224,7 +228,7 @@
         (option (helm-c-gtags-construct-option type)))
     (when (string= input "")
       (error "Input is empty!!"))
-    (format "global --result=grep %s %s" option input)))
+    (format "global %s %s" option input)))
 
 (defun helm-c-gtags-tags-init (&optional input)
   (let ((cmd (helm-c-gtags-construct-command :tag input)))
@@ -276,12 +280,17 @@
     (candidate-number-limit . 9999)
     (action . helm-c-gtags-action-openfile)))
 
+(defun helm-c-gtags-files-candidate-transformer (file)
+  (let ((removed-regexp (format "^%s" helm-c-gtags-tag-location)))
+    (replace-regexp-in-string removed-regexp "" file)))
+
 (defvar helm-c-source-gtags-files
   '((name . "GNU GLOBAL")
     (init . helm-c-gtags-files-init)
     (candidates-in-buffer)
+    (real-to-display . helm-c-gtags-files-candidate-transformer)
     (candidate-number-limit . 9999)
-    (action . helm-c-gtags-action-openfile)))
+    (type . file)))
 
 ;;;###autoload
 (defun helm-gtags-select ()
