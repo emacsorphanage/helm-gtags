@@ -5,7 +5,8 @@ Introduction
 ------------
 `helm-gtags.el` is GNU GLOBAL helm interface.
 
-**helm-gtags.el** is not compatible **anything-gtags.el**
+**helm-gtags.el** is not compatible **anything-gtags.el**.
+But `helm-gtags.el` is designed for fast search than `anything-gtags.el`.
 
 `anything-gtags.el` is slow in large source tree such as Linux kernel,
 FreeBSD, Android etc. Because `anything-gtags.el` creates candidates
@@ -101,5 +102,6 @@ Sample Configuration
               (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
               (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
               (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
-              (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)))
+              (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)
+              (local-set-key (kbd "C-c C-f") 'helm-gtags-pop-stack)))
 ````
