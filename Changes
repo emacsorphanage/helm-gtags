@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 0.7.1 2013/01/30 syohex
+  - Add history stack for completing-reading
+
 Revision 0.7.0 2013/01/21 syohex
   - Improve helm-gtags-find-files
     Use helm file action now
