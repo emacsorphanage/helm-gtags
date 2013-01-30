@@ -125,6 +125,8 @@
 (defun helm-c-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
 
+(defvar helm-c-gtags-completing-history nil)
+
 (defun helm-c-gtags-input (type)
   (let ((tagname (helm-c-gtags-token-at-point))
         (prompt (assoc-default type helm-c-gtags-prompt-alist))
@@ -133,7 +135,8 @@
       (setq prompt (format "%s(default \"%s\") " prompt tagname)))
     (let ((completion-ignore-case helm-c-gtags-ignore-case)
           (completing-read-function 'completing-read-default))
-      (completing-read prompt comp-func nil nil nil nil tagname))))
+      (completing-read prompt comp-func nil nil nil
+                       'helm-c-gtags-completing-history tagname))))
 
 (defun helm-c-gtags-find-tag-directory ()
   (with-temp-buffer
