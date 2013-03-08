@@ -1,6 +1,5 @@
 # helm-gtags.el
 
-
 ## Introduction
 `helm-gtags.el` is GNU GLOBAL helm interface.
 
