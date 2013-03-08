@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Version: 0.7.1
+;; Version: 0.8
 ;; Package-Requires: ((helm "1.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -229,16 +229,11 @@
     (format "%s %s %s %s %s %s"
             result-opt comp-opt type-opt abs-opt case-opt local-opt)))
 
-(defun helm-gtags-read-local-directory ()
-  (case (prefix-numeric-value current-prefix-arg)
-    (4 (let ((dir (read-directory-name "Input Directory: ")))
-         (setq helm-gtags-local-directory (file-name-as-directory dir))))
-    (16 (file-name-directory (buffer-file-name)))))
-
 (defun helm-gtags-construct-command (type &optional in)
   (setq helm-gtags-local-directory nil)
-  (when (and (helm-gtags-type-is-not-file-p type) current-prefix-arg)
-    (helm-gtags-read-local-directory))
+  (let ((dir (helm-attr 'helm-gtags-base-directory (helm-get-current-source))))
+    (when (and dir (helm-gtags-type-is-not-file-p type))
+      (setq helm-gtags-local-directory dir)))
   (let ((input (or in (helm-gtags-input type)))
         (option (helm-gtags-construct-option type)))
     (when (string= input "")
@@ -354,12 +349,22 @@
                ("Move to the referenced point" .
                 helm-source-gtags-select-rtag-action)))))
 
+(defun helm-gtags-searched-directory ()
+  (case (prefix-numeric-value current-prefix-arg)
+    (4 (let ((dir (read-directory-name "Input Directory: ")))
+         (setq helm-gtags-local-directory (file-name-as-directory dir))))
+    (16 (file-name-directory (buffer-file-name)))))
+
 (defun helm-gtags-common (srcs)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
-        (buf (get-buffer-create helm-gtags-buffer)))
-    (helm :sources srcs
-          :buffer buf)))
+        (buf (get-buffer-create helm-gtags-buffer))
+        (dir (helm-gtags-searched-directory))
+        (src (car srcs)))
+    (helm-attrset 'helm-gtags-base-directory dir (symbol-value src))
+    (helm-attrset 'name (format "Searched at %s" (or dir default-directory))
+                  (symbol-value src))
+    (helm :sources srcs :buffer buf)))
 
 ;;;###autoload
 (defun helm-gtags-find-tag ()

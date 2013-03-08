@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 0.8 2013/03/09 syohex
+  - Rename function and variable names for new helm naming convention
+  - Set name of helm source to searched directory
+
 Revision 0.7.1 2013/01/30 syohex
   - Add history stack for completing-reading
 
