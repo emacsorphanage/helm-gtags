@@ -71,15 +71,15 @@ Customize
 
 File path style, root or relative or absolute (Default is root)
 
-    helm-c-gtags-path-style
+    helm-gtags-path-style
 
 Ignore case for searching flag (Default is nil)
 
-    helm-c-gtags-ignore-case
+    helm-gtags-ignore-case
 
 Readonly flag, when open file searched.
 
-    helm-c-gtags-read-only(Default is nil)
+    helm-gtags-read-only(Default is nil)
 
 
 Sample Configuration
@@ -92,9 +92,9 @@ Sample Configuration
 (add-hook 'c-mode-hook (lambda () (helm-gtags-mode)))
 
 ;; customize
-(setq helm-c-gtags-path-style 'relative)
-(setq helm-c-gtags-ignore-case t)
-(setq helm-c-gtags-read-only t)
+(setq helm-gtags-path-style 'relative)
+(setq helm-gtags-ignore-case t)
+(setq helm-gtags-read-only t)
 
 ;; key bindings
 (add-hook 'helm-gtags-mode-hook
