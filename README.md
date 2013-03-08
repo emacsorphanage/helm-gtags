@@ -1,8 +1,7 @@
-helm-gtags.el
-==================
+# helm-gtags.el
 
-Introduction
-------------
+
+## Introduction
 `helm-gtags.el` is GNU GLOBAL helm interface.
 
 **helm-gtags.el** is not compatible **anything-gtags.el**.
@@ -14,8 +13,7 @@ by processing output of `gtags.el`. `helm-gtags.el` creates candidates
 by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 
 
-Requirements
-------------
+## Requirements
 * Emacs 22.1 or higher.
 * helm 1.0 or higher
 * GNU Global 5.7.1 or higher
@@ -23,8 +21,7 @@ Requirements
 `helm-gtags.el` does not require `gtags.el`.
 
 
-Basic Usage
------------
+## Basic Usage
 
 Enable `helm-gtags-mode`.
 
@@ -66,9 +63,7 @@ Clean helm point stack.
     M-x helm-gtags-clear-stack
 
 
-Customize
----------
-
+## Customize
 File path style, root or relative or absolute (Default is root)
 
     helm-gtags-path-style
@@ -82,10 +77,9 @@ Readonly flag, when open file searched.
     helm-gtags-read-only(Default is nil)
 
 
-Sample Configuration
---------------------
+## Sample Configuration
 
-```` elisp
+````elisp
 (require 'helm-config)
 (require 'helm-gtags)
 
