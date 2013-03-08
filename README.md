@@ -5,7 +5,7 @@
 `helm-gtags.el` is GNU GLOBAL helm interface.
 
 **helm-gtags.el** is not compatible **anything-gtags.el**.
-But `helm-gtags.el` is designed for fast search than `anything-gtags.el`.
+But `helm-gtags.el` is designed for faster search than `anything-gtags.el`.
 
 `anything-gtags.el` is slow in large source tree such as Linux kernel,
 FreeBSD, Android etc. Because `anything-gtags.el` creates candidates
