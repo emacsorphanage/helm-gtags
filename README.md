@@ -82,7 +82,10 @@ Readonly flag, when open file searched.
 (require 'helm-config)
 (require 'helm-gtags)
 
-(add-hook 'c-mode-hook (lambda () (helm-gtags-mode)))
+;;; Enable helm-gtags-mode
+(add-hook 'c-mode-hook 'helm-gtags-mode)
+(add-hook 'c++-mode-hook 'helm-gtags-mode)
+(add-hook 'asm-mode-hook 'helm-gtags-mode)
 
 ;; customize
 (setq helm-gtags-path-style 'relative)
