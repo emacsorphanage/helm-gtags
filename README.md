@@ -22,25 +22,25 @@ by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 
 ## Basic Usage
 
+#### helm-gtags-mode
+
 Enable `helm-gtags-mode`.
 
-    M-x helm-gtags-mode
+#### helm-gtags-find-tag
 
 Input tag name and move to the definition.
 
-    M-x helm-gtags-find-tag
+#### helm-gtags-find-rtag
 
 Input tag name and move to the referenced point.
 
-    M-x helm-gtags-find-rtag
+#### helm-gtags-find-symbol
 
 Input symbol and move to the locations.
 
-    M-x helm-gtags-find-symbol
+#### helm-gtags-find-files
 
 Input file name and open it.
-
-    M-x helm-gtags-find-files
 
 If you use `C-u`(prefix argument) before `helm-gtags-find-(tag|rtag|symbol)` functions,
 then `helm-gtags.el` lets you input directory and searchs
@@ -48,32 +48,33 @@ then `helm-gtags.el` lets you input directory and searchs
 And `helm-gtags.el` searchs them under current directory with
 `C-u C-u` prefix argument
 
+#### helm-gtags-select
+
 Tag jump using gtags and helm(experimental)
 
-    M-x helm-gtags-select
+#### helm-gtags-pop-stack
 
 Move to previous point on the stack.
 helm-gtags pushes current point to stack before executing each jump functions.
 
-    M-x helm-gtags-pop-stack
+#### helm-gtags-clear-stack
 
 Clean helm point stack.
 
-    M-x helm-gtags-clear-stack
-
 
 ## Customize
-File path style, root or relative or absolute (Default is root)
 
-    helm-gtags-path-style
+#### helm-gtags-path-style
 
-Ignore case for searching flag (Default is nil)
+File path style, `'root` or `'relative` or `'absolute`(Default is `'root`)
 
-    helm-gtags-ignore-case
+#### helm-gtags-ignore-case
 
-Readonly flag, when open file searched.
+Ignore case for searching flag (Default is `nil`)
 
-    helm-gtags-read-only(Default is nil)
+#### helm-gtags-read-only
+
+Open file as readonly, if this value is `non-nil`(Default is `nil`).
 
 
 ## Sample Configuration
