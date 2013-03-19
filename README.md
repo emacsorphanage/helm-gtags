@@ -104,6 +104,5 @@ Open file as readonly, if this value is `non-nil`(Default is `nil`).
               (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
               (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
               (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
-              (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)
-              (local-set-key (kbd "C-c C-f") 'helm-gtags-pop-stack)))
+              (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)))
 ````
