@@ -18,7 +18,7 @@ by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 
 
 ## Requirements
-* Emacs 22.1 or higher.
+* Emacs 23 or higher.
 * helm 1.0 or higher
 * GNU Global 5.7.1 or higher
 
