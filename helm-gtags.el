@@ -81,6 +81,12 @@
     (:symbol . "Find Symbol: ")
     (:file   . "Find File: ")))
 
+(defvar helm-gtags-completing-history nil)
+(defvar helm-gtags-context-stack nil)
+(defvar helm-gtags-saved-context nil)
+(defvar helm-gtags-use-otherwin nil)
+(defvar helm-gtags-local-directory nil)
+
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
      (defvaralias ,old ,new)
@@ -121,10 +127,9 @@
       (goto-char (point-min))
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (push (match-string 1) candidates-list)))
-    (cond ((eq code nil)
-           (try-completion string candidates-list predicate))
-          ((eq code t)
-           (all-completions string candidates-list predicate)))))
+    (if (not code)
+        (try-completion string candidates-list predicate)
+      (all-completions string candidates-list predicate))))
 
 (defun helm-gtags-token-at-point ()
   (save-excursion
@@ -135,10 +140,8 @@
         (skip-chars-forward "a-zA-Z0-9_")
         (buffer-substring-no-properties start (point))))))
 
-(defun helm-gtags-type-is-not-file-p (type)
+(defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
-
-(defvar helm-gtags-completing-history nil)
 
 (defun helm-gtags-input (type)
   (let ((tagname (helm-gtags-token-at-point))
@@ -161,23 +164,16 @@
                       (point) (line-end-position))))
         (setq helm-gtags-tag-location (file-name-as-directory tagroot))))))
 
-(defvar helm-gtags-local-directory nil)
-
 (defun helm-gtags-base-directory ()
   (or helm-gtags-local-directory
       (case helm-gtags-path-style
         (root helm-gtags-tag-location)
         (otherwise default-directory))))
 
-(defvar helm-gtags-context-stack nil)
-(defvar helm-gtags-saved-context nil)
-
 (defun helm-gtags-save-current-context ()
   (let ((file (buffer-file-name (current-buffer))))
     (setq helm-gtags-saved-context
           (list :file file :position (point) :readonly buffer-file-read-only))))
-
-(defvar helm-gtags-use-otherwin nil)
 
 (defun helm-gtags-open-file (file readonly)
   (if readonly
