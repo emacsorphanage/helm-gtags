@@ -62,6 +62,11 @@ Tag jump using gtags and helm(experimental)
 Move to previous point on the stack.
 helm-gtags pushes current point to stack before executing each jump functions.
 
+#### helm-gtags-show-stack
+
+Show context stack with helm interface.
+You can jump to the context.
+
 #### helm-gtags-clear-stack
 
 Clean helm point stack.

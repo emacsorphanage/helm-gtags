@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 0.9 2013/03/28 syohex
+  - implement `helm-gtags-show-stack'
+
 Revision 0.8 2013/03/09 syohex
   - Rename function and variable names for new helm naming convention
   - Set name of helm source to searched directory
