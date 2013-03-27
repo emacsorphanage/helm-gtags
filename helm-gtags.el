@@ -387,11 +387,10 @@
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
         (buf (get-buffer-create helm-gtags-buffer))
-        (dir (helm-gtags-searched-directory))
+        (dir (or (helm-gtags-searched-directory) default-directory))
         (src (car srcs)))
     (helm-attrset 'helm-gtags-base-directory dir (symbol-value src))
-    (helm-attrset 'name (format "Searched at %s" (or dir default-directory))
-                  (symbol-value src))
+    (helm-attrset 'name (format "Searched at %s" dir) (symbol-value src))
     (helm :sources srcs :buffer buf)))
 
 ;;;###autoload
