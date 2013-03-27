@@ -47,6 +47,7 @@
 
 (require 'helm)
 (require 'helm-files)
+(require 'which-func)
 
 (defgroup helm-gtags nil
   "GNU GLOBAL for helm"
@@ -172,12 +173,9 @@
 (defvar helm-gtags-saved-context nil)
 
 (defun helm-gtags-save-current-context ()
-  (let ((file (buffer-file-name (current-buffer)))
-        (curpoint (point)))
-    (setf helm-gtags-saved-context
-          `((:file . ,file)
-            (:point . ,curpoint)
-            (:readonly . ,buffer-file-read-only)))))
+  (let ((file (buffer-file-name (current-buffer))))
+    (setq helm-gtags-saved-context
+          (list :file file :position (point) :readonly buffer-file-read-only))))
 
 (defvar helm-gtags-use-otherwin nil)
 
@@ -196,9 +194,9 @@
   (let ((context (pop helm-gtags-context-stack)))
     (unless context
       (error "helm-gtags: Context stack is empty"))
-    (let ((file (assoc-default :file context))
-          (curpoint (assoc-default :point context))
-          (readonly (assoc-default :readonly context)))
+    (let ((file (plist-get context :file))
+          (curpoint (plist-get context :position))
+          (readonly (plist-get context :readonly)))
       (helm-gtags-open-file file readonly)
       (goto-char curpoint))))
 
@@ -269,6 +267,28 @@
     (forward-line (1- line))
     (push helm-gtags-saved-context helm-gtags-context-stack)))
 
+(defun helm-gtags-file-content-at-pos (file pos)
+  (with-current-buffer (find-file-noselect file)
+    (save-excursion
+      (goto-char pos)
+      (let ((curfunc (which-function))
+            (line (line-number-at-pos))
+            (content (or (buffer-substring-no-properties
+                          (line-beginning-position) (line-end-position))
+                         "")))
+        (format "%s:%d%s:%s\n"
+                file line
+                (helm-aif curfunc (format "[%s]" it) "")
+                content)))))
+
+(defun helm-gtags-show-stack-init ()
+  (with-current-buffer (helm-candidate-buffer 'global)
+    (loop for context in (reverse helm-gtags-context-stack)
+          for file = (plist-get context :file)
+          for pos  = (plist-get context :position)
+          do
+          (insert (helm-gtags-file-content-at-pos file pos)))))
+
 (defvar helm-source-gtags-tags
   '((name . "GNU GLOBAL")
     (init . helm-gtags-tags-init)
@@ -301,6 +321,14 @@
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . 9999)
     (type . file)))
+
+(defvar helm-source-gtags-show-stack
+  '((name . "Show Context Stack")
+    (init . helm-gtags-show-stack-init)
+    (candidates-in-buffer)
+    (real-to-display . helm-gtags-files-candidate-transformer)
+    (candidate-number-limit . 9999)
+    (action . helm-gtags-action-openfile)))
 
 ;;;###autoload
 (defun helm-gtags-select ()
@@ -395,6 +423,13 @@
   "Jump to previous point on the stack"
   (interactive)
   (helm-gtags-pop-context))
+
+;;;###autoload
+(defun helm-gtags-show-stack ()
+  "Show context stack"
+  (interactive)
+  (helm-other-buffer 'helm-source-gtags-show-stack
+                     (get-buffer-create helm-gtags-buffer)))
 
 ;;;###autoload
 (defun helm-gtags-clear-stack ()
