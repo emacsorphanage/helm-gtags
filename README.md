@@ -27,23 +27,23 @@ by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 
 ## Basic Usage
 
-#### helm-gtags-mode
+#### `helm-gtags-mode`
 
 Enable `helm-gtags-mode`.
 
-#### helm-gtags-find-tag
+#### `helm-gtags-find-tag`
 
 Input tag name and move to the definition.
 
-#### helm-gtags-find-rtag
+#### `helm-gtags-find-rtag`
 
 Input tag name and move to the referenced point.
 
-#### helm-gtags-find-symbol
+#### `helm-gtags-find-symbol`
 
 Input symbol and move to the locations.
 
-#### helm-gtags-find-files
+#### `helm-gtags-find-files`
 
 Input file name and open it.
 
@@ -53,36 +53,36 @@ then `helm-gtags.el` lets you input directory and searchs
 And `helm-gtags.el` searchs them under current directory with
 `C-u C-u` prefix argument
 
-#### helm-gtags-select
+#### `helm-gtags-select`
 
 Tag jump using gtags and helm(experimental)
 
-#### helm-gtags-pop-stack
+#### `helm-gtags-pop-stack`
 
 Move to previous point on the stack.
 helm-gtags pushes current point to stack before executing each jump functions.
 
-#### helm-gtags-show-stack
+#### `helm-gtags-show-stack`
 
 Show context stack with helm interface.
 You can jump to the context.
 
-#### helm-gtags-clear-stack
+#### `helm-gtags-clear-stack`
 
 Clean helm point stack.
 
 
 ## Customize
 
-#### helm-gtags-path-style
+#### `helm-gtags-path-style`
 
 File path style, `'root` or `'relative` or `'absolute`(Default is `'root`)
 
-#### helm-gtags-ignore-case
+#### `helm-gtags-ignore-case`
 
 Ignore case for searching flag (Default is `nil`)
 
-#### helm-gtags-read-only
+#### `helm-gtags-read-only`
 
 Open file as readonly, if this value is `non-nil`(Default is `nil`).
 
