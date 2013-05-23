@@ -444,7 +444,14 @@
 (defun helm-gtags-clear-stack ()
   "Clear jumped point stack"
   (interactive)
-  (setq helm-gtags-context-stack))
+  (let ((tag-location (helm-gtags-find-tag-directory)))
+    (puthash tag-location nil helm-gtags-context-stack)))
+
+;;;###autoload
+(defun helm-gtags-clear-all-stacks ()
+  "Clear all jumped point stacks"
+  (interactive)
+  (setq helm-gtags-context-stack (make-hash-table :test 'equal)))
 
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))

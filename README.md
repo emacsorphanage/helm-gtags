@@ -69,7 +69,11 @@ You can jump to the context.
 
 #### `helm-gtags-clear-stack`
 
-Clean helm point stack.
+Clear current context stack.
+
+### helm-gtags-clear-all-stacks
+
+Clear all context stacks.
 
 
 ## Customize
