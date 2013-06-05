@@ -47,11 +47,16 @@ Input symbol and move to the locations.
 
 Input file name and open it.
 
-If you use `C-u`(prefix argument) before `helm-gtags-find-(tag|rtag|symbol)` functions,
-then `helm-gtags.el` lets you input directory and searchs
-(definition|reference|symbol) under specified directory.
-And `helm-gtags.el` searchs them under current directory with
-`C-u C-u` prefix argument
+
+You can use those searching commands with prefix key.
+
+| Prefix Key  | Description                       |
+|:------------|:---------------------------------:|
+| C-u         | Searches from specified directory |
+| C-u C-u     | Searches under current directory  |
+| C--         | Jump to symbol with other window  |
+
+
 
 #### `helm-gtags-select`
 

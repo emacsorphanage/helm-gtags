@@ -266,8 +266,8 @@
          (filename (first elems))
          (line (string-to-number (second elems)))
          (open-func (if helm-gtags-use-otherwin
-                        #'helm-gtags-open-file-other-window
-                      #'helm-gtags-open-file))
+                        'helm-gtags-open-file-other-window
+                      'helm-gtags-open-file))
          (default-directory (helm-gtags-base-directory)))
     (funcall open-func filename helm-gtags-read-only)
     (goto-char (point-min))
@@ -391,12 +391,17 @@
          (setq helm-gtags-local-directory (file-name-as-directory dir))))
     (16 (file-name-directory (buffer-file-name)))))
 
+(defsubst helm-gtags--using-other-window-p ()
+  (< (prefix-numeric-value current-prefix-arg) 0))
+
 (defun helm-gtags-common (srcs)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
         (buf (get-buffer-create helm-gtags-buffer))
         (dir (helm-gtags-searched-directory))
         (src (car srcs)))
+    (when (helm-gtags--using-other-window-p)
+      (setq helm-gtags-use-otherwin t))
     (helm-attrset 'helm-gtags-base-directory dir (symbol-value src))
     (helm-attrset 'name
                   (format "Searched at %s" (or dir default-directory))
