@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 0.9.3 2013/06/07 syohex
+  - Open other window if command has 'C--'(minus) prefix.
+
 Revision 0.9.2 2013/05/24 syohex
   - Context stack is allocated per GTAGS location
 
