@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 0.9.4 2013/06/26 syohex
+  - Implement helm-gtags-parse-file(EXPERIMENTAL)
+
 Revision 0.9.3 2013/06/07 syohex
   - Open other window if command has 'C--'(minus) prefix.
 
