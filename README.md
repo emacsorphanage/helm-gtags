@@ -62,6 +62,11 @@ You can use those searching commands with prefix key.
 
 Tag jump using gtags and helm(experimental)
 
+#### `helm-gtags-parse-file`
+
+Show symbols in current file like `gtags-parse-file`. You can choose
+any files with `C-u` prefix.
+
 #### `helm-gtags-pop-stack`
 
 Move to previous point on the stack.
@@ -118,5 +123,6 @@ Open file as readonly, if this value is `non-nil`(Default is `nil`).
               (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
               (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
               (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
+              (local-set-key (kbd "M-g M-p") 'helm-gtags-parse-file)
               (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)))
 ```
