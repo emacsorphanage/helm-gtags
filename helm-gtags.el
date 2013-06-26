@@ -86,6 +86,7 @@
 (defvar helm-gtags-saved-context nil)
 (defvar helm-gtags-use-otherwin nil)
 (defvar helm-gtags-local-directory nil)
+(defvar helm-gtags-parsed-file nil)
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -256,23 +257,41 @@
   (let ((cmd (helm-gtags-construct-command :file)))
     (helm-gtags-exec-global-command cmd)))
 
+(defun helm-gtags-parse-file-init ()
+  (let ((cmd (concat "global --result cscope -f " helm-gtags-parsed-file)))
+    (with-current-buffer (helm-candidate-buffer 'global)
+      (unless (zerop (call-process-shell-command cmd nil t))
+        (error "Failed: %s" cmd)))))
+
 (defun helm-gtags-push-context (context)
   (let ((stack (gethash helm-gtags-tag-location helm-gtags-context-stack)))
     (push context stack)
     (puthash helm-gtags-tag-location stack helm-gtags-context-stack)))
 
+(defun helm-gtags-select-find-file-func ()
+  (if helm-gtags-use-otherwin
+      'helm-gtags-open-file-other-window
+    'helm-gtags-open-file))
+
+(defun helm-gtags-do-open-file (open-func file line)
+  (funcall open-func file helm-gtags-read-only)
+  (goto-char (point-min))
+  (forward-line (1- line))
+  (helm-gtags-push-context helm-gtags-saved-context))
+
+(defun helm-gtags-parse-file-action (cand)
+  (let ((line (when (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)
+                (string-to-number (match-string-no-properties 1 cand))))
+        (open-func (helm-gtags-select-find-file-func)))
+    (helm-gtags-do-open-file open-func helm-gtags-parsed-file line)))
+
 (defun helm-gtags-action-openfile (elm)
   (let* ((elems (split-string elm ":"))
          (filename (first elems))
          (line (string-to-number (second elems)))
-         (open-func (if helm-gtags-use-otherwin
-                        'helm-gtags-open-file-other-window
-                      'helm-gtags-open-file))
+         (open-func (helm-gtags-select-find-file-func))
          (default-directory (helm-gtags-base-directory)))
-    (funcall open-func filename helm-gtags-read-only)
-    (goto-char (point-min))
-    (forward-line (1- line))
-    (helm-gtags-push-context helm-gtags-saved-context)))
+    (helm-gtags-do-open-file open-func filename line)))
 
 (defun helm-gtags-file-content-at-pos (file pos)
   (with-current-buffer (find-file-noselect file)
@@ -322,6 +341,14 @@
   (let ((removed-regexp (format "^%s" helm-gtags-tag-location)))
     (replace-regexp-in-string removed-regexp "" file)))
 
+(defun helm-gtags-parse-file-candidate-transformer (file)
+  (let ((removed-file (replace-regexp-in-string "\\`\\S-+ " "" file)))
+    (when (string-match "\\`\\(\\S-+\\) \\(\\S-+\\) \\(.+\\)\\'" removed-file)
+      (format "%-25s %-5s %s"
+              (match-string-no-properties 1 removed-file)
+              (match-string-no-properties 2 removed-file)
+              (match-string-no-properties 3 removed-file)))))
+
 (defvar helm-source-gtags-files
   '((name . "GNU GLOBAL")
     (init . helm-gtags-files-init)
@@ -329,6 +356,14 @@
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . 9999)
     (type . file)))
+
+(defvar helm-source-gtags-parse-file
+  '((name . "Parsed File")
+    (init . helm-gtags-parse-file-init)
+    (candidates-in-buffer)
+    (real-to-display . helm-gtags-parse-file-candidate-transformer)
+    (action . helm-gtags-parse-file-action)
+    (candidate-number-limit . 9999)))
 
 (defvar helm-source-gtags-show-stack
   '((name . "Show Context Stack")
@@ -431,6 +466,30 @@
   "Find file with gnu global"
   (interactive)
   (helm-gtags-common '(helm-source-gtags-files)))
+
+(defun helm-gtags-set-parsed-file ()
+  (let* ((this-file (file-name-nondirectory (buffer-file-name)))
+         (file (if current-prefix-arg
+                   (read-file-name "Parsed File: " nil this-file)
+                 this-file)))
+    (setq helm-gtags-parsed-file (expand-file-name file))))
+
+;;;###autoload
+(defun helm-gtags-parse-file ()
+  "Find file with gnu global"
+  (interactive)
+  (helm-gtags-find-tag-directory)
+  (helm-gtags-save-current-context)
+  (when (helm-gtags--using-other-window-p)
+    (setq helm-gtags-use-otherwin t))
+  (helm-gtags-set-parsed-file)
+  (helm-attrset 'name
+                (format "Parsed File: %s"
+                        (file-relative-name helm-gtags-parsed-file
+                                            helm-gtags-tag-location))
+                helm-source-gtags-parse-file)
+  (helm :sources '(helm-source-gtags-parse-file)
+        :buffer (get-buffer-create helm-gtags-buffer)))
 
 ;;;###autoload
 (defun helm-gtags-pop-stack ()
