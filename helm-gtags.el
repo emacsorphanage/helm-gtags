@@ -435,12 +435,14 @@
         (buf (get-buffer-create helm-gtags-buffer))
         (dir (helm-gtags-searched-directory))
         (src (car srcs)))
+    (when (symbolp src)
+      (setq src (symbol-value src)))
     (when (helm-gtags--using-other-window-p)
       (setq helm-gtags-use-otherwin t))
-    (helm-attrset 'helm-gtags-base-directory dir (symbol-value src))
+    (helm-attrset 'helm-gtags-base-directory dir src)
     (helm-attrset 'name
                   (format "Searched at %s" (or dir default-directory))
-                  (symbol-value src))
+                  src)
     (helm :sources srcs :buffer buf)))
 
 ;;;###autoload
