@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 0.9.5 2013/07/17 syohex
+  - fix helm-gtags-select error(Thanks f-kubotar)
+
 Revision 0.9.4 2013/06/26 syohex
   - Implement helm-gtags-parse-file(EXPERIMENTAL)
 
