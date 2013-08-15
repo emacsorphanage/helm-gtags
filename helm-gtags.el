@@ -70,6 +70,11 @@
   :type 'boolean
   :group 'helm-gtags)
 
+(defcustom helm-gtags-auto-update nil
+  "*If non-nil, tag files are updated whenever a file is saved."
+  :type 'boolean
+  :group 'helm-gtags)
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -545,8 +550,14 @@
   :global     nil
   :keymap     helm-gtags-mode-map
   :lighter    helm-gtags-mode-name
-  (when helm-gtags-mode
-    (run-hooks 'helm-gtags-mode-hook)))
+  (if helm-gtags-mode
+      (progn
+        (run-hooks 'helm-gtags-mode-hook)
+        (when helm-gtags-auto-update
+          (add-hook 'after-save-hook 'helm-gtags-update-tags nil t)))
+    (progn
+      (when helm-gtags-auto-update
+        (remove-hook 'after-save-hook 'helm-gtags-update-tags t)))))
 
 (provide 'helm-gtags)
 
