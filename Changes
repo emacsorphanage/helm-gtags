@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 0.9.7 2013/08/15 syohex
+  - Implement function which provides update TAGS, and auto update.
+
 Revision 0.9.6 2013/07/31 syohex
   - fix encoding problem
 

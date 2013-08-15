@@ -62,6 +62,12 @@ You can use those searching commands with prefix key.
 
 Tag jump using gtags and helm(experimental)
 
+
+#### `helm-gtags-update-tags`
+
+Update TAG file. Default is update only current file,
+You can update all files with `C-u` prefix.
+
 #### `helm-gtags-parse-file`
 
 Show symbols in current file like `gtags-parse-file`. You can choose
@@ -86,7 +92,7 @@ Clear current context stack.
 Clear all context stacks.
 
 
-## Customize
+## Customize Variables
 
 #### `helm-gtags-path-style`
 
@@ -100,6 +106,10 @@ Ignore case for searching flag (Default is `nil`)
 
 Open file as readonly, if this value is `non-nil`(Default is `nil`).
 
+
+#### `helm-gtags-auto-update`
+
+If this variable is non-nil, TAG file is updated after saving buffer.
 
 ## Sample Configuration
 
@@ -116,6 +126,7 @@ Open file as readonly, if this value is `non-nil`(Default is `nil`).
 (setq helm-gtags-path-style 'relative)
 (setq helm-gtags-ignore-case t)
 (setq helm-gtags-read-only t)
+(setq helm-gtags-auto-update t)
 
 ;; key bindings
 (add-hook 'helm-gtags-mode-hook

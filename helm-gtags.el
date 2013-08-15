@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Version: 0.9.6
+;; Version: 0.9.7
 ;; Package-Requires: ((helm "1.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -67,6 +67,11 @@
 
 (defcustom helm-gtags-read-only nil
   "Gtags read only mode."
+  :type 'boolean
+  :group 'helm-gtags)
+
+(defcustom helm-gtags-auto-update nil
+  "*If non-nil, tag files are updated whenever a file is saved."
   :type 'boolean
   :group 'helm-gtags)
 
@@ -522,6 +527,18 @@
   (interactive)
   (setq helm-gtags-context-stack (make-hash-table :test 'equal)))
 
+;;;###autoload
+(defun helm-gtags-update-tags ()
+  "Update TAG file"
+  (interactive)
+  (when (or (buffer-file-name) current-prefix-arg)
+    (let ((cmd (format "global -u %s"
+                       (if current-prefix-arg
+                           ""
+                         (format "--single-update=%s" (buffer-file-name))))))
+      (when (not (zerop (call-process-shell-command cmd)))
+        (message "Failed: %s" cmd)))))
+
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
 
@@ -533,8 +550,14 @@
   :global     nil
   :keymap     helm-gtags-mode-map
   :lighter    helm-gtags-mode-name
-  (when helm-gtags-mode
-    (run-hooks 'helm-gtags-mode-hook)))
+  (if helm-gtags-mode
+      (progn
+        (run-hooks 'helm-gtags-mode-hook)
+        (when helm-gtags-auto-update
+          (add-hook 'after-save-hook 'helm-gtags-update-tags nil t)))
+    (progn
+      (when helm-gtags-auto-update
+        (remove-hook 'after-save-hook 'helm-gtags-update-tags t)))))
 
 (provide 'helm-gtags)
 
