@@ -522,6 +522,18 @@
   (interactive)
   (setq helm-gtags-context-stack (make-hash-table :test 'equal)))
 
+;;;###autoload
+(defun helm-gtags-update-tags ()
+  "Update TAG file"
+  (interactive)
+  (when (or (buffer-file-name) current-prefix-arg)
+    (let ((cmd (format "global -u %s"
+                       (if current-prefix-arg
+                           ""
+                         (format "--single-update=%s" (buffer-file-name))))))
+      (when (not (zerop (call-process-shell-command cmd)))
+        (message "Failed: %s" cmd)))))
+
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
 
