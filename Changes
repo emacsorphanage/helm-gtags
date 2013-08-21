@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 0.9.8 2013/08/22 syohex
+  - Improve function which updates TAGS
+    (Synchronous -> Asynchronous)
+
 Revision 0.9.7 2013/08/15 syohex
   - Implement function which provides update TAGS, and auto update.
 
