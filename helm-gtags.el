@@ -527,17 +527,27 @@
   (interactive)
   (setq helm-gtags-context-stack (make-hash-table :test 'equal)))
 
+(defun helm-gtags--update-tags-sentinel (process state)
+  (when (eq (process-status process) 'exit)
+    (if (zerop (process-exit-status process))
+        (message "Update TAGS successfully")
+      (message "Failed to update TAGS"))))
+
+(defsubst helm-gtags--update-tags-command (single-update)
+  (format "global -u %s" (if single-update
+                             ""
+                           (concat "--single-update=" (buffer-file-name)))))
+
 ;;;###autoload
 (defun helm-gtags-update-tags ()
-  "Update TAG file"
+  "Update TAG file. Update All files with `C-u' prefix"
   (interactive)
   (when (or (buffer-file-name) current-prefix-arg)
-    (let ((cmd (format "global -u %s"
-                       (if current-prefix-arg
-                           ""
-                         (format "--single-update=%s" (buffer-file-name))))))
-      (when (not (zerop (call-process-shell-command cmd)))
-        (message "Failed: %s" cmd)))))
+    (let* ((cmd (helm-gtags--update-tags-command current-prefix-arg))
+           (proc (start-process-shell-command "helm-gtags-update" nil cmd)))
+      (unless proc
+        (message "Failed: '%s'" cmd))
+      (set-process-sentinel proc 'helm-gtags--update-tags-sentinel))))
 
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
