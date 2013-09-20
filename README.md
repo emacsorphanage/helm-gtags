@@ -135,5 +135,5 @@ If this variable is non-nil, TAG file is updated after saving buffer.
               (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
               (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
               (local-set-key (kbd "M-g M-p") 'helm-gtags-parse-file)
-              (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)))
+              (local-set-key (kbd "M-,") 'helm-gtags-pop-stack)))
 ```
