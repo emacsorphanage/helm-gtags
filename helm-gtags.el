@@ -265,23 +265,14 @@
   (let ((cmd (helm-gtags-construct-command :file)))
     (helm-gtags-exec-global-command cmd)))
 
-(defun helm-gtags-current-lineno ()
-  ; this is taken from original gtags.el
-  (if (= 0 (count-lines (point-min) (point-max)))
-      0
-    (save-excursion
-      (end-of-line)
-      (if (equal (point-min) (point))
-          1
-        (count-lines (point-min) (point))))))
-
 (defun helm-gtags-find-tag-from-here-init ()
   (helm-gtags-find-tag-directory)
   (helm-gtags-save-current-context)
-  (let ((cmd (format "global --result=grep --from-here=%s:%s %s"
-		     (number-to-string (helm-gtags-current-lineno))
-		     (buffer-file-name)
-		     (helm-gtags-token-at-point))))
+  (let* ((token (helm-gtags-token-at-point))
+         (cmd (format "global --result=grep --from-here=%d:%s %s"
+                      (line-number-at-pos)
+                      (buffer-file-name)
+                      token)))
     (with-current-buffer (helm-candidate-buffer 'global)
       (let ((default-directory (helm-gtags-base-directory)))
 	(call-process-shell-command cmd nil t)
