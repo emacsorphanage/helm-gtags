@@ -265,6 +265,29 @@
   (let ((cmd (helm-gtags-construct-command :file)))
     (helm-gtags-exec-global-command cmd)))
 
+(defun helm-gtags-current-lineno ()
+  ; this is taken from original gtags.el
+  (if (= 0 (count-lines (point-min) (point-max)))
+      0
+    (save-excursion
+      (end-of-line)
+      (if (equal (point-min) (point))
+          1
+        (count-lines (point-min) (point))))))
+
+(defun helm-gtags-find-tag-from-here-init ()
+  (helm-gtags-find-tag-directory)
+  (helm-gtags-save-current-context)
+  (let ((cmd (format "global --result=grep --from-here=%s:%s %s"
+		     (number-to-string (helm-gtags-current-lineno))
+		     (buffer-file-name)
+		     (helm-gtags-token-at-point))))
+    (with-current-buffer (helm-candidate-buffer 'global)
+      (let ((default-directory (helm-gtags-base-directory)))
+	(call-process-shell-command cmd nil t)
+	(when (helm-empty-buffer-p (current-buffer))
+	  (error (format "%s: not found")))))))
+
 (defun helm-gtags-parse-file-init ()
   (let ((cmd (concat "global --result cscope -f " helm-gtags-parsed-file)))
     (with-current-buffer (helm-candidate-buffer 'global)
@@ -364,6 +387,13 @@
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . 9999)
     (type . file)))
+
+(defvar helm-source-gtags-find-targ-from-here
+  '((name . "GNU GLOBAL")
+    (init . helm-gtags-find-tag-from-here-init)
+    (candidates-in-buffer)
+    (candidate-number-limit . 9999)
+    (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-parse-file
   '((name . "Parsed File")
@@ -476,6 +506,12 @@
   "Find file with gnu global"
   (interactive)
   (helm-gtags-common '(helm-source-gtags-files)))
+
+;;;###autoload
+(defun helm-gtags-find-tag-from-here ()
+  "Find from here with gnu global"
+  (interactive)
+  (helm-gtags-common '(helm-source-gtags-find-targ-from-here)))
 
 (defun helm-gtags-set-parsed-file ()
   (let* ((this-file (file-name-nondirectory (buffer-file-name)))
