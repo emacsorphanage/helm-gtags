@@ -35,6 +35,10 @@ Enable `helm-gtags-mode`.
 
 Input tag name and move to the definition.
 
+#### `helm-gtags-find-tag-from-here`
+
+Find tag from here and move to its definition.
+
 #### `helm-gtags-find-rtag`
 
 Input tag name and move to the referenced point.
@@ -87,7 +91,7 @@ You can jump to the context.
 
 Clear current context stack.
 
-### helm-gtags-clear-all-stacks
+#### `helm-gtags-clear-all-stacks`
 
 Clear all context stacks.
 
