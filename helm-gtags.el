@@ -275,9 +275,9 @@
                       token)))
     (with-current-buffer (helm-candidate-buffer 'global)
       (let ((default-directory (helm-gtags-base-directory)))
-	(call-process-shell-command cmd nil t)
-	(when (helm-empty-buffer-p (current-buffer))
-	  (error (format "%s: not found")))))))
+        (call-process-shell-command cmd nil t)
+        (when (helm-empty-buffer-p (current-buffer))
+          (error "%s: not found" token))))))
 
 (defun helm-gtags-parse-file-init ()
   (let ((cmd (concat "global --result cscope -f " helm-gtags-parsed-file)))
