@@ -338,11 +338,22 @@
             do
             (insert (helm-gtags-file-content-at-pos file pos))))))
 
+(defun helm-gtags-tags-persistent-action (cand)
+  (let* ((elems (split-string cand ":"))
+         (filename (first elems))
+         (line (string-to-number (second elems)))
+         (default-directory (helm-gtags-base-directory)))
+    (find-file filename)
+    (goto-char (point-min))
+    (forward-line (1- line))
+    (helm-match-line-color-current-line)))
+
 (defvar helm-source-gtags-tags
   '((name . "GNU GLOBAL")
     (init . helm-gtags-tags-init)
     (candidates-in-buffer)
     (candidate-number-limit . 9999)
+    (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-rtags
@@ -350,6 +361,7 @@
     (init . helm-gtags-rtags-init)
     (candidates-in-buffer)
     (candidate-number-limit . 9999)
+    (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-gsyms
@@ -357,6 +369,7 @@
     (init . helm-gtags-gsyms-init)
     (candidates-in-buffer)
     (candidate-number-limit . 9999)
+    (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defun helm-gtags-files-candidate-transformer (file)
