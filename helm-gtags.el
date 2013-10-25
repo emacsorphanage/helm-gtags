@@ -392,7 +392,7 @@
     (candidate-number-limit . 9999)
     (type . file)))
 
-(defvar helm-source-gtags-find-targ-from-here
+(defvar helm-source-gtags-find-tag-from-here
   '((name . "GNU GLOBAL")
     (init . helm-gtags-find-tag-from-here-init)
     (candidates-in-buffer)
@@ -519,7 +519,7 @@
 (defun helm-gtags-find-tag-from-here ()
   "Find from here with gnu global"
   (interactive)
-  (helm-gtags-common '(helm-source-gtags-find-targ-from-here)))
+  (helm-gtags-common '(helm-source-gtags-find-tag-from-here)))
 
 (defun helm-gtags-set-parsed-file ()
   (let* ((this-file (file-name-nondirectory (buffer-file-name)))
