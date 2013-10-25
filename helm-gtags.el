@@ -392,11 +392,12 @@
     (candidate-number-limit . 9999)
     (type . file)))
 
-(defvar helm-source-gtags-find-targ-from-here
+(defvar helm-source-gtags-find-tag-from-here
   '((name . "GNU GLOBAL")
     (init . helm-gtags-find-tag-from-here-init)
     (candidates-in-buffer)
     (candidate-number-limit . 9999)
+    (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-parse-file
@@ -413,6 +414,7 @@
     (candidates-in-buffer)
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . 9999)
+    (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 ;;;###autoload
@@ -426,6 +428,7 @@
               (helm-gtags-tags-init ,candidate)))
     (candidates-in-buffer)
     (candidate-number-limit . 9999)
+    (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defun helm-source-gtags-select-rtag (candidate)
@@ -434,6 +437,7 @@
               (helm-gtags-rtags-init ,candidate)))
     (candidates-in-buffer)
     (candidate-number-limit . 9999)
+    (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defun helm-source-gtags-select-tag-action (c)
@@ -515,7 +519,7 @@
 (defun helm-gtags-find-tag-from-here ()
   "Find from here with gnu global"
   (interactive)
-  (helm-gtags-common '(helm-source-gtags-find-targ-from-here)))
+  (helm-gtags-common '(helm-source-gtags-find-tag-from-here)))
 
 (defun helm-gtags-set-parsed-file ()
   (let* ((this-file (file-name-nondirectory (buffer-file-name)))
