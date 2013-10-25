@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.0.0 2013/10/25 syohex
+  - Add highlight line feature at persistent action
+
 Revision 0.9.9 2013/09/25 syohex
   - Implement helm-gtags-find-tag-from-here by pekatuu
 
