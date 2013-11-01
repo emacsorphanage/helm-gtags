@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.0.2 2013/11/01 syohex
+  - Add command helm-gtags-select-path(Thanks lbsx)
+
 Revision 1.0.1 2013/10/26 syohex
   - Improve for persistent action(Thanks lbsx)
 
