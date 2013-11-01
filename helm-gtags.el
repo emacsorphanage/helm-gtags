@@ -422,6 +422,11 @@
   (interactive)
   (helm-gtags-common '(helm-source-gtags-select)))
 
+;;;###autoload
+(defun helm-gtags-select-path ()
+  (interactive)
+  (helm-gtags-common '(helm-source-gtags-select-path)))
+
 (defun helm-source-gtags-select-tag (candidate)
   `((name . "GNU GLOBAL")
     (init . (lambda ()
@@ -465,6 +470,17 @@
                   (helm-source-gtags-select-tag-action c)))
                ("Move to the referenced point" .
                 helm-source-gtags-select-rtag-action)))))
+
+(defvar helm-source-gtags-select-path
+  '((name . "GNU GLOBAL PATH")
+    (init .
+          (lambda ()
+            (with-current-buffer (helm-candidate-buffer 'global)
+              (call-process-shell-command "global -Poa" nil t nil))))
+    (candidates-in-buffer)
+    (real-to-display . helm-gtags-files-candidate-transformer)
+    (candidate-number-limit . 9999)
+    (type . file)))
 
 (defun helm-gtags-searched-directory ()
   (case (prefix-numeric-value current-prefix-arg)
