@@ -210,6 +210,7 @@
       (puthash helm-gtags-tag-location context-stack helm-gtags-context-stack)
       (helm-gtags-open-file file readonly)
       (goto-char curpoint))))
+
 (defun get-helm-first-patern()
   (car (helm-mp-split-pattern helm-pattern))
   )
@@ -315,19 +316,19 @@
   (helm-gtags-exec-global-command :tag in)
   )
 
-(defun helm-gtags-tags-candidates (&optional in)
-  (helm-gtags-exec-global-command :tag in)
-  )
+;; (defun helm-gtags-tags-candidates (&optional in)
+;;   (helm-gtags-exec-global-command :tag in)
+;;   )
 (defun helm-gtags-rtags-init (&optional input)
   (helm-gtags-exec-global-command :rtag input)
 )
 
-(defun helm-gtags-gsyms-init ()
-  (helm-gtags-exec-global-command :symbol ))
+;; (defun helm-gtags-gsyms-init ()
+;;   (helm-gtags-exec-global-command :symbol ))
 
-(defun helm-gtags-files-init ()
-  (helm-gtags-exec-global-command :file )
-  )
+;; (defun helm-gtags-files-init ()
+;;   (helm-gtags-exec-global-command :file )
+;;   )
 
 (defun helm-gtags-parse-file-init ()
   (let ((cmd (concat "global --result cscope -f " helm-gtags-parsed-file)))
@@ -400,8 +401,8 @@
     (forward-line (1- line))
     (helm-match-line-color-current-line)))
 
-(defun helm-gtags-candidates-in-buffer-tag()
-  (helm-gtags-candidates-in-buffer :tag)
+(defun helm-gtags-candidates-in-buffer-tag(&optional in)
+  (helm-gtags-candidates-in-buffer :tag in)
   )
 
 (defun helm-gtags-candidates-in-buffer-symbol()
@@ -413,38 +414,28 @@
   )
 
 (defun helm-gtags-candidates-in-buffer-files()
-  ;; (print (helm-gtags-candidates-in-buffer :file))
   (helm-gtags-candidates-in-buffer :file)
   )
 
 
 (defvar helm-source-gtags-tags
   '((name . "GNU GLOBAL")
-    ;; (init . helm-gtags-tags-init)
-    ;; (candidate . helm-gtags-tags-init)
     (candidates . helm-gtags-candidates-in-buffer-tag)
     (volatile);;candidates
-    ;; (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-gsyms
   '((name . "GNU GLOBAL")
-    ;; (init . helm-gtags-tags-init)
-    ;; (candidate . helm-gtags-tags-init)
     (candidates . helm-gtags-candidates-in-buffer-symbol)
     (volatile);;candidates
-    ;; (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-rtags
   '((name . "GNU GLOBAL")
-    ;; (init . helm-gtags-tags-init)
-    ;; (candidate . helm-gtags-tags-init)
     (candidates . helm-gtags-candidates-in-buffer-rtag)
     (volatile);;candidates
-    ;; (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile))
   )
@@ -499,7 +490,7 @@
 ;;;###autoload
 (defun helm-gtags-select ()
   (interactive)
-  (helm-gtags-common '(helm-source-gtags-select)))
+  (helm-gtags-common '(helm-source-gtags-select)"") )
 
 ;;;###autoload
 (defun helm-gtags-select-path ()
@@ -508,13 +499,12 @@
 
 (defun helm-source-gtags-select-tag (candidate)
   `((name . "GNU GLOBAL")
-    (init . (lambda ()
-              (helm-gtags-tags-init ,candidate)))
-    (candidates-in-buffer)
-    (get-line . buffer-substring)
-    (candidate-number-limit . 9999)
+    (candidates .  (lambda ()
+              (helm-gtags-candidates-in-buffer-tag ,candidate)) )
+    (volatile);;candidates
     (persistent-action . helm-gtags-tags-persistent-action)
-    (action . helm-gtags-action-openfile)))
+    (action . helm-gtags-action-openfile))
+)
 
 (defun helm-source-gtags-select-rtag (candidate)
   `((name . "GNU GLOBAL")
@@ -529,7 +519,7 @@
 (defun helm-source-gtags-select-tag-action (c)
   (helm-run-after-quit
    `(lambda ()
-      (helm-gtags-common (list (helm-source-gtags-select-tag ,c))))))
+      (helm-gtags-common (list (helm-source-gtags-select-tag ,c)) ))))
 
 (defun helm-source-gtags-select-rtag-action (c)
   (helm-run-after-quit
