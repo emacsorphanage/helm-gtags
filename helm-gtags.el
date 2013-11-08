@@ -357,8 +357,9 @@
         (open-func (helm-gtags-select-find-file-func)))
     (helm-gtags-do-open-file open-func helm-gtags-parsed-file line)))
 
-(defun helm-gtags-action-openfile (elm)
-  (let* ((elems (split-string elm ":"))
+(defun helm-gtags-action-openfile (_elm)
+  (let* ((elm (helm-get-selection nil 'withprop))
+         (elems (split-string elm ":"))
          (filename (first elems))
          (line (string-to-number (second elems)))
          (open-func (helm-gtags-select-find-file-func))
@@ -389,8 +390,8 @@
             do
             (insert (helm-gtags-file-content-at-pos file pos))))))
 
-(defun helm-gtags-tags-persistent-action (cand)
-  (let* ((elems (split-string cand ":"))
+(defun helm-gtags-tags-persistent-action (_cand)
+  (let* ((elems (split-string (helm-get-selection nil 'withprop) ":"))
          (filename (first elems))
          (line (string-to-number (second elems)))
          (default-directory (helm-gtags-base-directory)))
