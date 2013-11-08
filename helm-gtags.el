@@ -279,16 +279,20 @@
   )
 
 (defun helm-gtags-rtags-init (&optional input)
-  (let ((cmd (helm-gtags-construct-command :rtag input)))
-    (helm-gtags-exec-global-command cmd)))
+  (helm-gtags-exec-global-command :rtag in)
+    ;; (let ((cmd (helm-gtags-construct-command :rtag input)))
+    ;; (helm-gtags-exec-global-command cmd))
+)
 
 (defun helm-gtags-gsyms-init ()
-  (let ((cmd (helm-gtags-construct-command :symbol)))
-    (helm-gtags-exec-global-command cmd)))
+  (helm-gtags-exec-global-command :symbol in)
+  ;; (let ((cmd (helm-gtags-construct-command :symbol)))
+  ;;   (helm-gtags-exec-global-command cmd))
+  )
 
 (defun helm-gtags-files-init ()
-  (let ((cmd (helm-gtags-construct-command :file)))
-    (helm-gtags-exec-global-command cmd)))
+  (helm-gtags-exec-global-command :file in)
+  )
 
 (defun helm-gtags-find-tag-from-here-init ()
   (helm-gtags-find-tag-directory)
