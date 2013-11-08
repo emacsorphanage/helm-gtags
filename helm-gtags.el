@@ -75,6 +75,11 @@
   :type 'boolean
   :group 'helm-gtags)
 
+(defcustom helm-gtags-tag-location-list nil
+  "tag locations."
+  :type 'list
+  :group 'helm-gtags)
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -144,7 +149,7 @@
         (skip-chars-backward "a-zA-Z0-9_")
         (setq start (point))
         (skip-chars-forward "a-zA-Z0-9_")
-        (buffer-substring-no-properties start (point))))))
+        (buffer-substring start (point))))))
 
 (defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
@@ -166,11 +171,12 @@
       (unless (zerop status)
         (error "GTAGS not found"))
       (goto-char (point-min))
-      (let ((tagroot (buffer-substring-no-properties
+      (let ((tagroot (buffer-substring
                       (point) (line-end-position))))
         (setq helm-gtags-tag-location (file-name-as-directory tagroot))))))
 
 (defun helm-gtags-base-directory ()
+  ;; (message helm-gtags-local-directory)
   (or helm-gtags-local-directory
       (case helm-gtags-path-style
         (root helm-gtags-tag-location)
@@ -208,18 +214,36 @@
       (helm-gtags-open-file file readonly)
       (goto-char curpoint))))
 
-(defun helm-gtags-exec-global-command (cmd)
-  (helm-gtags-find-tag-directory)
-  (helm-gtags-save-current-context)
-  (let ((buf-coding buffer-file-coding-system))
+(defun helm-gtags-exec-global-command (type &optional in)
+  ;; (helm-gtags-find-tag-directory)
+  (let (cmd
+        (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
+        (default-tag-dir (helm-gtags-find-tag-directory))
+        (input (or in (helm-gtags-input type)))
+        (buf-coding buffer-file-coding-system)
+        )
+    (when default-tag-dir (add-to-list 'dirs default-tag-dir ))
+    (helm-gtags-save-current-context)
     (with-current-buffer (helm-candidate-buffer 'global)
-      (let ((default-directory (helm-gtags-base-directory))
-            (input (car (last (split-string cmd))))
+      (let (begin end
+            (default-directory default-directory)
             (coding-system-for-read buf-coding)
-            (coding-system-for-write buf-coding))
-        (call-process-shell-command cmd nil t)
-        (when (helm-empty-buffer-p (current-buffer))
-          (error (format "%s: not found" input)))))))
+            (coding-system-for-write buf-coding)
+            )
+        (dolist (dir dirs)
+          (setq default-directory (helm-gtags-base-directory))
+          (setq cmd (helm-gtags-construct-command type dir input))
+          (goto-char (point-max))
+          (setq begin (point))
+          (call-process-shell-command cmd nil t)
+          (setq end (point))
+          (put-text-property begin end 'default-directory default-directory)
+          )
+        ;; (when (helm-empty-buffer-p (current-buffer))
+        ;;   (error (format "%s: not found" input)))
+        ))
+    )
+  )
 
 (defvar helm-gtags-command-option-alist
   '((:tag    . "")
@@ -238,20 +262,21 @@
     (format "%s %s %s %s %s %s"
             result-opt comp-opt type-opt abs-opt case-opt local-opt)))
 
-(defun helm-gtags-construct-command (type &optional in)
+(defun helm-gtags-construct-command (type dir &optional in)
   (setq helm-gtags-local-directory nil)
-  (let ((dir (helm-attr 'helm-gtags-base-directory (helm-get-current-source))))
+  (let ()
+    ;; (dir (helm-attr 'helm-gtags-base-directory (helm-get-current-source)))
     (when (and dir (helm-gtags-type-is-not-file-p type))
       (setq helm-gtags-local-directory dir)))
-  (let ((input (or in (helm-gtags-input type)))
+  (let (
         (option (helm-gtags-construct-option type)))
     (when (string= input "")
       (error "Input is empty!!"))
     (format "global %s %s" option input)))
 
-(defun helm-gtags-tags-init (&optional input)
-  (let ((cmd (helm-gtags-construct-command :tag input)))
-    (helm-gtags-exec-global-command cmd)))
+(defun helm-gtags-tags-init (&optional in)
+  (helm-gtags-exec-global-command :tag in)
+  )
 
 (defun helm-gtags-rtags-init (&optional input)
   (let ((cmd (helm-gtags-construct-command :rtag input)))
@@ -303,7 +328,7 @@
 
 (defun helm-gtags-parse-file-action (cand)
   (let ((line (when (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)
-                (string-to-number (match-string-no-properties 1 cand))))
+                (string-to-number (match-string 1 cand))))
         (open-func (helm-gtags-select-find-file-func)))
     (helm-gtags-do-open-file open-func helm-gtags-parsed-file line)))
 
@@ -312,7 +337,8 @@
          (filename (first elems))
          (line (string-to-number (second elems)))
          (open-func (helm-gtags-select-find-file-func))
-         (default-directory (helm-gtags-base-directory)))
+         (default-directory (or (get-text-property 0 'default-directory elm) (helm-gtags-base-directory))))
+    ;; (message default-directory)
     (helm-gtags-do-open-file open-func filename line)))
 
 (defun helm-gtags-file-content-at-pos (file pos)
@@ -321,7 +347,7 @@
       (goto-char pos)
       (let ((curfunc (which-function))
             (line (line-number-at-pos))
-            (content (or (buffer-substring-no-properties
+            (content (or (buffer-substring
                           (line-beginning-position) (line-end-position))
                          "")))
         (format "%s:%d%s:%s\n"
@@ -352,6 +378,7 @@
   '((name . "GNU GLOBAL")
     (init . helm-gtags-tags-init)
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
@@ -360,6 +387,7 @@
   '((name . "GNU GLOBAL")
     (init . helm-gtags-rtags-init)
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
@@ -368,6 +396,7 @@
   '((name . "GNU GLOBAL")
     (init . helm-gtags-gsyms-init)
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
@@ -380,14 +409,15 @@
   (let ((removed-file (replace-regexp-in-string "\\`\\S-+ " "" file)))
     (when (string-match "\\`\\(\\S-+\\) \\(\\S-+\\) \\(.+\\)\\'" removed-file)
       (format "%-25s %-5s %s"
-              (match-string-no-properties 1 removed-file)
-              (match-string-no-properties 2 removed-file)
-              (match-string-no-properties 3 removed-file)))))
+              (match-string 1 removed-file)
+              (match-string 2 removed-file)
+              (match-string 3 removed-file)))))
 
 (defvar helm-source-gtags-files
   '((name . "GNU GLOBAL")
     (init . helm-gtags-files-init)
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . 9999)
     (type . file)))
@@ -396,6 +426,7 @@
   '((name . "GNU GLOBAL")
     (init . helm-gtags-find-tag-from-here-init)
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
@@ -404,6 +435,7 @@
   '((name . "Parsed File")
     (init . helm-gtags-parse-file-init)
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (real-to-display . helm-gtags-parse-file-candidate-transformer)
     (action . helm-gtags-parse-file-action)
     (candidate-number-limit . 9999)))
@@ -412,6 +444,7 @@
   '((name . "Show Context Stack")
     (init . helm-gtags-show-stack-init)
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
@@ -432,6 +465,7 @@
     (init . (lambda ()
               (helm-gtags-tags-init ,candidate)))
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
@@ -441,6 +475,7 @@
     (init . (lambda ()
               (helm-gtags-rtags-init ,candidate)))
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (candidate-number-limit . 9999)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
@@ -462,6 +497,7 @@
             (with-current-buffer (helm-candidate-buffer 'global)
               (call-process-shell-command "global -c" nil t nil))))
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (candidate-number-limit . 9999)
     (action . (("Goto the location" . helm-source-gtags-select-tag-action)
                ("Goto the location(other buffer)" .
@@ -478,6 +514,7 @@
             (with-current-buffer (helm-candidate-buffer 'global)
               (call-process-shell-command "global -Poa" nil t nil))))
     (candidates-in-buffer)
+    (get-line . buffer-substring)
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . 9999)
     (type . file)))
@@ -496,12 +533,15 @@
         (helm-execute-action-at-once-if-one t)
         (buf (get-buffer-create helm-gtags-buffer))
         (dir (helm-gtags-searched-directory))
+        (custom-dirs (mapcar (lambda(Dir) (file-name-as-directory Dir)) helm-gtags-tag-location-list))
         (src (car srcs)))
     (when (symbolp src)
       (setq src (symbol-value src)))
     (when (helm-gtags--using-other-window-p)
       (setq helm-gtags-use-otherwin t))
     (helm-attrset 'helm-gtags-base-directory dir src)
+    (when dir (add-to-list 'custom-dirs dir))
+    (helm-attrset 'helm-gtags-tag-location-list custom-dirs src)
     (helm-attrset 'name
                   (format "Searched at %s" (or dir default-directory))
                   src)
