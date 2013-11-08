@@ -242,17 +242,44 @@
           (put-text-property begin end 'default-directory default-directory)
           )
         (goto-char (point-min))
-        (let (pt)
-          (while (not (eobp))
-            (add-to-list 'candidates (buffer-substring (line-beginning-position) (line-end-position)))
-            (forward-line)
+        (while (not (eobp))
+          (add-to-list 'candidates (buffer-substring (line-beginning-position) (line-end-position)))
+          (forward-line)
+          )))
+    candidates))
 
+(defun helm-gtags-find-tag-from-here-candidates()
+  (let (cmd candidates
+            token begin end
+            (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
+            ( default-directory (helm-gtags-find-tag-directory))
+            (buf-filename  (buffer-file-name helm-current-buffer) )
             )
-          )
+    (setq helm-gtags-local-directory nil)
+    (helm-gtags-save-current-context)
+    (with-temp-buffer
+      (setq cmd
+            (with-current-buffer helm-current-buffer
+              (setq token (helm-gtags-token-at-point))
+              (format "global --result=grep --from-here=%d:%s %s"
+                      (line-number-at-pos)
+                      buf-filename
+                      token)))
+      (goto-char (point-max))
+      ;; (setq begin (point))
+      (call-process-shell-command cmd nil t)
+      ;; (setq end (point))
+      ;; (put-text-property begin end 'default-directory default-directory)
+      (goto-char (point-min))
+      (while (not (eobp))
+        (add-to-list 'candidates (buffer-substring (line-beginning-position) (line-end-position)))
+        (forward-line)
         ))
     candidates
     )
   )
+
+
 (defun helm-gtags-candidates-in-buffer(type &optional in)
   (helm-gtags-exec-global-command type in)
   )
@@ -301,20 +328,6 @@
 (defun helm-gtags-files-init ()
   (helm-gtags-exec-global-command :file )
   )
-
-(defun helm-gtags-find-tag-from-here-init ()
-  (helm-gtags-find-tag-directory)
-  (helm-gtags-save-current-context)
-  (let* ((token (helm-gtags-token-at-point))
-         (cmd (format "global --result=grep --from-here=%d:%s %s"
-                      (line-number-at-pos)
-                      (buffer-file-name)
-                      token)))
-    (with-current-buffer (helm-candidate-buffer 'global)
-      (let ((default-directory (helm-gtags-base-directory)))
-        (call-process-shell-command cmd nil t)
-        (when (helm-empty-buffer-p (current-buffer))
-          (error "%s: not found" token))))))
 
 (defun helm-gtags-parse-file-init ()
   (let ((cmd (concat "global --result cscope -f " helm-gtags-parsed-file)))
@@ -457,12 +470,11 @@
 
 (defvar helm-source-gtags-find-tag-from-here
   '((name . "GNU GLOBAL")
-    (init . helm-gtags-find-tag-from-here-init)
-    (candidates-in-buffer)
-    (get-line . buffer-substring)
-    (candidate-number-limit . 9999)
+    (candidates . helm-gtags-find-tag-from-here-candidates)
+    ;; (volatile) ;;candidates
     (persistent-action . helm-gtags-tags-persistent-action)
-    (action . helm-gtags-action-openfile)))
+    (action . helm-gtags-action-openfile))
+  )
 
 (defvar helm-source-gtags-parse-file
   '((name . "Parsed File")
