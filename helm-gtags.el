@@ -75,6 +75,16 @@
   :type 'boolean
   :group 'helm-gtags)
 
+(defcustom helm-gtags-cache-select-result nil
+  "*If non-nil, results of helm-gtags-select and helm-gtags-select-path are cached."
+  :type 'boolean
+  :group 'helm-gtags)
+
+(defcustom helm-gtags-cache-max-result-size (* 10 1024 1024) ;10M
+  "Max size(bytes) to cache for each select result."
+  :type 'integer
+  :group 'helm-gtags)
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -88,6 +98,7 @@
 
 (defvar helm-gtags-completing-history nil)
 (defvar helm-gtags-context-stack (make-hash-table :test 'equal))
+(defvar helm-gtags-result-cache (make-hash-table :test 'equal))
 (defvar helm-gtags-saved-context nil)
 (defvar helm-gtags-use-otherwin nil)
 (defvar helm-gtags-local-directory nil)
@@ -195,6 +206,32 @@
 (defun helm-gtags-get-context-stack ()
   (let ((tag-location (helm-gtags-find-tag-directory)))
     (gethash tag-location helm-gtags-context-stack)))
+
+(defun helm-gtags-clear-all-cache ()
+  (interactive)
+  (clrhash helm-gtags-result-cache))
+
+(defun helm-gtags-clear-cache ()
+  (interactive)
+  (let ((gtags-path (concat (helm-gtags-find-tag-directory) "GTAGS"))
+        (gpath-path (concat (helm-gtags-find-tag-directory) "GPATH")))
+    (remhash gtags-path helm-gtags-result-cache)
+    (remhash gpath-path helm-gtags-result-cache)))
+
+(defun helm-gtags-get-result-cache (file)
+  (let* ((file-path (concat (helm-gtags-find-tag-directory) file))
+         (file-mtime (nth 5 (file-attributes file-path)))
+         (hash-value (gethash file-path helm-gtags-result-cache))
+         (cached-file-mtime (nth 0 hash-value)))
+    (if (and cached-file-mtime (equal cached-file-mtime file-mtime))
+        (nth 1 hash-value)
+      nil)))
+
+(defun helm-gtags-put-result-cache (file cache)
+  (let* ((file-path (concat (helm-gtags-find-tag-directory) file))
+         (file-mtime (nth 5 (file-attributes file-path)))
+         (hash-value (list file-mtime cache)))
+    (puthash file-path hash-value helm-gtags-result-cache)))
 
 (defun helm-gtags-pop-context ()
   (let ((context-stack (helm-gtags-get-context-stack)))
@@ -455,12 +492,26 @@
    `(lambda ()
       (helm-gtags-common (list (helm-source-gtags-select-rtag ,c))))))
 
+(defun helm-source-gtags-select-cache-init-common (command tagfile)
+  (with-current-buffer (helm-candidate-buffer 'global)
+    (let ((cache (helm-gtags-get-result-cache tagfile)))
+      (if cache
+          (insert cache)
+        (progn
+          (call-process-shell-command command nil t nil)
+          (let* ((cache (buffer-string))
+                 (cache-size (length cache)))
+            (when (<= cache-size helm-gtags-cache-max-result-size)
+              (helm-gtags-put-result-cache tagfile cache))))))))
+
+(defun helm-source-gtags-select-init ()
+  (if (not helm-gtags-cache-select-result)
+      (call-process-shell-command "global -c" nil t nil)
+    (helm-source-gtags-select-cache-init-common "global -c" "GTAGS")))
+
 (defvar helm-source-gtags-select
   '((name . "GNU GLOBAL SELECT")
-    (init .
-          (lambda ()
-            (with-current-buffer (helm-candidate-buffer 'global)
-              (call-process-shell-command "global -c" nil t nil))))
+    (init . helm-source-gtags-select-init)
     (candidates-in-buffer)
     (candidate-number-limit . 9999)
     (action . (("Goto the location" . helm-source-gtags-select-tag-action)
@@ -471,12 +522,14 @@
                ("Move to the referenced point" .
                 helm-source-gtags-select-rtag-action)))))
 
+(defun helm-source-gtags-select-path-init ()
+  (if (not helm-gtags-cache-select-result)
+      (call-process-shell-command "global -Poa" nil t nil)
+    (helm-source-gtags-select-cache-init-common "global -Poa" "GPATH")))
+
 (defvar helm-source-gtags-select-path
   '((name . "GNU GLOBAL PATH")
-    (init .
-          (lambda ()
-            (with-current-buffer (helm-candidate-buffer 'global)
-              (call-process-shell-command "global -Poa" nil t nil))))
+    (init . helm-source-gtags-select-path-init)
     (candidates-in-buffer)
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . 9999)
