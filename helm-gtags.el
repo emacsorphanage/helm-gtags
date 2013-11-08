@@ -232,9 +232,9 @@
                   (coding-system-for-write buf-coding)
                   )
         (dolist (dir dirs)
-          (setq default-directory (helm-gtags-base-directory))
           (setq cmd (helm-gtags-construct-command type dir input))
-          (print cmd)
+          (setq default-directory (helm-gtags-base-directory))
+          ;; (print cmd)
           (goto-char (point-max))
           (setq begin (point))
           (call-process-shell-command cmd nil t)
@@ -275,11 +275,12 @@
 
 (defun helm-gtags-construct-command (type dir &optional in)
   (setq helm-gtags-local-directory nil)
-  (when (and dir (helm-gtags-type-is-not-file-p type))
+  ;; (when (and dir (helm-gtags-type-is-not-file-p type))
+  (when dir
     (setq helm-gtags-local-directory dir))
   (let ((input (or in (car (helm-mp-split-pattern helm-pattern)))) ;(or in (helm-gtags-input type))
         (option (helm-gtags-construct-option type)))
-    (when (and (string= input "") (not (equal type :file)))
+    (when (and (string= input "") (helm-gtags-type-is-not-file-p type))
       (error "Input is empty!!"))
     (format "global %s %s" option input)))
 
@@ -398,7 +399,7 @@
   )
 
 (defun helm-gtags-candidates-in-buffer-files()
-  (print (helm-gtags-candidates-in-buffer :file))
+  ;; (print (helm-gtags-candidates-in-buffer :file))
   (helm-gtags-candidates-in-buffer :file)
   )
 
