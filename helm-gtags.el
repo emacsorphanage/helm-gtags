@@ -48,6 +48,7 @@
 (require 'helm)
 (require 'helm-files)
 (require 'which-func)
+(require 'thingatpt)
 
 (defgroup helm-gtags nil
   "GNU GLOBAL for helm"
@@ -144,12 +145,8 @@
 
 (defun helm-gtags-token-at-point ()
   (save-excursion
-    (let (start)
-      (when (looking-at "[a-zA-Z0-9_]")
-        (skip-chars-backward "a-zA-Z0-9_")
-        (setq start (point))
-        (skip-chars-forward "a-zA-Z0-9_")
-        (buffer-substring start (point))))))
+    (thing-at-point 'symbol)
+    ))
 
 (defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
@@ -264,17 +261,16 @@
 
 (defun helm-gtags-construct-command (type dir &optional in)
   (setq helm-gtags-local-directory nil)
-  (let ()
-    ;; (dir (helm-attr 'helm-gtags-base-directory (helm-get-current-source)))
-    (when (and dir (helm-gtags-type-is-not-file-p type))
-      (setq helm-gtags-local-directory dir)))
-  (let (
+  (when (and dir (helm-gtags-type-is-not-file-p type))
+    (setq helm-gtags-local-directory dir))
+  (let ((input (or in (helm-gtags-input type)))
         (option (helm-gtags-construct-option type)))
     (when (string= input "")
       (error "Input is empty!!"))
     (format "global %s %s" option input)))
 
 (defun helm-gtags-tags-init (&optional in)
+  (message "aaaaa")
   (helm-gtags-exec-global-command :tag in)
   )
 
@@ -527,7 +523,7 @@
 (defsubst helm-gtags--using-other-window-p ()
   (< (prefix-numeric-value current-prefix-arg) 0))
 
-(defun helm-gtags-common (srcs)
+(defun helm-gtags-common (srcs &optional input)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
         (buf (get-buffer-create helm-gtags-buffer))
@@ -544,7 +540,9 @@
     (helm-attrset 'name
                   (format "Searched at %s" (or dir default-directory))
                   src)
-    (helm :sources srcs :buffer buf)))
+    (helm :sources srcs
+          :input (or input (thing-at-point 'symbol))
+          :buffer buf)))
 
 ;;;###autoload
 (defun helm-gtags-find-tag ()
