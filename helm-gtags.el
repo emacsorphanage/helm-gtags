@@ -632,12 +632,11 @@
           :buffer buf)))
 
 ;;;###autoload
-(defun helm-gtags-find-all ()
+(defun helm-gtags-find-tag-or-symbal ()
   "Jump to definition"
   (interactive)
   (helm-gtags-common '(helm-source-gtags-tags
-                       helm-source-gtags-gsyms
-                       helm-source-gtags-rtags)))
+                       helm-source-gtags-gsyms)))
 
 ;;;###autoload
 (defun helm-gtags-find-tag ()
