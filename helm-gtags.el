@@ -237,7 +237,7 @@
   ;; (helm-gtags-find-tag-directory)
   (let (cmd candidates
             (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
-            (default-tag-dir (helm-gtags-find-tag-directory))
+            (default-tag-dir (helm-gtags-searched-directory))
                                         ; (helm-gtags-input type)
 
             (buf-coding buffer-file-coding-system)
@@ -271,14 +271,14 @@
   (let (cmd candidates
             token begin end
             (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
-            ( default-directory (helm-gtags-find-tag-directory))
+            (default-directory (helm-gtags-searched-directory))
             (buf-filename  (format "\"%s\"" (buffer-file-name helm-current-buffer)))
             )
     (setq helm-gtags-local-directory nil)
     (helm-gtags-save-current-context)
     (with-temp-buffer
       (setq cmd
-            (with-helm-buffer
+            (with-current-buffer helm-current-buffer
               (setq token (helm-gtags-token-at-point))
               (format "global --result=grep --from-here=%d:%s %s"
                       (line-number-at-pos)
@@ -541,7 +541,7 @@
   (let (candidates
         (cmd "global -c")
         (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
-        (default-tag-dir (helm-gtags-find-tag-directory))
+        (default-tag-dir (helm-gtags-searched-directory))
         (buf-coding buffer-file-coding-system)
         )
     (when default-tag-dir (add-to-list 'dirs default-tag-dir ))
@@ -659,7 +659,7 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
 (defun helm-gtags-parse-file ()
   "Find file with gnu global"
   (interactive)
-  (helm-gtags-find-tag-directory)
+  (helm-gtags-searched-directory)
   (helm-gtags-save-current-context)
   (when (helm-gtags--using-other-window-p)
     (setq helm-gtags-use-otherwin t))
