@@ -225,9 +225,10 @@
 (defun read-lines-from-buf(buf limit)
   (with-current-buffer buf
     (goto-char (point-min))
-    (let (candidates (i 0))
+    (let (candidates (i 0) line )
       (while (or (and (not (eobp)) (null limit)) (and limit (< i limit)))
-        (add-to-list 'candidates (buffer-substring (line-beginning-position) (line-end-position)))
+        (setq line  (buffer-substring (line-beginning-position) (line-end-position)))
+        (unless (string= "" line ) (add-to-list 'candidates line))
         (forward-line)
         (setq i (1+ i)))
       candidates
@@ -284,7 +285,7 @@
                       (line-number-at-pos)
                       buf-filename
                       token)))
-      (print cmd)
+      ;; (print cmd)
       (goto-char (point-max))
       ;; (setq begin (point))
       (call-process-shell-command cmd nil t)
@@ -328,8 +329,9 @@
     (format "global %s %s" option input)))
 
 (defun helm-gtags-parse-file-candidates ()
-  (let ((cmd (format "global --result cscope -f \"%s\"" helm-gtags-parsed-file))
-        candidates)
+  (let* ((filename (with-current-buffer helm-current-buffer (file-relative-name helm-gtags-parsed-file )))
+         (cmd (format "global --result cscope -f \"%s\"" filename))
+         candidates)
     (with-temp-buffer
       (if (zerop (call-process-shell-command cmd nil t))
           (setq candidates (read-lines-from-buf (current-buffer)
@@ -340,7 +342,7 @@
 (defun helm-gtags-push-context (context)
   (unless(member context helm-gtags-context-stack)
     (push  context helm-gtags-context-stack)
-    (print helm-gtags-context-stack)
+    ;; (print helm-gtags-context-stack)
     ))
 
 (defun helm-gtags-select-find-file-func ()
@@ -657,9 +659,9 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
 
 ;;;###autoload
 (defun helm-gtags-parse-file ()
-  "Find file with gnu global"
+  "parse file with gnu global"
   (interactive)
-  (helm-gtags-searched-directory)
+  (helm-gtags-find-tag-directory)
   (helm-gtags-save-current-context)
   (when (helm-gtags--using-other-window-p)
     (setq helm-gtags-use-otherwin t))
