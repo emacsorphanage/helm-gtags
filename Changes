@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.0.3 2013/11/09 syohex
+  - Support cache for helm-gtags-select and helm-gtags-select-path
+    (Thanks lbsx)
+
 Revision 1.0.2 2013/11/01 syohex
   - Add command helm-gtags-select-path(Thanks lbsx)
 
