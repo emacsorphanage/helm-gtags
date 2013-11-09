@@ -467,7 +467,7 @@
               (match-string 3 removed-file)))))
 
 (defvar helm-source-gtags-files
-  `((name . "gnu global list files")
+  `((name . "gnu global files")
     (candidates . helm-gtags-candidates-in-buffer-files)
     ;; (volatile);;candidates
     (real-to-display . helm-gtags-files-candidate-transformer)
