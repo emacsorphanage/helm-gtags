@@ -4,7 +4,10 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Version: 1.0.2
+;; 纪秀峰 fork version
+;; URL: https://github.com/jixiuf/emacs-helm-gtags
+;; Author: 纪秀峰 <jixiuf@gmail.com>
+;; Version: 2.0
 ;; Package-Requires: ((helm "1.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -33,10 +36,12 @@
 ;;
 ;;     (add-hook 'helm-gtags-mode-hook
 ;;               '(lambda ()
+;;                  (local-set-key (kbd "M-.") 'helm-gtags-find-tag-and-symbol)
 ;;                  (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
-;;                  (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
 ;;                  (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
-;;                  (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)
+;;                  (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
+;;                  (local-set-key (kbd "C-,") 'helm-gtags-pop-stack)
+;;                  (local-set-key (kbd "M-g M-p") 'helm-gtags-parse-file)
 ;;                  (local-set-key (kbd "C-c C-f") 'helm-gtags-find-files)))
 ;;
 
@@ -158,18 +163,18 @@
 (defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
 
-(defun helm-gtags-input (type)
-  (let ((tagname (helm-gtags-token-at-point))
-        (prompt (assoc-default type helm-gtags-prompt-alist))
-        (comp-func (assoc-default type helm-gtags-comp-func-alist)))
-    (when (and tagname (helm-gtags-type-is-not-file-p type))
-      (setq prompt (format "%s(default \"%s\") " prompt tagname)))
-    (let ((completion-ignore-case helm-gtags-ignore-case)
-          (completing-read-function 'completing-read-default))
-      (completing-read prompt comp-func nil nil nil
-                       'helm-gtags-completing-history tagname))))
+;; (defun helm-gtags-input (type)
+;;   (let ((tagname (helm-gtags-token-at-point))
+;;         (prompt (assoc-default type helm-gtags-prompt-alist))
+;;         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
+;;     (when (and tagname (helm-gtags-type-is-not-file-p type))
+;;       (setq prompt (format "%s(default \"%s\") " prompt tagname)))
+;;     (let ((completion-ignore-case helm-gtags-ignore-case)
+;;           (completing-read-function 'completing-read-default))
+;;       (completing-read prompt comp-func nil nil nil
+;;                        'helm-gtags-completing-history tagname))))
 
-(defun helm-gtags-find-tag-directory ()
+(defun helm-gtags-find-tag-directory()
   (with-temp-buffer
     (let ((status (call-process-shell-command "global -p" nil t)))
       (unless (zerop status)
@@ -255,7 +260,7 @@
           )
         (setq candidates (read-lines-from-buf (current-buffer) helm-gtags-default-candidate-limit))
         (case type
-          (:tag (setq helm-gtags-tag-cache (cons input candidates)))
+          (:tag    (setq helm-gtags-tag-cache (cons input candidates)))
           (:symbol (setq helm-gtags-symbol-cache (cons input candidates)))
           )))
     candidates))
@@ -398,20 +403,20 @@
 (defun helm-gtags-candidates-in-buffer-tag(&optional in)
   (let ((input (or in (car (helm-mp-split-pattern helm-pattern)))))
     (if (and helm-gtags-tag-cache (string-equal input (car helm-gtags-tag-cache)))
-        (prog
-         (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
-         ;; (with-helm-buffer (helm-gtags-save-current-context))
-         (cdr helm-gtags-tag-cache))
+        (progn
+          (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
+          ;; (with-helm-buffer (helm-gtags-save-current-context))
+          (cdr helm-gtags-tag-cache))
       (helm-gtags-candidates-in-buffer :tag input)
       )))
 
 (defun helm-gtags-candidates-in-buffer-symbol(&optional in)
   (let ((input (or in (car (helm-mp-split-pattern helm-pattern)))))
     (if (and helm-gtags-symbol-cache (string-equal input (car helm-gtags-symbol-cache)))
-        (prog
-         (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
-         ;; (with-helm-buffer (helm-gtags-save-current-context))
-         (cdr helm-gtags-symbol-cache))
+        (progn
+          (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
+          ;; (with-helm-buffer (helm-gtags-save-current-context))
+          (cdr helm-gtags-symbol-cache))
       (helm-gtags-candidates-in-buffer :symbol input)
       )))
 
@@ -593,9 +598,9 @@
     (dolist (src srcs)
       (when (symbolp src) (setq src (symbol-value src)))
       (unless (helm-attr 'init-name src) (helm-attrset 'init-name  (helm-attr 'name src) src))
-      (helm-attrset 'helm-gtags-base-directory dir src)
+      ;; (helm-attrset 'helm-gtags-base-directory dir src)
       (helm-attrset 'helm-gtags-tag-location-list custom-dirs src)
-      (print custom-dirs)
+      ;; (print custom-dirs)
       (helm-attrset 'name
                     (format "Searched %s at %s" (or (helm-attr 'init-name src) "")
                             (mapconcat 'identity custom-dirs "  "))
@@ -605,7 +610,7 @@
           :buffer buf)))
 
 ;;;###autoload
-(defun helm-gtags-find-tag-or-symbol ()
+(defun helm-gtags-find-tag-and-symbol ()
   "Jump to definition"
   (interactive)
   (helm-gtags-common '(helm-source-gtags-tags
@@ -631,7 +636,8 @@
 
 ;;;###autoload
 (defun helm-gtags-find-files ()
-  "Find file with gnu global"
+  "Find file with gnu global
+you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
   (interactive)
   (helm-gtags-common '(helm-source-gtags-files) ""))
 
