@@ -728,7 +728,7 @@
 (defsubst helm-gtags--update-tags-command (single-update)
   (format "global -u %s" (if single-update
                              ""
-                           (concat "--single-update=" (buffer-file-name)))))
+                           (format "--single-update=\"%s\"" (buffer-file-name)))))
 
 ;;;###autoload
 (defun helm-gtags-update-tags ()
