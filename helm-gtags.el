@@ -437,6 +437,7 @@
   '((name . "GNU GLOBAL")
     (candidates . helm-gtags-candidates-in-buffer-tag)
     (volatile);;candidates
+    (delayed)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -444,6 +445,7 @@
   '((name . "GNU GLOBAL")
     (candidates . helm-gtags-candidates-in-buffer-symbol)
     (volatile);;candidates
+    (delayed)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -451,6 +453,7 @@
   '((name . "GNU GLOBAL")
     (candidates . helm-gtags-candidates-in-buffer-rtag)
     (volatile);;candidates
+    (delayed)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile))
   )
@@ -517,6 +520,7 @@
     (candidates .  (lambda ()
                      (helm-gtags-candidates-in-buffer-tag ,candidate)) )
     (volatile);;candidates
+    (delayed)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile))
   )
@@ -526,6 +530,7 @@
   `((name . "GNU GLOBAL")
     (candidates . helm-gtags-candidates-in-buffer-rtag)
     (volatile);;candidates
+    (delayed)
     (candidate-number-limit . ,helm-gtags-default-candidate-limit)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile))
@@ -594,7 +599,9 @@
   (case (prefix-numeric-value current-prefix-arg)
     (4 (let ((dir (read-directory-name "Input Directory: ")))
          (setq helm-gtags-local-directory (file-name-as-directory dir))))
-    (16 (file-name-directory (buffer-file-name)))))
+    (16 (file-name-directory (buffer-file-name)))
+    (t (file-name-directory (helm-gtags-find-tag-directory)))
+    ))
 
 (defsubst helm-gtags--using-other-window-p ()
   (< (prefix-numeric-value current-prefix-arg) 0))
@@ -605,21 +612,31 @@
         (helm-execute-action-at-once-if-one t)
         (buf (get-buffer-create helm-gtags-buffer))
         (dir (helm-gtags-searched-directory))
-        (custom-dirs (mapcar (lambda(Dir) (file-name-as-directory Dir)) helm-gtags-tag-location-list))
+        (custom-dirs (mapcar (lambda(Dir) (file-name-as-directory Dir))
+                             helm-gtags-tag-location-list))
         (src (car srcs)))
-    (when (symbolp src)
-      (setq src (symbol-value src)))
-    (when (helm-gtags--using-other-window-p)
-      (setq helm-gtags-use-otherwin t))
-    (helm-attrset 'helm-gtags-base-directory dir src)
     (when dir (add-to-list 'custom-dirs dir))
-    (helm-attrset 'helm-gtags-tag-location-list custom-dirs src)
-    (helm-attrset 'name
-                  (format "Searched at %s" (or dir default-directory))
-                  src)
+    (when (helm-gtags--using-other-window-p) (setq helm-gtags-use-otherwin t))
+    (dolist (src srcs)
+      (when (symbolp src) (setq src (symbol-value src)))
+      (helm-attrset 'helm-gtags-base-directory dir src)
+      (helm-attrset 'helm-gtags-tag-location-list custom-dirs src)
+      (print custom-dirs)
+      (helm-attrset 'name
+                    (format "Searched at %s" (mapconcat 'identity custom-dirs " "))
+                    src))
+
     (helm :sources srcs
           :input (or input (thing-at-point 'symbol))
           :buffer buf)))
+
+;;;###autoload
+(defun helm-gtags-find-all ()
+  "Jump to definition"
+  (interactive)
+  (helm-gtags-common '(helm-source-gtags-tags
+                       helm-source-gtags-gsyms
+                       helm-source-gtags-rtags)))
 
 ;;;###autoload
 (defun helm-gtags-find-tag ()
@@ -723,7 +740,7 @@
         (message "Failed: '%s'" cmd))
       (set-process-sentinel proc 'helm-gtags--update-tags-sentinel))))
 
-(defvar helm-gtags-mode-name " Helm Gtags")
+(defvar helm-gtags-mode-name " HGtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
 
 ;;;###autoload
