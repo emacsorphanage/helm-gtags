@@ -98,7 +98,7 @@
     (:file   . "Find File: ")))
 
 (defvar helm-gtags-completing-history nil)
-(defvar helm-gtags-context-stack (make-hash-table :test 'equal))
+(defvar helm-gtags-context-stack nil)
 (defvar helm-gtags-saved-context nil)
 (defvar helm-gtags-use-otherwin nil)
 (defvar helm-gtags-local-directory nil)
@@ -202,21 +202,15 @@
       (find-file-read-only-other-window file)
     (find-file-other-window file)))
 
-(defun helm-gtags-get-context-stack ()
-  (let ((tag-location (helm-gtags-find-tag-directory)))
-    (gethash tag-location helm-gtags-context-stack)))
-
 (defun helm-gtags-pop-context ()
-  (let ((context-stack (helm-gtags-get-context-stack)))
-    (unless context-stack
-      (error "Context stack is empty(TAG at %s)" helm-gtags-tag-location))
-    (let* ((context (pop context-stack))
-           (file (plist-get context :file))
-           (curpoint (plist-get context :position))
-           (readonly (plist-get context :readonly)))
-      (puthash helm-gtags-tag-location context-stack helm-gtags-context-stack)
-      (helm-gtags-open-file file readonly)
-      (goto-char curpoint))))
+  (unless helm-gtags-context-stack
+    (error "Context stack is empty." ))
+  (let* ((context (pop helm-gtags-context-stack))
+         (file (plist-get context :file))
+         (curpoint (plist-get context :position))
+         (readonly (plist-get context :readonly)))
+    (helm-gtags-open-file file readonly)
+    (goto-char curpoint)))
 
 (defun get-helm-first-patern()
   (car (helm-mp-split-pattern helm-pattern))
@@ -237,12 +231,12 @@
   (let (cmd candidates
             (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
             (default-tag-dir (helm-gtags-find-tag-directory))
-             ; (helm-gtags-input type)
+                                        ; (helm-gtags-input type)
 
             (buf-coding buffer-file-coding-system)
             )
     (when default-tag-dir (add-to-list 'dirs default-tag-dir ))
-    (helm-gtags-save-current-context)
+    (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
     (with-temp-buffer
       (let (begin end
                   (default-directory default-directory)
@@ -263,7 +257,7 @@
         (case type
           (:tag (setq helm-gtags-tag-cache (cons input candidates)))
           (:symbol (setq helm-gtags-symbol-cache (cons input candidates)))
-        )))
+          )))
     candidates))
 
 (defun helm-gtags-find-tag-from-here-candidates()
@@ -277,7 +271,7 @@
     (helm-gtags-save-current-context)
     (with-temp-buffer
       (setq cmd
-            (with-current-buffer helm-current-buffer
+            (with-helm-buffer
               (setq token (helm-gtags-token-at-point))
               (format "global --result=grep --from-here=%d:%s %s"
                       (line-number-at-pos)
@@ -337,11 +331,10 @@
     candidates))
 
 (defun helm-gtags-push-context (context)
-  (let ((stack (gethash helm-gtags-tag-location helm-gtags-context-stack)))
-    (unless(member context stack)
-      (push  context stack)
-      (puthash helm-gtags-tag-location stack helm-gtags-context-stack)
-      )))
+  (unless(member context helm-gtags-context-stack)
+    (push  context helm-gtags-context-stack)
+    (print helm-gtags-context-stack)
+    ))
 
 (defun helm-gtags-select-find-file-func ()
   (if helm-gtags-use-otherwin
@@ -385,13 +378,12 @@
                 content)))))
 
 (defun helm-gtags-show-stack-init ()
-  (let ((context-stack (helm-gtags-get-context-stack)))
-    (with-current-buffer (helm-candidate-buffer 'global)
-      (loop for context in (reverse context-stack)
-            for file = (plist-get context :file)
-            for pos  = (plist-get context :position)
-            do
-            (insert (helm-gtags-file-content-at-pos file pos))))))
+  (with-current-buffer (helm-candidate-buffer 'global)
+    (loop for context in (reverse helm-gtags-context-stack)
+          for file = (plist-get context :file)
+          for pos  = (plist-get context :position)
+          do
+          (insert (helm-gtags-file-content-at-pos file pos)))))
 
 (defun helm-gtags-tags-persistent-action (_cand)
   (let* ((elems (split-string (helm-get-selection nil 'withprop) ":"))
@@ -406,14 +398,20 @@
 (defun helm-gtags-candidates-in-buffer-tag(&optional in)
   (let ((input (or in (car (helm-mp-split-pattern helm-pattern)))))
     (if (and helm-gtags-tag-cache (string-equal input (car helm-gtags-tag-cache)))
-        (cdr helm-gtags-tag-cache)
+        (prog
+         (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
+         ;; (with-helm-buffer (helm-gtags-save-current-context))
+         (cdr helm-gtags-tag-cache))
       (helm-gtags-candidates-in-buffer :tag input)
       )))
 
 (defun helm-gtags-candidates-in-buffer-symbol(&optional in)
   (let ((input (or in (car (helm-mp-split-pattern helm-pattern)))))
     (if (and helm-gtags-symbol-cache (string-equal input (car helm-gtags-symbol-cache)))
-        (cdr helm-gtags-symbol-cache)
+        (prog
+         (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
+         ;; (with-helm-buffer (helm-gtags-save-current-context))
+         (cdr helm-gtags-symbol-cache))
       (helm-gtags-candidates-in-buffer :symbol input)
       )))
 
@@ -684,14 +682,7 @@
 (defun helm-gtags-clear-stack ()
   "Clear jumped point stack"
   (interactive)
-  (let ((tag-location (helm-gtags-find-tag-directory)))
-    (puthash tag-location nil helm-gtags-context-stack)))
-
-;;;###autoload
-(defun helm-gtags-clear-all-stacks ()
-  "Clear all jumped point stacks"
-  (interactive)
-  (setq helm-gtags-context-stack (make-hash-table :test 'equal)))
+  (setq helm-gtags-context-stack nil))
 
 (defun helm-gtags--update-tags-sentinel (process state)
   (when (eq (process-status process) 'exit)
