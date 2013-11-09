@@ -325,19 +325,10 @@
   (helm-gtags-exec-global-command :tag in)
   )
 
-;; (defun helm-gtags-tags-candidates (&optional in)
-;;   (helm-gtags-exec-global-command :tag in)
-;;   )
 (defun helm-gtags-rtags-init (&optional input)
   (helm-gtags-exec-global-command :rtag input)
   )
 
-;; (defun helm-gtags-gsyms-init ()
-;;   (helm-gtags-exec-global-command :symbol ))
-
-;; (defun helm-gtags-files-init ()
-;;   (helm-gtags-exec-global-command :file )
-;;   )
 
 (defun helm-gtags-parse-file-candidates ()
   (let ((cmd (format "global --result cscope -f \"%s\"" helm-gtags-parsed-file))
@@ -510,11 +501,6 @@
   (interactive)
   (helm-gtags-common '(helm-source-gtags-select) "") )
 
-;; ;;;###autoload
-;; (defun helm-gtags-select-path ()
-;;   (interactive)
-;;   (helm-gtags-common '(helm-source-gtags-select-path) ""))
-
 (defun helm-source-gtags-select-tag (candidate)
   `((name . "tags")
     (candidates .  (lambda ()
@@ -582,18 +568,6 @@
                   (helm-source-gtags-select-tag-action c)))
                ("Move to the referenced point" .
                 helm-source-gtags-select-rtag-action)))))
-
-;; (defvar helm-source-gtags-select-path
-;;   `((name . "GNU GLOBAL PATH")
-;;     (init .
-;;           (lambda ()
-;;             (with-current-buffer (helm-candidate-buffer 'global)
-;;               (call-process-shell-command "global -Poa" nil t nil))))
-;;     (candidates-in-buffer)
-;;     (get-line . buffer-substring)
-;;     (real-to-display . helm-gtags-files-candidate-transformer)
-;;     (candidate-number-limit . ,helm-gtags-default-candidate-limit)
-;;     (type . file)))
 
 (defun helm-gtags-searched-directory ()
   (case (prefix-numeric-value current-prefix-arg)
