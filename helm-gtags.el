@@ -81,6 +81,11 @@
   :type 'list
   :group 'helm-gtags)
 
+(defcustom helm-gtags-default-candidate-limit 9999
+  "default candidate limit."
+  :type 'int
+  :group 'helm-gtags)
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -252,7 +257,7 @@
           (setq end (point))
           (put-text-property begin end 'default-directory default-directory)
           )
-        (setq candidates (read-lines-from-buf (current-buffer) 9999))
+        (setq candidates (read-lines-from-buf (current-buffer) helm-gtags-default-candidate-limit))
         ))
     candidates))
 
@@ -279,7 +284,7 @@
       (call-process-shell-command cmd nil t)
       ;; (setq end (point))
       ;; (put-text-property begin end 'default-directory default-directory)
-      (setq candidates (read-lines-from-buf (current-buffer) 9999)))
+      (setq candidates (read-lines-from-buf (current-buffer) helm-gtags-default-candidate-limit)))
     candidates
     )
   )
@@ -334,11 +339,15 @@
 ;;   (helm-gtags-exec-global-command :file )
 ;;   )
 
-(defun helm-gtags-parse-file-init ()
-  (let ((cmd (concat "global --result cscope -f " helm-gtags-parsed-file)))
-    (with-current-buffer (helm-candidate-buffer 'global)
-      (unless (zerop (call-process-shell-command cmd nil t))
-        (error "Failed: %s" cmd)))))
+(defun helm-gtags-parse-file-candidates ()
+  (let ((cmd (format "global --result cscope -f \"%s\"" helm-gtags-parsed-file))
+        candidates)
+    (with-temp-buffer
+      (if (zerop (call-process-shell-command cmd nil t))
+          (setq candidates (read-lines-from-buf (current-buffer)
+                                                helm-gtags-default-candidate-limit))
+        (error "Failed: %s" cmd)))
+    candidates))
 
 (defun helm-gtags-push-context (context)
   (let ((stack (gethash helm-gtags-tag-location helm-gtags-context-stack)))
@@ -357,7 +366,7 @@
   (helm-gtags-push-context helm-gtags-saved-context))
 
 (defun helm-gtags-parse-file-action (cand)
-  (let ((line (when (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)
+  (let ((line (when (string-match "\\s-+\\([1-9][0-9]*\\)\\s-+" cand)
                 (string-to-number (match-string 1 cand))))
         (open-func (helm-gtags-select-find-file-func)))
     (helm-gtags-do-open-file open-func helm-gtags-parsed-file line)))
@@ -461,7 +470,7 @@
     (candidates . helm-gtags-candidates-in-buffer-files)
     ;; (volatile);;candidates
     (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . helm-gtags-default-candidate-limit)
     (type . file)))
 
 (defvar helm-source-gtags-find-tag-from-here
@@ -474,12 +483,12 @@
 
 (defvar helm-source-gtags-parse-file
   '((name . "Parsed File")
-    (init . helm-gtags-parse-file-init)
-    (candidates-in-buffer)
-    (get-line . buffer-substring)
+    (candidates . helm-gtags-parse-file-candidates)
+    ;; (candidates-in-buffer)
+    ;; (get-line . buffer-substring)
     (real-to-display . helm-gtags-parse-file-candidate-transformer)
     (action . helm-gtags-parse-file-action)
-    (candidate-number-limit . 9999)))
+    (candidate-number-limit . helm-gtags-default-candidate-limit)))
 
 (defvar helm-source-gtags-show-stack
   '((name . "Show Context Stack")
@@ -487,7 +496,7 @@
     (candidates-in-buffer)
     (get-line . buffer-substring)
     (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . helm-gtags-default-candidate-limit)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -516,7 +525,7 @@
               (helm-gtags-rtags-init ,candidate)))
     (candidates-in-buffer)
     (get-line . buffer-substring)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . helm-gtags-default-candidate-limit)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -538,7 +547,7 @@
               (call-process-shell-command "global -c" nil t nil))))
     (candidates-in-buffer)
     (get-line . buffer-substring)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . helm-gtags-default-candidate-limit)
     (action . (("Goto the location" . helm-source-gtags-select-tag-action)
                ("Goto the location(other buffer)" .
                 (lambda (c)
@@ -556,7 +565,7 @@
     (candidates-in-buffer)
     (get-line . buffer-substring)
     (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . helm-gtags-default-candidate-limit)
     (type . file)))
 
 (defun helm-gtags-searched-directory ()
