@@ -36,6 +36,7 @@
 ;;
 ;;     (add-hook 'helm-gtags-mode-hook
 ;;               '(lambda ()
+;;                  (add-to-list 'helm-gtags-tag-location-list "/usr/include/")
 ;;                  (local-set-key (kbd "M-.") 'helm-gtags-find-tag-and-symbol)
 ;;                  (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
 ;;                  (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
@@ -52,6 +53,7 @@
 
 (require 'helm)
 (require 'helm-files)
+(require 'helm-match-plugin)
 (require 'which-func)
 (require 'thingatpt)
 
