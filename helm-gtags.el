@@ -103,6 +103,8 @@
 (defvar helm-gtags-use-otherwin nil)
 (defvar helm-gtags-local-directory nil)
 (defvar helm-gtags-parsed-file nil)
+(defvar helm-gtags-tag-cache nil)
+(defvar helm-gtags-symbol-cache nil)
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -230,12 +232,12 @@
       candidates
       )))
 
-(defun helm-gtags-exec-global-command (type &optional in)
+(defun helm-gtags-exec-global-command (type &optional input)
   ;; (helm-gtags-find-tag-directory)
   (let (cmd candidates
             (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
             (default-tag-dir (helm-gtags-find-tag-directory))
-            (input (or in (car (helm-mp-split-pattern helm-pattern)))) ; (helm-gtags-input type)
+             ; (helm-gtags-input type)
 
             (buf-coding buffer-file-coding-system)
             )
@@ -258,7 +260,10 @@
           (put-text-property begin end 'default-directory default-directory)
           )
         (setq candidates (read-lines-from-buf (current-buffer) helm-gtags-default-candidate-limit))
-        ))
+        (case type
+          (:tag (setq helm-gtags-tag-cache (cons input candidates)))
+          (:symbol (setq helm-gtags-symbol-cache (cons input candidates)))
+        )))
     candidates))
 
 (defun helm-gtags-find-tag-from-here-candidates()
@@ -399,19 +404,24 @@
     (helm-match-line-color-current-line)))
 
 (defun helm-gtags-candidates-in-buffer-tag(&optional in)
-  (helm-gtags-candidates-in-buffer :tag in)
-  )
+  (let ((input (or in (car (helm-mp-split-pattern helm-pattern)))))
+    (if (and helm-gtags-tag-cache (string-equal input (car helm-gtags-tag-cache)))
+        (cdr helm-gtags-tag-cache)
+      (helm-gtags-candidates-in-buffer :tag input)
+      )))
 
-(defun helm-gtags-candidates-in-buffer-symbol()
-  (helm-gtags-candidates-in-buffer :symbol)
-  )
+(defun helm-gtags-candidates-in-buffer-symbol(&optional in)
+  (let ((input (or in (car (helm-mp-split-pattern helm-pattern)))))
+    (if (and helm-gtags-symbol-cache (string-equal input (car helm-gtags-symbol-cache)))
+        (cdr helm-gtags-symbol-cache)
+      (helm-gtags-candidates-in-buffer :symbol input)
+      )))
 
-(defun helm-gtags-candidates-in-buffer-rtag()
-  (helm-gtags-candidates-in-buffer :rtag)
-  )
+(defun helm-gtags-candidates-in-buffer-rtag(&optional in)
+  (helm-gtags-candidates-in-buffer :rtag (or in (car (helm-mp-split-pattern helm-pattern)))))
 
-(defun helm-gtags-candidates-in-buffer-files()
-  (helm-gtags-candidates-in-buffer :file)
+(defun helm-gtags-candidates-in-buffer-files(&optional in)
+  (helm-gtags-candidates-in-buffer :file (or in (car (helm-mp-split-pattern helm-pattern))))
   )
 
 
@@ -424,7 +434,7 @@
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-gsyms
-  '((name . "symbal")
+  '((name . "symbol")
     (candidates . helm-gtags-candidates-in-buffer-symbol)
     (volatile);;candidates
     (delayed)
@@ -597,7 +607,7 @@
           :buffer buf)))
 
 ;;;###autoload
-(defun helm-gtags-find-tag-or-symbal ()
+(defun helm-gtags-find-tag-or-symbol ()
   "Jump to definition"
   (interactive)
   (helm-gtags-common '(helm-source-gtags-tags
