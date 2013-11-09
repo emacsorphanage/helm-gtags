@@ -37,7 +37,7 @@ Input tag name and move to the definition.
 
 #### `helm-gtags-find-tag-from-here`
 
-Find tag from here and move to its definition.
+Find tag from here and move to its definition (gnu global --from-here).
 
 #### `helm-gtags-find-rtag`
 
@@ -52,8 +52,8 @@ Input symbol and move to the locations.
 Input file name and open it.
 
 
-You can use those searching commands with prefix key.
-
+You can use those searching commands with prefix key,
+though I think this is unless now after support helm-gtags-tag-location-list. 
 | Prefix Key  | Description                       |
 |:------------|:---------------------------------:|
 | C-u         | Searches from specified directory |
@@ -65,7 +65,11 @@ You can use those searching commands with prefix key.
 #### `helm-gtags-select`
 
 Tag jump using gtags and helm(experimental)
-
+First list all symbol to select, after you select the symbol
+use it as keyword calling one of
+  helm-gtags-find-symbol
+  helm-gtags-find-rtag
+  helm-gtags-find-tag
 
 #### `helm-gtags-update-tags`
 
@@ -91,13 +95,21 @@ You can jump to the context.
 
 Clear current context stack.
 
-#### `helm-gtags-clear-all-stacks`
-
-Clear all context stacks.
-
 
 ## Customize Variables
 
+### `helm-gtags-tag-location-list`
+You could add your lib directory here ,like
+(add-to-list 'helm-gtags-tag-location-list "/usr/include/")
+of cource  you should run : gtags in these directories.
+then 
+  helm-gtags-find-symbol
+  helm-gtags-find-rtag
+  helm-gtags-find-tag
+  helm-gtags-find-tag-from-here
+  helm-gtags-find-files
+  helm-gtags-select
+could find tag rtags symbol files in several directory with one command
 #### `helm-gtags-path-style`
 
 File path style, `'root` or `'relative` or `'absolute`(Default is `'root`)
@@ -132,12 +144,19 @@ If this variable is non-nil, TAG file is updated after saving buffer.
 (setq helm-gtags-read-only t)
 (setq helm-gtags-auto-update t)
 
+(add-hook 'c-mode-hook '(lambda()
+                          ;;'helm-gtags-tag-location-list is a buffer local var
+                          (add-to-list 'helm-gtags-tag-location-list "/usr/include/")
+                          ))
+
 ;; key bindings
-(add-hook 'helm-gtags-mode-hook
-          '(lambda ()
-              (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
-              (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
-              (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
-              (local-set-key (kbd "M-g M-p") 'helm-gtags-parse-file)
-              (local-set-key (kbd "M-,") 'helm-gtags-pop-stack)))
+    (add-hook 'helm-gtags-mode-hook
+              '(lambda ()
+                 (local-set-key (kbd "M-.") 'helm-gtags-find-tag-and-symbol)
+                 (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
+                 (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
+                 (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
+                 (local-set-key (kbd "C-,") 'helm-gtags-pop-stack)
+                 (local-set-key (kbd "M-g M-p") 'helm-gtags-parse-file)
+                 (local-set-key (kbd "C-c C-f") 'helm-gtags-find-files)))
 ```
