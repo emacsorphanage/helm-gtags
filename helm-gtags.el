@@ -321,15 +321,6 @@
       (error "Input is empty!!"))
     (format "global %s %s" option input)))
 
-(defun helm-gtags-tags-init (&optional in)
-  (helm-gtags-exec-global-command :tag in)
-  )
-
-(defun helm-gtags-rtags-init (&optional input)
-  (helm-gtags-exec-global-command :rtag input)
-  )
-
-
 (defun helm-gtags-parse-file-candidates ()
   (let ((cmd (format "global --result cscope -f \"%s\"" helm-gtags-parsed-file))
         candidates)
