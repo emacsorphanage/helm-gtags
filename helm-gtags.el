@@ -207,10 +207,12 @@
   (let ((tag-location (helm-gtags-find-tag-directory)))
     (gethash tag-location helm-gtags-context-stack)))
 
+;;;###autoload
 (defun helm-gtags-clear-all-cache ()
   (interactive)
   (clrhash helm-gtags-result-cache))
 
+;;;###autoload
 (defun helm-gtags-clear-cache ()
   (interactive)
   (let ((gtags-path (concat (helm-gtags-find-tag-directory) "GTAGS"))
