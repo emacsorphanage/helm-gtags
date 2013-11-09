@@ -426,9 +426,8 @@
   (helm-gtags-candidates-in-buffer :rtag (or in (car (helm-mp-split-pattern helm-pattern)))))
 
 (defun helm-gtags-candidates-in-buffer-files(&optional in)
-  (helm-gtags-candidates-in-buffer :file (or in (car (helm-mp-split-pattern helm-pattern))))
-  )
-
+  (let ((input (or in (car (helm-mp-split-pattern helm-pattern)))))
+    (helm-gtags-candidates-in-buffer :file input)))
 
 (defvar helm-source-gtags-tags
   '((name . "tag")
@@ -468,7 +467,7 @@
               (match-string 3 removed-file)))))
 
 (defvar helm-source-gtags-files
-  `((name . "tags")
+  `((name . "gnu global list files")
     (candidates . helm-gtags-candidates-in-buffer-files)
     ;; (volatile);;candidates
     (real-to-display . helm-gtags-files-candidate-transformer)
