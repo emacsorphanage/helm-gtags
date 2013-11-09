@@ -434,7 +434,7 @@
 
 
 (defvar helm-source-gtags-tags
-  '((name . "GNU GLOBAL")
+  '((name . "tag")
     (candidates . helm-gtags-candidates-in-buffer-tag)
     (volatile);;candidates
     (delayed)
@@ -442,7 +442,7 @@
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-gsyms
-  '((name . "GNU GLOBAL")
+  '((name . "symbal")
     (candidates . helm-gtags-candidates-in-buffer-symbol)
     (volatile);;candidates
     (delayed)
@@ -450,7 +450,7 @@
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-rtags
-  '((name . "GNU GLOBAL")
+  '((name . "rtags")
     (candidates . helm-gtags-candidates-in-buffer-rtag)
     (volatile);;candidates
     (delayed)
@@ -471,7 +471,7 @@
               (match-string 3 removed-file)))))
 
 (defvar helm-source-gtags-files
-  `((name . "GNU GLOBAL")
+  `((name . "tags")
     (candidates . helm-gtags-candidates-in-buffer-files)
     ;; (volatile);;candidates
     (real-to-display . helm-gtags-files-candidate-transformer)
@@ -479,7 +479,7 @@
     (type . file)))
 
 (defvar helm-source-gtags-find-tag-from-here
-  '((name . "GNU GLOBAL")
+  '((name . "tags")
     (candidates . helm-gtags-find-tag-from-here-candidates)
     ;; (volatile) ;;candidates
     (persistent-action . helm-gtags-tags-persistent-action)
@@ -516,7 +516,7 @@
 ;;   (helm-gtags-common '(helm-source-gtags-select-path) ""))
 
 (defun helm-source-gtags-select-tag (candidate)
-  `((name . "GNU GLOBAL")
+  `((name . "tags")
     (candidates .  (lambda ()
                      (helm-gtags-candidates-in-buffer-tag ,candidate)) )
     (volatile);;candidates
@@ -527,7 +527,7 @@
 
 
 (defun helm-source-gtags-select-rtag (candidate)
-  `((name . "GNU GLOBAL")
+  `((name . "rtags")
     (candidates . helm-gtags-candidates-in-buffer-rtag)
     (volatile);;candidates
     (delayed)
@@ -619,13 +619,14 @@
     (when (helm-gtags--using-other-window-p) (setq helm-gtags-use-otherwin t))
     (dolist (src srcs)
       (when (symbolp src) (setq src (symbol-value src)))
+      (unless (helm-attr 'init-name src) (helm-attrset 'init-name  (helm-attr 'name src) src))
       (helm-attrset 'helm-gtags-base-directory dir src)
       (helm-attrset 'helm-gtags-tag-location-list custom-dirs src)
       (print custom-dirs)
       (helm-attrset 'name
-                    (format "Searched at %s" (mapconcat 'identity custom-dirs " "))
+                    (format "Searched %s at %s" (or (helm-attr 'init-name src) "")
+                            (mapconcat 'identity custom-dirs "  "))
                     src))
-
     (helm :sources srcs
           :input (or input (thing-at-point 'symbol))
           :buffer buf)))
