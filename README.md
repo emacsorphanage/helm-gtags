@@ -95,25 +95,41 @@ Clear current context stack.
 
 Clear all context stacks.
 
+#### `helm-gtags-clear-cache`
+
+Clear current project cache for `helm-gtags-select` and `helm-gtags-select-path`
+
+#### `helm-gtags-clear-all-cache`
+
+Clear all result cache for `helm-gtags-select` and `helm-gtags-select-path`
+
 
 ## Customize Variables
 
-#### `helm-gtags-path-style`
+#### `helm-gtags-path-style`(Default `'root`)
 
-File path style, `'root` or `'relative` or `'absolute`(Default is `'root`)
+File path style, `'root` or `'relative` or `'absolute`
 
 #### `helm-gtags-ignore-case`
 
-Ignore case for searching flag (Default is `nil`)
+Ignore case for searching flag (Default `nil`)
 
 #### `helm-gtags-read-only`
 
-Open file as readonly, if this value is `non-nil`(Default is `nil`).
-
+Open file as readonly, if this value is `non-nil`(Default `nil`).
 
 #### `helm-gtags-auto-update`
 
 If this variable is non-nil, TAG file is updated after saving buffer.
+
+#### `helm-gtags-cache-select-result`(Default `nil`)
+
+If this variable is non-nil, use cache for `helm-gtags-select` and `helm-gtags-select-path`
+
+#### `helm-gtags-cache-max-result-size`(Default `10MB`)
+
+Max size(bytes) to cache for each select result
+
 
 ## Sample Configuration
 
