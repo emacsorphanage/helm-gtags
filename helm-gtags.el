@@ -261,7 +261,7 @@
             token begin end
             (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
             ( default-directory (helm-gtags-find-tag-directory))
-            (buf-filename  (buffer-file-name helm-current-buffer) )
+            (buf-filename  (format "\"%s\"" (buffer-file-name helm-current-buffer)))
             )
     (setq helm-gtags-local-directory nil)
     (helm-gtags-save-current-context)
@@ -273,6 +273,7 @@
                       (line-number-at-pos)
                       buf-filename
                       token)))
+      (print cmd)
       (goto-char (point-max))
       ;; (setq begin (point))
       (call-process-shell-command cmd nil t)
