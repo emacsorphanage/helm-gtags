@@ -214,6 +214,16 @@
 (defun get-helm-first-patern()
   (car (helm-mp-split-pattern helm-pattern))
   )
+(defun read-lines-from-buf(buf limit)
+  (with-current-buffer buf
+    (goto-char (point-min))
+    (let (candidates (i 0))
+      (while (or (and (not (eobp)) (null limit)) (and limit (< i limit)))
+        (add-to-list 'candidates (buffer-substring (line-beginning-position) (line-end-position)))
+        (forward-line)
+        (setq i (1+ i)))
+      candidates
+      )))
 
 (defun helm-gtags-exec-global-command (type &optional in)
   ;; (helm-gtags-find-tag-directory)
@@ -242,11 +252,8 @@
           (setq end (point))
           (put-text-property begin end 'default-directory default-directory)
           )
-        (goto-char (point-min))
-        (while (not (eobp))
-          (add-to-list 'candidates (buffer-substring (line-beginning-position) (line-end-position)))
-          (forward-line)
-          )))
+        (setq candidates (read-lines-from-buf (current-buffer) 9999))
+        ))
     candidates))
 
 (defun helm-gtags-find-tag-from-here-candidates()
@@ -271,11 +278,7 @@
       (call-process-shell-command cmd nil t)
       ;; (setq end (point))
       ;; (put-text-property begin end 'default-directory default-directory)
-      (goto-char (point-min))
-      (while (not (eobp))
-        (add-to-list 'candidates (buffer-substring (line-beginning-position) (line-end-position)))
-        (forward-line)
-        ))
+      (setq candidates (read-lines-from-buf (current-buffer) 9999)))
     candidates
     )
   )
@@ -321,7 +324,7 @@
 ;;   )
 (defun helm-gtags-rtags-init (&optional input)
   (helm-gtags-exec-global-command :rtag input)
-)
+  )
 
 ;; (defun helm-gtags-gsyms-init ()
 ;;   (helm-gtags-exec-global-command :symbol ))
@@ -500,11 +503,11 @@
 (defun helm-source-gtags-select-tag (candidate)
   `((name . "GNU GLOBAL")
     (candidates .  (lambda ()
-              (helm-gtags-candidates-in-buffer-tag ,candidate)) )
+                     (helm-gtags-candidates-in-buffer-tag ,candidate)) )
     (volatile);;candidates
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile))
-)
+  )
 
 (defun helm-source-gtags-select-rtag (candidate)
   `((name . "GNU GLOBAL")
