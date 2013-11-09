@@ -89,7 +89,7 @@
   "tag locations."
   :type 'list
   :group 'helm-gtags)
-(make-variable-buffer-local 'helm-gtags-tag-location-list）
+(make-variable-buffer-local 'helm-gtags-tag-location-list)
 
 (defcustom helm-gtags-default-candidate-limit 9999
   "default candidate limit."
