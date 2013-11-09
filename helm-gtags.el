@@ -83,7 +83,7 @@
 
 (defcustom helm-gtags-default-candidate-limit 9999
   "default candidate limit."
-  :type 'int
+  :type 'integer
   :group 'helm-gtags)
 
 (defvar helm-gtags-tag-location nil
@@ -351,8 +351,10 @@
 
 (defun helm-gtags-push-context (context)
   (let ((stack (gethash helm-gtags-tag-location helm-gtags-context-stack)))
-    (push context stack)
-    (puthash helm-gtags-tag-location stack helm-gtags-context-stack)))
+    (unless(member context stack)
+      (push  context stack)
+      (puthash helm-gtags-tag-location stack helm-gtags-context-stack)
+      )))
 
 (defun helm-gtags-select-find-file-func ()
   (if helm-gtags-use-otherwin
@@ -466,11 +468,11 @@
               (match-string 3 removed-file)))))
 
 (defvar helm-source-gtags-files
-  '((name . "GNU GLOBAL")
+  `((name . "GNU GLOBAL")
     (candidates . helm-gtags-candidates-in-buffer-files)
     ;; (volatile);;candidates
     (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . helm-gtags-default-candidate-limit)
+    (candidate-number-limit . ,helm-gtags-default-candidate-limit)
     (type . file)))
 
 (defvar helm-source-gtags-find-tag-from-here
@@ -482,33 +484,33 @@
   )
 
 (defvar helm-source-gtags-parse-file
-  '((name . "Parsed File")
+  `((name . "Parsed File")
     (candidates . helm-gtags-parse-file-candidates)
     ;; (candidates-in-buffer)
     ;; (get-line . buffer-substring)
     (real-to-display . helm-gtags-parse-file-candidate-transformer)
     (action . helm-gtags-parse-file-action)
-    (candidate-number-limit . helm-gtags-default-candidate-limit)))
+    (candidate-number-limit . ,helm-gtags-default-candidate-limit)))
 
 (defvar helm-source-gtags-show-stack
-  '((name . "Show Context Stack")
+  `((name . "Show Context Stack")
     (init . helm-gtags-show-stack-init)
     (candidates-in-buffer)
     (get-line . buffer-substring)
     (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . helm-gtags-default-candidate-limit)
+    (candidate-number-limit . ,helm-gtags-default-candidate-limit)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 ;;;###autoload
 (defun helm-gtags-select ()
   (interactive)
-  (helm-gtags-common '(helm-source-gtags-select)"") )
+  (helm-gtags-common '(helm-source-gtags-select) "") )
 
-;;;###autoload
-(defun helm-gtags-select-path ()
-  (interactive)
-  (helm-gtags-common '(helm-source-gtags-select-path)))
+;; ;;;###autoload
+;; (defun helm-gtags-select-path ()
+;;   (interactive)
+;;   (helm-gtags-common '(helm-source-gtags-select-path) ""))
 
 (defun helm-source-gtags-select-tag (candidate)
   `((name . "GNU GLOBAL")
@@ -519,35 +521,55 @@
     (action . helm-gtags-action-openfile))
   )
 
+
 (defun helm-source-gtags-select-rtag (candidate)
   `((name . "GNU GLOBAL")
-    (init . (lambda ()
-              (helm-gtags-rtags-init ,candidate)))
-    (candidates-in-buffer)
-    (get-line . buffer-substring)
-    (candidate-number-limit . helm-gtags-default-candidate-limit)
+    (candidates . helm-gtags-candidates-in-buffer-rtag)
+    (volatile);;candidates
+    (candidate-number-limit . ,helm-gtags-default-candidate-limit)
     (persistent-action . helm-gtags-tags-persistent-action)
-    (action . helm-gtags-action-openfile)))
+    (action . helm-gtags-action-openfile))
+  )
 
 (defun helm-source-gtags-select-tag-action (c)
   (helm-run-after-quit
    `(lambda ()
-      (helm-gtags-common (list (helm-source-gtags-select-tag ,c)) ))))
+      (helm-gtags-common (list (helm-source-gtags-select-tag ,c)) ,c))))
 
 (defun helm-source-gtags-select-rtag-action (c)
   (helm-run-after-quit
    `(lambda ()
-      (helm-gtags-common (list (helm-source-gtags-select-rtag ,c))))))
+      (helm-gtags-common (list (helm-source-gtags-select-rtag ,c)) ,c))))
+
+(defun helm-source-gtags-select-init()
+  (let (candidates
+        (cmd "global -c")
+        (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
+        (default-tag-dir (helm-gtags-find-tag-directory))
+        (buf-coding buffer-file-coding-system)
+        )
+    (when default-tag-dir (add-to-list 'dirs default-tag-dir ))
+    (with-current-buffer (helm-candidate-buffer 'global)
+      (let (begin end
+                  (default-directory default-directory)
+                  (coding-system-for-read buf-coding)
+                  (coding-system-for-write buf-coding)
+                  )
+        (dolist (dir dirs)
+          (setq default-directory (helm-gtags-base-directory))
+          (goto-char (point-max))
+          (setq begin (point))
+          (call-process-shell-command cmd nil t)
+          (setq end (point))
+          (put-text-property begin end 'default-directory default-directory)
+          )))))
 
 (defvar helm-source-gtags-select
-  '((name . "GNU GLOBAL SELECT")
-    (init .
-          (lambda ()
-            (with-current-buffer (helm-candidate-buffer 'global)
-              (call-process-shell-command "global -c" nil t nil))))
+  `((name . "GNU GLOBAL SELECT")
+    (init . helm-source-gtags-select-init)
     (candidates-in-buffer)
     (get-line . buffer-substring)
-    (candidate-number-limit . helm-gtags-default-candidate-limit)
+    (candidate-number-limit . ,helm-gtags-default-candidate-limit)
     (action . (("Goto the location" . helm-source-gtags-select-tag-action)
                ("Goto the location(other buffer)" .
                 (lambda (c)
@@ -557,7 +579,7 @@
                 helm-source-gtags-select-rtag-action)))))
 
 (defvar helm-source-gtags-select-path
-  '((name . "GNU GLOBAL PATH")
+  `((name . "GNU GLOBAL PATH")
     (init .
           (lambda ()
             (with-current-buffer (helm-candidate-buffer 'global)
@@ -565,7 +587,7 @@
     (candidates-in-buffer)
     (get-line . buffer-substring)
     (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . helm-gtags-default-candidate-limit)
+    (candidate-number-limit . ,helm-gtags-default-candidate-limit)
     (type . file)))
 
 (defun helm-gtags-searched-directory ()
