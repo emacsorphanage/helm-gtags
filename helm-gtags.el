@@ -578,17 +578,17 @@
                ("Move to the referenced point" .
                 helm-source-gtags-select-rtag-action)))))
 
-(defvar helm-source-gtags-select-path
-  `((name . "GNU GLOBAL PATH")
-    (init .
-          (lambda ()
-            (with-current-buffer (helm-candidate-buffer 'global)
-              (call-process-shell-command "global -Poa" nil t nil))))
-    (candidates-in-buffer)
-    (get-line . buffer-substring)
-    (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . ,helm-gtags-default-candidate-limit)
-    (type . file)))
+;; (defvar helm-source-gtags-select-path
+;;   `((name . "GNU GLOBAL PATH")
+;;     (init .
+;;           (lambda ()
+;;             (with-current-buffer (helm-candidate-buffer 'global)
+;;               (call-process-shell-command "global -Poa" nil t nil))))
+;;     (candidates-in-buffer)
+;;     (get-line . buffer-substring)
+;;     (real-to-display . helm-gtags-files-candidate-transformer)
+;;     (candidate-number-limit . ,helm-gtags-default-candidate-limit)
+;;     (type . file)))
 
 (defun helm-gtags-searched-directory ()
   (case (prefix-numeric-value current-prefix-arg)
