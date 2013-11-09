@@ -34,9 +34,11 @@
 ;;     (require 'helm-config)
 ;;     (require 'helm-gtags)
 ;;
+;;     (add-hook 'c-mode-hook '(lambda()
+;;                           (add-to-list 'helm-gtags-tag-location-list "/usr/include/")
+;;                           ))
 ;;     (add-hook 'helm-gtags-mode-hook
 ;;               '(lambda ()
-;;                  (add-to-list 'helm-gtags-tag-location-list "/usr/include/")
 ;;                  (local-set-key (kbd "M-.") 'helm-gtags-find-tag-and-symbol)
 ;;                  (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
 ;;                  (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
@@ -87,6 +89,7 @@
   "tag locations."
   :type 'list
   :group 'helm-gtags)
+(make-variable-buffer-local 'helm-gtags-tag-location-list）
 
 (defcustom helm-gtags-default-candidate-limit 9999
   "default candidate limit."
