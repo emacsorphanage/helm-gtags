@@ -493,8 +493,7 @@
       (helm-gtags-common (list (helm-source-gtags-select-rtag ,c))))))
 
 (defun helm-source-gtags-select-cache-init-common (command tagfile)
-  (with-current-buffer (helm-candidate-buffer 'global)
-    (let ((cache (helm-gtags-get-result-cache tagfile)))
+  (let ((cache (helm-gtags-get-result-cache tagfile)))
       (if cache
           (insert cache)
         (progn
@@ -502,12 +501,13 @@
           (let* ((cache (buffer-string))
                  (cache-size (length cache)))
             (when (<= cache-size helm-gtags-cache-max-result-size)
-              (helm-gtags-put-result-cache tagfile cache))))))))
+              (helm-gtags-put-result-cache tagfile cache)))))))
 
 (defun helm-source-gtags-select-init ()
-  (if (not helm-gtags-cache-select-result)
+  (with-current-buffer (helm-candidate-buffer 'global)
+    (if (not helm-gtags-cache-select-result)
       (call-process-shell-command "global -c" nil t nil)
-    (helm-source-gtags-select-cache-init-common "global -c" "GTAGS")))
+    (helm-source-gtags-select-cache-init-common "global -c" "GTAGS"))))
 
 (defvar helm-source-gtags-select
   '((name . "GNU GLOBAL SELECT")
@@ -523,9 +523,10 @@
                 helm-source-gtags-select-rtag-action)))))
 
 (defun helm-source-gtags-select-path-init ()
-  (if (not helm-gtags-cache-select-result)
+  (with-current-buffer (helm-candidate-buffer 'global)
+    (if (not helm-gtags-cache-select-result)
       (call-process-shell-command "global -Poa" nil t nil)
-    (helm-source-gtags-select-cache-init-common "global -Poa" "GPATH")))
+    (helm-source-gtags-select-cache-init-common "global -Poa" "GPATH"))))
 
 (defvar helm-source-gtags-select-path
   '((name . "GNU GLOBAL PATH")
