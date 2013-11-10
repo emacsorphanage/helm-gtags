@@ -722,7 +722,7 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
     (4 (cons helm-gtags-global-command
              (list "-u" (format "--single-update=%s" (file-truename (buffer-file-name))))))
     (16 (cons helm-gtags-gtags-command
-              (list (read-directory-name "Generate GTAGS at directory:"))))
+              (list (expand-file-name (read-directory-name "Generate GTAGS at directory:")))))
     (t
      (cons helm-gtags-global-command  (list "-u")))
     ))
