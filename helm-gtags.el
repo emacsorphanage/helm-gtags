@@ -513,7 +513,8 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
   (let ((input (or in (car (helm-mp-split-pattern helm-pattern))))
         (buf-filename (buffer-file-name (current-buffer)))
         (tag-rootdir (car helm-gtags-files-cache)))
-    (if (and helm-gtags-files-cache buf-filename (string-match  (regexp-quote tag-rootdir) (file-truename buf-filename)))
+    (if (and helm-gtags-files-cache buf-filename
+             (string-match (regexp-quote tag-rootdir) (file-truename buf-filename)))
         ;; if current buffer file share the same parent directory with tag root directory,
         ;; then use cache
         (progn
