@@ -1,5 +1,15 @@
 Revision history for helm-gtags.el
 
+Revision 2.0 2013/11/10 纪秀峰
+  totally rewrite
+  hightpoint:
+  1. add helm-gtags-tag-location-list option,
+     support multiply tag locations.
+  2. replace all call-process-shell-command with call-process
+  3. add function helm-gtags-complete
+     help completing symbol at point when writing code.
+  4. can add helm-source-gtags-files to helm-for-files-preferred-list
+
 Revision 1.0.2 2013/11/01 syohex
   - Add command helm-gtags-select-path(Thanks lbsx)
 

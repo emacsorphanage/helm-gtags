@@ -148,6 +148,8 @@ If this variable is non-nil, TAG file is updated after saving buffer.
 (setq helm-gtags-read-only t)
 (setq helm-gtags-auto-update t)
 
+(eval-after-load "helm-gtags" '(add-to-list 'helm-for-files-preferred-list helm-source-gtags-files t))
+
 (add-hook 'c-mode-hook '(lambda()
                           ;;'helm-gtags-tag-location-list is a buffer local var
                           (add-to-list 'helm-gtags-tag-location-list "/usr/include/")
