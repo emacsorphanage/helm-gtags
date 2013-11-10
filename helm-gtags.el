@@ -733,7 +733,7 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
 Generate new TAG file in selected directory with `C-uC-u'"
   (interactive)
   (when (and (not (get-buffer " *helm-gtags-update TAGS*")) ;not already running
-             (or current-prefix-arg                         ;update all project
+             (or (called-interactively-p 'interactive) ;call interactively
                  (and (buffer-file-name)                    ;update current file
                       (or (null helm-gtags-delay-seconds)   ;nil means update immidiately
                           (> (- (float-time (current-time)) ;
