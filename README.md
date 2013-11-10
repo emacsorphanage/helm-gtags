@@ -68,7 +68,8 @@ though I think this is unless now after support helm-gtags-tag-location-list.
 
 #### `helm-gtags-select`
 
-Tag jump using gtags and helm(experimental)
+Tag jump using gtags and helm
+
 First list all symbol to select, after you select the symbol
 use it as keyword calling one of
   helm-gtags-find-symbol
