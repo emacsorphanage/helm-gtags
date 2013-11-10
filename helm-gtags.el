@@ -39,6 +39,7 @@
 ;;                           ))
 ;;     (add-hook 'helm-gtags-mode-hook
 ;;               '(lambda ()
+;;                  (local-set-key [(meta return)] 'helm-gtags-complete)
 ;;                  (local-set-key (kbd "M-.") 'helm-gtags-find-tag-and-symbol)
 ;;                  (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
 ;;                  (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)

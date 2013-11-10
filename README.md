@@ -71,6 +71,10 @@ use it as keyword calling one of
   helm-gtags-find-rtag
   helm-gtags-find-tag
 
+### `helm-gtags-complete`
+
+Complete symbol at point(help writing code).
+
 #### `helm-gtags-update-tags`
 
 Update TAG file. Default is update only current file,
@@ -152,6 +156,7 @@ If this variable is non-nil, TAG file is updated after saving buffer.
 ;; key bindings
     (add-hook 'helm-gtags-mode-hook
               '(lambda ()
+                 (local-set-key [(meta return)] 'helm-gtags-complete)
                  (local-set-key (kbd "M-.") 'helm-gtags-find-tag-and-symbol)
                  (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
                  (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
