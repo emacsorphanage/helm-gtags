@@ -72,9 +72,9 @@ Tag jump using gtags and helm
 
 First list all symbol to select, after you select the symbol
 use it as keyword calling one of
-  helm-gtags-find-symbol
-  helm-gtags-find-rtag
-  helm-gtags-find-tag
+  `helm-gtags-find-symbol`
+  `helm-gtags-find-rtag`
+  `helm-gtags-find-tag`
 
 ### `helm-gtags-complete`
 
@@ -82,7 +82,7 @@ Complete symbol at point(help writing code).
 
 #### `helm-gtags-update-tags`
 
-Update TAG file. Default is update only current file,
+Update TAG file. Default is update only current file.
 You can update all files with `C-u` prefix.
 You can generate new tags with `C-uC-u` prefix.
 
@@ -113,12 +113,12 @@ You could add your lib directory here ,like
 (add-to-list 'helm-gtags-tag-location-list "/usr/include/")
 of cource  you should run : gtags in these directories.
 then 
-  helm-gtags-find-symbol
-  helm-gtags-find-rtag
-  helm-gtags-find-tag
-  helm-gtags-find-tag-from-here
-  helm-gtags-find-files
-  helm-gtags-select
+  `helm-gtags-find-symbol`
+  `helm-gtags-find-rtag`
+  `helm-gtags-find-tag`
+  `helm-gtags-find-tag-from-here`
+  `helm-gtags-find-files`
+  `helm-gtags-select`
 could find tag rtags symbol files in several directory with one command
 #### `helm-gtags-path-style`
 
