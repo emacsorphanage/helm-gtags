@@ -96,6 +96,11 @@
   :type 'integer
   :group 'helm-gtags)
 
+(defcustom helm-gtags-global-command "global"
+  "where global command."
+  :type 'string
+  :group 'helm-gtags)
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -144,15 +149,17 @@
     (:symbol . helm-gtags-completing-gsyms)
     (:file   . helm-gtags-completing-files)))
 
-(defun helm-gtags-construct-completion-command (type input)
-  (let ((option (helm-gtags-construct-option type t)))
-    (format "global %s %s" option input)))
+(defun helm-gtags-construct-completion-command-options (type input)
+  (append (helm-gtags-construct-option type t) (list input)))
 
 (defun helm-gtags-complete (type string predicate code)
   (let ((candidates-list nil)
-        (cmd (helm-gtags-construct-completion-command type string)))
+        (options (helm-gtags-construct-completion-command-options type string)))
     (with-temp-buffer
-      (call-process-shell-command cmd nil t nil)
+      ;; (call-process-shell-command cmd nil t nil)
+      (apply 'call-process helm-gtags-global-command nil (current-buffer) nil options)
+      ;; (call-process helm-gtags-global-command nil (current-buffer) nil "-c")
+
       (goto-char (point-min))
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (push (match-string 1) candidates-list)))
@@ -168,20 +175,20 @@
 (defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
 
-;; (defun helm-gtags-input (type)
-;;   (let ((tagname (helm-gtags-token-at-point))
-;;         (prompt (assoc-default type helm-gtags-prompt-alist))
-;;         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
-;;     (when (and tagname (helm-gtags-type-is-not-file-p type))
-;;       (setq prompt (format "%s(default \"%s\") " prompt tagname)))
-;;     (let ((completion-ignore-case helm-gtags-ignore-case)
-;;           (completing-read-function 'completing-read-default))
-;;       (completing-read prompt comp-func nil nil nil
-;;                        'helm-gtags-completing-history tagname))))
+(defun helm-gtags-input (type)
+  (let ((tagname (helm-gtags-token-at-point))
+        (prompt (assoc-default type helm-gtags-prompt-alist))
+        (comp-func (assoc-default type helm-gtags-comp-func-alist)))
+    (when (and tagname (helm-gtags-type-is-not-file-p type))
+      (setq prompt (format "%s(default \"%s\") " prompt tagname)))
+    (let ((completion-ignore-case helm-gtags-ignore-case)
+          (completing-read-function 'completing-read-default))
+      (completing-read prompt comp-func nil nil nil
+                       'helm-gtags-completing-history tagname))))
 
 (defun helm-gtags-find-tag-directory()
   (with-temp-buffer
-    (let ((status (call-process "global" nil  (current-buffer) nil  "-p")))
+    (let ((status (call-process helm-gtags-global-command nil  (current-buffer) nil  "-p")))
       (unless (zerop status)
         (error "GTAGS not found"))
       (goto-char (point-min))
@@ -239,13 +246,13 @@
 
 (defun helm-gtags-exec-global-command (type &optional input)
   ;; (helm-gtags-find-tag-directory)
-  (let (cmd candidates
-            (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
-            (default-tag-dir (helm-gtags-searched-directory))
+  (let (cmd-options candidates
+                    (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
+                    (default-tag-dir (helm-gtags-searched-directory))
                                         ; (helm-gtags-input type)
 
-            (buf-coding buffer-file-coding-system)
-            )
+                    (buf-coding buffer-file-coding-system)
+                    )
     (when default-tag-dir (add-to-list 'dirs default-tag-dir ))
     (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
     (with-temp-buffer
@@ -255,12 +262,14 @@
                   (coding-system-for-write buf-coding)
                   )
         (dolist (dir dirs)
-          (setq cmd (helm-gtags-construct-command type dir input))
+          (setq cmd-options (helm-gtags-construct-command type dir input))
           (setq default-directory (helm-gtags-base-directory))
-          ;; (print cmd)
+          ;; (print cmd-options)
           (goto-char (point-max))
           (setq begin (point))
-          (call-process-shell-command cmd nil t)
+          (apply 'call-process helm-gtags-global-command nil (current-buffer) nil cmd-options)
+          ;; (call-process "global" nil  nil  "-p")
+          ;; (call-process-shell-command cmd-options nil t)
           (setq end (point))
           (put-text-property begin end 'default-directory default-directory)
           )
@@ -272,32 +281,23 @@
     candidates))
 
 (defun helm-gtags-find-tag-from-here-candidates()
-  (let (cmd candidates
-            token begin end
-            (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
-            (default-directory (helm-gtags-searched-directory))
-            (buf-filename  (format "\"%s\"" (buffer-file-name helm-current-buffer)))
-            )
+  (let (candidates
+        token from-here
+        ;; (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
+        (default-directory (helm-gtags-searched-directory))
+        (buf-filename  (buffer-file-name helm-current-buffer)))
     (setq helm-gtags-local-directory nil)
     (helm-gtags-save-current-context)
     (with-temp-buffer
-      (setq cmd
-            (with-current-buffer helm-current-buffer
-              (setq token (helm-gtags-token-at-point))
-              (format "global --result=grep --from-here=%d:%s %s"
-                      (line-number-at-pos)
-                      buf-filename
-                      token)))
-      ;; (print cmd)
+      (with-current-buffer helm-current-buffer
+        (setq token (helm-gtags-token-at-point))
+        (setq from-here (format "--from-here=%d:%s" (line-number-at-pos) buf-filename))
+        )
       (goto-char (point-max))
-      ;; (setq begin (point))
-      (call-process-shell-command cmd nil t)
-      ;; (setq end (point))
-      ;; (put-text-property begin end 'default-directory default-directory)
+      (call-process helm-gtags-global-command nil (current-buffer) nil
+                    "--result=grep" from-here token)
       (setq candidates (read-lines-from-buf (current-buffer) helm-gtags-default-candidate-limit)))
-    candidates
-    )
-  )
+    candidates))
 
 
 (defun helm-gtags-candidates-in-buffer(type &optional in)
@@ -317,8 +317,10 @@
         (comp-opt (or (and comp "-c") ""))
         (local-opt (or (and current-prefix-arg
                             (helm-gtags-type-is-not-file-p type) "-l") "")))
-    (format "%s %s %s %s %s %s"
-            result-opt comp-opt type-opt abs-opt case-opt local-opt)))
+    ;; (format "%s %s %s %s %s %s"
+    ;;         result-opt comp-opt type-opt abs-opt case-opt local-opt)
+    (delete "" (list result-opt comp-opt type-opt abs-opt case-opt local-opt))
+    ))
 
 (defun helm-gtags-construct-command (type dir &optional in)
   (setq helm-gtags-local-directory nil)
@@ -329,17 +331,19 @@
         (option (helm-gtags-construct-option type)))
     (when (and (string= input "") (helm-gtags-type-is-not-file-p type))
       (error "Input is empty!!"))
-    (format "global %s %s" option input)))
+    ;; (format "global %s %s" option input)
+    (append option (list input))
+    ))
 
 (defun helm-gtags-parse-file-candidates ()
   (let* ((filename (with-current-buffer helm-current-buffer (file-relative-name helm-gtags-parsed-file )))
-         (cmd (format "global --result cscope -f \"%s\"" filename))
          candidates)
     (with-temp-buffer
-      (if (zerop (call-process-shell-command cmd nil t))
+      (if (zerop (call-process helm-gtags-global-command nil (current-buffer) nil
+                               "--result" "cscope" "-f" filename))
           (setq candidates (read-lines-from-buf (current-buffer)
                                                 helm-gtags-default-candidate-limit))
-        (error "Failed: %s" cmd)))
+        (error "Failed: global --result cscope -f \"%s\"" filename)))
     candidates))
 
 (defun helm-gtags-push-context (context)
@@ -560,7 +564,8 @@
           (setq default-directory (helm-gtags-base-directory))
           (goto-char (point-max))
           (setq begin (point))
-          (call-process-shell-command cmd nil t)
+          (call-process helm-gtags-global-command nil (current-buffer) nil "-c")
+          ;; (call-process-shell-command cmd nil t)
           (setq end (point))
           (put-text-property begin end 'default-directory default-directory)
           )))))
