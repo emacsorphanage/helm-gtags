@@ -194,7 +194,7 @@
       (goto-char (point-min))
       (let ((tagroot (buffer-substring
                       (point) (line-end-position))))
-        (setq helm-gtags-tag-location (file-name-as-directory tagroot))))))
+        (setq helm-gtags-tag-location (file-truename (file-name-as-directory tagroot)))))))
 
 (defun helm-gtags-base-directory ()
   ;; (message helm-gtags-local-directory)
@@ -285,7 +285,7 @@
         token from-here
         ;; (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
         (default-directory (helm-gtags-searched-directory))
-        (buf-filename  (buffer-file-name helm-current-buffer)))
+        (buf-filename  (file-truename (buffer-file-name helm-current-buffer))))
     (setq helm-gtags-local-directory nil)
     (helm-gtags-save-current-context)
     (with-temp-buffer
@@ -587,8 +587,8 @@
 (defun helm-gtags-searched-directory ()
   (case (prefix-numeric-value current-prefix-arg)
     (4 (let ((dir (read-directory-name "Input Directory: ")))
-         (setq helm-gtags-local-directory (file-name-as-directory dir))))
-    (16 (file-name-directory (buffer-file-name)))
+         (setq helm-gtags-local-directory (file-name-as-directory (file-truename dir)))))
+    (16 (file-name-directory (file-truename (buffer-file-name))))
     (t (file-name-directory (helm-gtags-find-tag-directory)))
     ))
 
@@ -663,21 +663,20 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
          (file (if current-prefix-arg
                    (read-file-name "Parsed File: " nil this-file)
                  this-file)))
-    (setq helm-gtags-parsed-file (expand-file-name file))))
+    (setq helm-gtags-parsed-file (file-truename (expand-file-name file)))))
 
 ;;;###autoload
 (defun helm-gtags-parse-file ()
   "parse file with gnu global"
   (interactive)
-  (helm-gtags-find-tag-directory)
+  ;; (helm-gtags-find-tag-directory)
   (helm-gtags-save-current-context)
   (when (helm-gtags--using-other-window-p)
     (setq helm-gtags-use-otherwin t))
   (helm-gtags-set-parsed-file)
   (helm-attrset 'name
                 (format "Parsed File: %s"
-                        (file-relative-name helm-gtags-parsed-file
-                                            helm-gtags-tag-location))
+                        helm-gtags-parsed-file)
                 helm-source-gtags-parse-file)
   (helm :sources '(helm-source-gtags-parse-file)
         :buffer (get-buffer-create helm-gtags-buffer)))
@@ -707,18 +706,22 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
         (message "Update TAGS successfully")
       (message "Failed to update TAGS"))))
 
-(defsubst helm-gtags--update-tags-command (single-update)
-  (format "global -u %s" (if single-update
-                             ""
-                           (format "--single-update=\"%s\"" (buffer-file-name)))))
+
+(defsubst helm-gtags--update-tags-command ( &optional single-update)
+  (if single-update
+      (list "-u")
+    (list "-u" (format "--single-update=%s" (file-truename (buffer-file-name))))))
+
 
 ;;;###autoload
 (defun helm-gtags-update-tags ()
   "Update TAG file. Update All files with `C-u' prefix"
   (interactive)
   (when (or (buffer-file-name) current-prefix-arg)
-    (let* ((cmd (helm-gtags--update-tags-command current-prefix-arg))
-           (proc (start-process-shell-command "helm-gtags-update" nil cmd)))
+    (let ((proc (apply 'start-process ;;
+                       "helm-gtags-update TAGS" nil
+                       helm-gtags-global-command
+                       (helm-gtags--update-tags-command current-prefix-arg))))
       (unless proc
         (message "Failed: '%s'" cmd))
       (set-process-sentinel proc 'helm-gtags--update-tags-sentinel))))
