@@ -101,6 +101,16 @@
   :type 'string
   :group 'helm-gtags)
 
+(defcustom helm-gtags-delay-seconds  (* 1 60) ; 1mins,update tag every min
+  "in `after-save-hook' current-time - last-time must bigger than this value,
+then `helm-gtags-update-tags' will be called,nil means update immidiately"
+  :type 'integer
+  :group 'helm-gtags)
+
+(defvar helm-gtags-last-update-time (float-time (current-time))
+  "`global -u --single-update'")
+
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -111,6 +121,8 @@
     (:rtag   . "Find Reference: ")
     (:symbol . "Find Symbol: ")
     (:file   . "Find File: ")))
+
+
 
 (defvar helm-gtags-completing-history nil)
 (defvar helm-gtags-context-stack nil)
@@ -700,31 +712,39 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
   (interactive)
   (setq helm-gtags-context-stack nil))
 
-(defun helm-gtags--update-tags-sentinel (process state)
-  (when (eq (process-status process) 'exit)
-    (if (zerop (process-exit-status process))
-        (message "Update TAGS successfully")
-      (message "Failed to update TAGS"))))
-
 
 (defsubst helm-gtags--update-tags-command ( &optional single-update)
   (if single-update
       (list "-u")
     (list "-u" (format "--single-update=%s" (file-truename (buffer-file-name))))))
 
-
 ;;;###autoload
 (defun helm-gtags-update-tags ()
   "Update TAG file. Update All files with `C-u' prefix"
   (interactive)
-  (when (or (buffer-file-name) current-prefix-arg)
+  (when (and (not (get-buffer " *helm-gtags-update TAGS*")) ;not already running
+             (or current-prefix-arg                         ;update all project
+                 (and (buffer-file-name)                    ;update current file
+                      (or (null helm-gtags-delay-seconds)   ;nil means update immidiately
+                          (> (- (float-time (current-time)) ;
+                                helm-gtags-last-update-time)
+                             helm-gtags-delay-seconds))
+                      )))
     (let ((proc (apply 'start-process ;;
-                       "helm-gtags-update TAGS" nil
+                       "helm-gtags-update TAGS" " *helm-gtags-update TAGS*"
                        helm-gtags-global-command
                        (helm-gtags--update-tags-command current-prefix-arg))))
-      (unless proc
-        (message "Failed: '%s'" cmd))
-      (set-process-sentinel proc 'helm-gtags--update-tags-sentinel))))
+      (set-process-query-on-exit-flag proc nil) ;neednot query when quit emacs
+      (setq helm-gtags-last-update-time (float-time (current-time)));;update time
+      (unless proc (message "Failed to update GNU Global TAGS" )
+              (kill-buffer " *helm-gtags-update TAGS*"))
+      (set-process-sentinel proc '(lambda(process state)
+                                    (when (eq (process-status process) 'exit)
+                                      (kill-buffer " *helm-gtags-update TAGS*")
+                                      ;; (if (zerop (process-exit-status process))
+                                      ;;     (message "Update GNU Global TAGS successfully")
+                                      ;;   (message "Failed2 to update GNU Global TAGS"))
+                                      ))))))
 
 (defvar helm-gtags-mode-name " HGtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
