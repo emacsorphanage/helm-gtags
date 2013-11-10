@@ -47,13 +47,17 @@ Input tag name and move to the referenced point.
 
 Input symbol and move to the locations.
 
+#### `helm-gtags-find-tag-and-symbol`
+
+ `helm-gtags-find-tag` and  `helm-gtags-find-symbol`
+ 
 #### `helm-gtags-find-files`
 
 Input file name and open it.
 
-
 You can use those searching commands with prefix key,
-though I think this is unless now after support helm-gtags-tag-location-list. 
+though I think this is unless now after support helm-gtags-tag-location-list.
+
 | Prefix Key  | Description                       |
 |:------------|:---------------------------------:|
 | C-u         | Searches from specified directory |
@@ -79,6 +83,7 @@ Complete symbol at point(help writing code).
 
 Update TAG file. Default is update only current file,
 You can update all files with `C-u` prefix.
+You can generate new tags with `C-uC-u` prefix.
 
 #### `helm-gtags-parse-file`
 
