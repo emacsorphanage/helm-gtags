@@ -290,7 +290,7 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
           (setq end (point))
           (put-text-property begin end 'default-directory default-directory)
           )
-        (setq candidates (read-lines-from-buf (current-buffer) helm-gtags-default-candidate-limit))
+        (setq candidates (read-lines-from-buf (current-buffer) nil))
         (case type
           (:tag    (setq helm-gtags-tag-cache (cons input candidates)))
           (:symbol (setq helm-gtags-symbol-cache (cons input candidates)))
