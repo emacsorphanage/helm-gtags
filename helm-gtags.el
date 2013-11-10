@@ -590,9 +590,9 @@
 (defsubst helm-gtags--using-other-window-p ()
   (< (prefix-numeric-value current-prefix-arg) 0))
 
+
 (defun helm-gtags-common (srcs &optional input)
-  (let (
-        ;; (helm-quit-if-no-candidate t)
+  (let ((helm-quit-if-no-candidate #'(lambda() (message "gtags:not found")))
         (helm-execute-action-at-once-if-one t)
         (buf (get-buffer-create helm-gtags-buffer))
         (dir (helm-gtags-searched-directory))
