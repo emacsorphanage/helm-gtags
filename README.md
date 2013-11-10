@@ -110,8 +110,14 @@ Clear current context stack.
 
 ### `helm-gtags-tag-location-list`
 You could add your lib directory here ,like
+```
 (add-to-list 'helm-gtags-tag-location-list "/usr/include/")
-of cource  you should run : gtags in these directories.
+```
+of cource  you should run :
+```
+gtags
+```
+in these directories.
 then 
   `helm-gtags-find-symbol`
   `helm-gtags-find-rtag`
