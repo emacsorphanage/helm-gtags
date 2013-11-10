@@ -92,7 +92,7 @@
   :group 'helm-gtags)
 (make-variable-buffer-local 'helm-gtags-tag-location-list)
 
-(defcustom helm-gtags-default-candidate-limit 9999
+(defcustom helm-gtags-default-candidate-limit 1000
   "default candidate limit."
   :type 'integer
   :group 'helm-gtags)
@@ -138,6 +138,7 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
 (defvar helm-gtags-parsed-file nil)
 (defvar helm-gtags-tag-cache nil)
 (defvar helm-gtags-symbol-cache nil)
+(defvar helm-gtags-files-cache nil)
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -206,7 +207,8 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
   (with-temp-buffer
     (let ((status (call-process helm-gtags-global-command nil  (current-buffer) nil  "-p")))
       (unless (zerop status)
-        (error "GTAGS not found"))
+        ;; (error "GTAGS not found")
+        nil)
       (goto-char (point-min))
       (let ((tagroot (buffer-substring
                       (point) (line-end-position))))
@@ -260,6 +262,61 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
       candidates
       )))
 
+(defun helm-gtags-exec-global-command-init-files (type &optional input)
+  (let (cmd-options
+        (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
+        (default-tag-dir (helm-gtags-searched-directory))
+        (buf-coding buffer-file-coding-system)
+        )
+    (when default-tag-dir (add-to-list 'dirs default-tag-dir ))
+    (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
+    (with-current-buffer (helm-candidate-buffer 'global)
+      (let (begin end
+                  (default-directory default-directory)
+                  (coding-system-for-read buf-coding)
+                  (coding-system-for-write buf-coding)
+                  )
+        (dolist (dir dirs)
+          (setq cmd-options (helm-gtags-construct-command type dir input))
+          (setq default-directory (helm-gtags-base-directory))
+          ;; (print cmd-options)
+          (goto-char (point-max))
+          (setq begin (point))
+          (apply 'call-process helm-gtags-global-command nil (current-buffer) nil cmd-options)
+          ;; (call-process "global" nil  nil  "-p")
+          ;; (call-process-shell-command cmd-options nil t)
+          (setq end (point))
+          ;; (put-text-property begin end 'default-directory default-directory)
+          ))
+      (setq helm-gtags-files-cache (cons default-tag-dir (buffer-string))))))
+
+;; (defun helm-gtags-exec-global-command-init (type &optional input)
+;;   (let (cmd-options
+;;         (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
+;;         (default-tag-dir (helm-gtags-searched-directory))
+;;         (buf-coding buffer-file-coding-system)
+;;         )
+;;     (when default-tag-dir (add-to-list 'dirs default-tag-dir ))
+;;     (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
+;;     (with-current-buffer (helm-candidate-buffer 'global)
+;;       (let (begin end
+;;                   (default-directory default-directory)
+;;                   (coding-system-for-read buf-coding)
+;;                   (coding-system-for-write buf-coding)
+;;                   )
+;;         (dolist (dir dirs)
+;;           (setq cmd-options (helm-gtags-construct-command type dir input))
+;;           (setq default-directory (helm-gtags-base-directory))
+;;           ;; (print cmd-options)
+;;           (goto-char (point-max))
+;;           (setq begin (point))
+;;           (apply 'call-process helm-gtags-global-command nil (current-buffer) nil cmd-options)
+;;           ;; (call-process "global" nil  nil  "-p")
+;;           ;; (call-process-shell-command cmd-options nil t)
+;;           (setq end (point))
+;;           (put-text-property begin end 'default-directory default-directory)))
+;;     )))
+
 (defun helm-gtags-exec-global-command (type &optional input)
   ;; (helm-gtags-find-tag-directory)
   (let (cmd-options candidates
@@ -293,6 +350,7 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
         (case type
           (:tag    (setq helm-gtags-tag-cache (cons input candidates)))
           (:symbol (setq helm-gtags-symbol-cache (cons input candidates)))
+          ;; (:file  (setq helm-gtags-files-cache (cons default-tag-dir candidates)))
           )))
     candidates))
 
@@ -300,13 +358,13 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
   (let (candidates
         token from-here
         ;; (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
-        (default-directory (helm-gtags-searched-directory))
+        (default-directory (helm-gtags-searched-directory)) ;
         (buf-filename  (file-truename (buffer-file-name helm-current-buffer))))
     (setq helm-gtags-local-directory nil)
     (helm-gtags-save-current-context)
     (with-temp-buffer
       (with-current-buffer helm-current-buffer
-        (setq token (helm-gtags-token-at-point))
+        (setq token (thing-at-point 'symbol))
         (setq from-here (format "--from-here=%d:%s" (line-number-at-pos) buf-filename))
         )
       (goto-char (point-max))
@@ -450,9 +508,21 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
 (defun helm-gtags-candidates-in-buffer-rtag(&optional in)
   (helm-gtags-candidates-in-buffer :rtag (or in (car (helm-mp-split-pattern helm-pattern)))))
 
-(defun helm-gtags-candidates-in-buffer-files(&optional in)
-  (let ((input (or in (car (helm-mp-split-pattern helm-pattern)))))
-    (helm-gtags-candidates-in-buffer :file input)))
+(defun helm-gtags-files-init(&optional in)
+  ;; (setq helm-gtags-files-cache (cons default-tag-dir candidates))
+  (let ((input (or in (car (helm-mp-split-pattern helm-pattern))))
+        (buf-filename (buffer-file-name (current-buffer)))
+        (tag-rootdir (car helm-gtags-files-cache)))
+    (if (and helm-gtags-files-cache buf-filename (string-match  (regexp-quote tag-rootdir) (file-truename buf-filename)))
+        ;; if current buffer file share the same parent directory with tag root directory,
+        ;; then use cache
+        (progn
+          (with-current-buffer helm-current-buffer (helm-gtags-save-current-context))
+          (with-current-buffer (helm-candidate-buffer 'global)
+            (insert (cdr helm-gtags-files-cache))))
+      (helm-gtags-exec-global-command-init-files
+       :file (or in (car (helm-mp-split-pattern helm-pattern))))
+      )))
 
 (defvar helm-source-gtags-tags
   '((name . "tag")
@@ -493,7 +563,10 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
 
 (defvar helm-source-gtags-files
   `((name . "gnu global files")
-    (candidates . helm-gtags-candidates-in-buffer-files)
+    (init . helm-gtags-files-init)
+    (candidates-in-buffer)
+    (get-line . buffer-substring-no-properties)
+    ;; (candidates . helm-gtags-candidates-in-buffer-files)
     ;; (volatile);;candidates
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . ,helm-gtags-default-candidate-limit)
