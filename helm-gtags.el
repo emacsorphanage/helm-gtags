@@ -582,7 +582,7 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
   )
 
 (defvar helm-source-gtags-parse-file
-  `((name . "Parsed File")
+  `((name . "GNU GLOBAL Parsed File")
     (candidates . helm-gtags-parse-file-candidates)
     ;; (candidates-in-buffer)
     ;; (get-line . buffer-substring)
