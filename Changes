@@ -2,7 +2,7 @@ Revision history for helm-gtags.el
 
 Revision 2.0 2013/11/10 纪秀峰
   totally rewrite
-  hightpoint:
+  highlight:
   1. add helm-gtags-tag-location-list option,
      support multiply tag locations.
   2. replace all call-process-shell-command with call-process
