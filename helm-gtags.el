@@ -181,7 +181,7 @@
 
 (defun helm-gtags-find-tag-directory()
   (with-temp-buffer
-    (let ((status (call-process-shell-command "global -p" nil t)))
+    (let ((status (call-process "global" nil  (current-buffer) nil  "-p")))
       (unless (zerop status)
         (error "GTAGS not found"))
       (goto-char (point-min))
