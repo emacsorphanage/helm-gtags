@@ -150,58 +150,56 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
 (helm-declare-obsolete-variable
  'helm-c-gtags-read-only 'helm-gtags-read-only "0.8")
 
-;; completsion function for completing-read.
-(defun helm-gtags-completing-gtags (string predicate code)
-  (helm-gtags-complete :tag string predicate code))
-(defun helm-gtags-completing-grtags (string predicate code)
-  (helm-gtags-complete :rtag string predicate code))
-(defun helm-gtags-completing-gsyms (string predicate code)
-  (helm-gtags-complete :symbol string predicate code))
-(defun helm-gtags-completing-files (string predicate code)
-  (helm-gtags-complete :file string predicate code))
-
-(defvar helm-gtags-comp-func-alist
-  '((:tag    . helm-gtags-completing-gtags)
-    (:rtag   . helm-gtags-completing-grtags)
-    (:symbol . helm-gtags-completing-gsyms)
-    (:file   . helm-gtags-completing-files)))
-
 (defun helm-gtags-construct-completion-command-options (type input)
   (append (helm-gtags-construct-option type t) (list input)))
 
-(defun helm-gtags-complete (type string predicate code)
-  (let ((candidates-list nil)
-        (options (helm-gtags-construct-completion-command-options type string)))
-    (with-temp-buffer
-      ;; (call-process-shell-command cmd nil t nil)
-      (apply 'call-process helm-gtags-global-command nil (current-buffer) nil options)
-      ;; (call-process helm-gtags-global-command nil (current-buffer) nil "-c")
+(defun helm-source-gtags-complete-init()
+  (let ((dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
+        (default-tag-dir (helm-gtags-searched-directory))
+        (prefix (helm-gtags-token-at-point))
+        )
+    (when default-tag-dir (add-to-list 'dirs default-tag-dir ))
+    (with-current-buffer (helm-candidate-buffer 'global)
+      (dolist (dir dirs)
+        (goto-char (point-max))
+        (call-process helm-gtags-global-command nil (current-buffer) nil "-c" prefix)))))
 
-      (goto-char (point-min))
-      (while (re-search-forward "^\\(.+\\)$" nil t)
-        (push (match-string 1) candidates-list)))
-    (if (not code)
-        (try-completion string candidates-list predicate)
-      (all-completions string candidates-list predicate))))
+(defvar helm-source-gtags-complete
+  `((name . "GNU GLOBAL complete")
+    (init . helm-source-gtags-complete-init)
+    (candidates-in-buffer)
+    (get-line . buffer-substring-no-properties)
+    (candidate-number-limit . ,helm-gtags-default-candidate-limit)
+    (action . helm-gtags-complete-insert-action)))
 
+
+(defun helm-gtags-complete-insert-action(cand)
+  "insert candidate at point"
+  (helm-gtags-delete-current-symbol)
+  (insert cand))
+
+;;;###autoload
+(defun helm-gtags-complete ()
+  "Gtags Complete symbol at point"
+  (interactive)
+  (helm-gtags-common '(helm-source-gtags-complete)
+                     (helm-gtags-token-at-point)))
+
+(defun helm-gtags-delete-current-symbol()
+  (let ((bound (bounds-of-thing-at-point 'symbol)))
+    (if bound
+        (delete-region (car bound) (cdr bound))
+      ))
+  )
 (defun helm-gtags-token-at-point ()
-  (save-excursion
-    (thing-at-point 'symbol)
-    ))
+  (let ((bound (bounds-of-thing-at-point 'symbol)))
+    (if bound
+        (buffer-substring-no-properties (car bound) (point))
+      "")))
+
 
 (defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
-
-(defun helm-gtags-input (type)
-  (let ((tagname (helm-gtags-token-at-point))
-        (prompt (assoc-default type helm-gtags-prompt-alist))
-        (comp-func (assoc-default type helm-gtags-comp-func-alist)))
-    (when (and tagname (helm-gtags-type-is-not-file-p type))
-      (setq prompt (format "%s(default \"%s\") " prompt tagname)))
-    (let ((completion-ignore-case helm-gtags-ignore-case)
-          (completing-read-function 'completing-read-default))
-      (completing-read prompt comp-func nil nil nil
-                       'helm-gtags-completing-history tagname))))
 
 (defun helm-gtags-find-tag-directory()
   (with-temp-buffer
@@ -565,7 +563,7 @@ then `helm-gtags-update-tags' will be called,nil means update immidiately"
 
 (defun helm-source-gtags-select-init()
   (let (candidates
-        (cmd "global -c")
+        ;; (cmd "global -c")
         (dirs (helm-attr 'helm-gtags-tag-location-list (helm-get-current-source)))
         (default-tag-dir (helm-gtags-searched-directory))
         (buf-coding buffer-file-coding-system)
