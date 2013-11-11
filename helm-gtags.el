@@ -794,8 +794,17 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
   (case (prefix-numeric-value current-prefix-arg)
     (4 (cons helm-gtags-global-command
              (list "-u" (format "--single-update=%s" (file-truename (buffer-file-name))))))
-    (16 (cons helm-gtags-gtags-command
-              (list (expand-file-name (read-directory-name "Generate GTAGS at directory:")))))
+    (16
+     (let* ((tagdir-with-slash
+             (file-truename (expand-file-name
+                             (read-directory-name "Generate GTAGS at directory:"))))
+            (len-of-tagdir (length tagdir-with-slash))
+            (tagdir-without-slash-appended (substring tagdir-with-slash 0 (1- len-of-tagdir))))
+       ;; on windows "gtags  d:/.emacs.d"  works , but "gtags d:/.emacs.d/" doesn't
+       (cons helm-gtags-gtags-command
+             (list tagdir-without-slash-appended))
+       )
+     )
     (t
      (cons helm-gtags-global-command  (list "-u")))
     ))
@@ -828,7 +837,7 @@ Generate new TAG file in selected directory with `C-uC-u'"
                                       (kill-buffer " *helm-gtags-update TAGS*")
                                       (if (zerop (process-exit-status process))
                                           (message "Update GNU Global TAGS successfully")
-                                        ;; (message "Failed2 to update GNU Global TAGS")
+                                        (message "Failed2 to update GNU Global TAGS")
                                         )
                                       ))))))
 
