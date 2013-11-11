@@ -792,9 +792,9 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
 
 (defsubst helm-gtags--update-tags-command ( &optional current-prefix-arg)
   (case (prefix-numeric-value current-prefix-arg)
-    (4 (cons helm-gtags-global-command
-             (list "-u" (format "--single-update=%s" (file-truename (buffer-file-name))))))
-    (16
+    (4                                  ;C-u
+     (cons helm-gtags-global-command  (list "-u")))
+    (16                                 ;C-uC-u
      (let* ((tagdir-with-slash
              (file-truename (expand-file-name
                              (read-directory-name "Generate GTAGS at directory:"))))
@@ -806,7 +806,9 @@ you could add `helm-source-gtags-files' to `helm-for-files-preferred-list'"
        )
      )
     (t
-     (cons helm-gtags-global-command  (list "-u")))
+     (cons helm-gtags-global-command
+           (list "-u" (format "--single-update=%s" (file-truename (buffer-file-name)))))
+     )
     ))
 
 ;;;###autoload
