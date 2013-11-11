@@ -103,6 +103,7 @@
 (defvar helm-gtags-use-otherwin nil)
 (defvar helm-gtags-local-directory nil)
 (defvar helm-gtags-parsed-file nil)
+(defvar helm-gtags--update-tags-buffer " *helm-gtags-update-tag*")
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -647,23 +648,56 @@
   (when (eq (process-status process) 'exit)
     (if (zerop (process-exit-status process))
         (message "Update TAGS successfully")
-      (message "Failed to update TAGS"))))
+      (message "Failed to update TAGS"))
+    (kill-buffer helm-gtags--update-tags-buffer)))
 
-(defsubst helm-gtags--update-tags-command (single-update)
-  (format "global -u %s" (if single-update
-                             ""
-                           (concat "--single-update=" (buffer-file-name)))))
+(defun helm-gtags--read-tag-directory ()
+  (let ((dir (read-directory-name "Directory tag generated: " nil nil t)))
+    ;; On Windows, "gtags d:/tmp" work, but "gtags d:/tmp/" doesn't
+    (directory-file-name (expand-file-name dir))))
+
+(defsubst helm-gtags--how-to-update-tags ()
+  (case (prefix-numeric-value current-prefix-arg)
+    (4 'entire-update)
+    (16 'generate-other-directory)
+    (t 'single-update)))
+
+(defun helm-gtags--update-tags-command (how-to)
+  (case how-to
+    (entire-update "global -u")
+    (generate-other-directory (concat "gtags " (helm-gtags--read-tag-directory)))
+    (single-update (concat "global -u --single-update "
+                           (expand-file-name (buffer-file-name))))))
+
+(defsubst helm-gtags--update-tags-process-live-p ()
+  (get-buffer helm-gtags--update-tags-buffer))
+
+(defun helm-gtags--update-tags-p (how-to interactive-p)
+  (unless (helm-gtags--update-tags-process-live-p)
+    (or interactive-p
+        (and (eq how-to 'single-update) (buffer-file-name)))))
+
+(defsubst helm-gtags--start-update-tags-process (cmd)
+  (start-process-shell-command "helm-gtags-update-tag"
+                               helm-gtags--update-tags-buffer
+                               cmd))
 
 ;;;###autoload
 (defun helm-gtags-update-tags ()
-  "Update TAG file. Update All files with `C-u' prefix"
+  "Update TAG file. Update All files with `C-u' prefix.
+Generate new TAG file in selected directory with `C-u C-u'"
   (interactive)
-  (when (or (buffer-file-name) current-prefix-arg)
-    (let* ((cmd (helm-gtags--update-tags-command current-prefix-arg))
-           (proc (start-process-shell-command "helm-gtags-update" nil cmd)))
-      (unless proc
-        (message "Failed: '%s'" cmd))
-      (set-process-sentinel proc 'helm-gtags--update-tags-sentinel))))
+  (let ((how-to (helm-gtags--how-to-update-tags))
+        (interactive-p (called-interactively-p 'interactive)))
+    (when (helm-gtags--update-tags-p how-to interactive-p)
+      (let* ((cmd (helm-gtags--update-tags-command how-to))
+             (proc (helm-gtags--start-update-tags-process cmd)))
+        (if (not proc)
+            (progn
+              (message "Failed: %s" cmd)
+              (kill-buffer helm-gtags--update-tags-buffer))
+          (set-process-query-on-exit-flag proc nil)
+          (set-process-sentinel proc 'helm-gtags--update-tags-sentinel))))))
 
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
