@@ -837,7 +837,7 @@ Generate new TAG file in selected directory with `C-uC-u'"
                                       (kill-buffer " *helm-gtags-update TAGS*")
                                       (if (zerop (process-exit-status process))
                                           (message "Update GNU Global TAGS successfully")
-                                        (message "Failed2 to update GNU Global TAGS")
+                                        ;; (message "Failed2 to update GNU Global TAGS")
                                         )
                                       ))))))
 
