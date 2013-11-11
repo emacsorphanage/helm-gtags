@@ -85,8 +85,17 @@
   :type 'integer
   :group 'helm-gtags)
 
+(defcustom helm-gtags-update-interval-second 60
+  "Tags are updated in `after-save-hook' if this seconds is passed from last update.
+Always update if value of this variable is nil."
+  :type '(choice (integer :tag "Update interval seconds")
+                 (boolean :tag "Update every time" nil))
+  :group 'helm-gtags)
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
+
+(defvar helm-gtags--last-update-time 0)
 
 (defvar helm-gtags-buffer "*helm gtags*")
 
@@ -672,10 +681,17 @@
 (defsubst helm-gtags--update-tags-process-live-p ()
   (get-buffer helm-gtags--update-tags-buffer))
 
-(defun helm-gtags--update-tags-p (how-to interactive-p)
+(defun helm-gtags--check-from-last-update (current-time)
+  (let ((delta (- current-time helm-gtags--last-update-time)))
+    (> delta helm-gtags-update-interval-second)))
+
+(defun helm-gtags--update-tags-p (how-to interactive-p current-time)
   (unless (helm-gtags--update-tags-process-live-p)
     (or interactive-p
-        (and (eq how-to 'single-update) (buffer-file-name)))))
+        (and (eq how-to 'single-update)
+             (buffer-file-name)
+             (or (not helm-gtags-update-interval-second)
+                 (helm-gtags--check-from-last-update current-time))))))
 
 (defsubst helm-gtags--start-update-tags-process (cmd)
   (start-process-shell-command "helm-gtags-update-tag"
@@ -688,8 +704,9 @@
 Generate new TAG file in selected directory with `C-u C-u'"
   (interactive)
   (let ((how-to (helm-gtags--how-to-update-tags))
-        (interactive-p (called-interactively-p 'interactive)))
-    (when (helm-gtags--update-tags-p how-to interactive-p)
+        (interactive-p (called-interactively-p 'interactive))
+        (current-time (float-time (current-time))))
+    (when (helm-gtags--update-tags-p how-to interactive-p current-time)
       (let* ((cmd (helm-gtags--update-tags-command how-to))
              (proc (helm-gtags--start-update-tags-process cmd)))
         (if (not proc)
@@ -697,7 +714,8 @@ Generate new TAG file in selected directory with `C-u C-u'"
               (message "Failed: %s" cmd)
               (kill-buffer helm-gtags--update-tags-buffer))
           (set-process-query-on-exit-flag proc nil)
-          (set-process-sentinel proc 'helm-gtags--update-tags-sentinel))))))
+          (set-process-sentinel proc 'helm-gtags--update-tags-sentinel)
+          (setq helm-gtags--last-update-time current-time))))))
 
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
