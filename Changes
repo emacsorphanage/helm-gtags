@@ -1,5 +1,10 @@
 Revision history for helm-gtags.el
 
+Revision 1.0.4 2013/11/12 syohex
+  - Generate tags at other directory with 'C-u C-u' prefix
+  - Introduce interval of updating tags
+    (Suggestion by jixiuf)
+
 Revision 1.0.3 2013/11/09 syohex
   - Support cache for helm-gtags-select and helm-gtags-select-path
     (Thanks lbsx)
