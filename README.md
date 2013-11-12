@@ -122,6 +122,11 @@ Open file as readonly, if this value is `non-nil`(Default `nil`).
 
 If this variable is non-nil, TAG file is updated after saving buffer.
 
+#### `helm-gtags-update-interval-second`(Default `60`)
+
+Tags are updated in `after-save-hook' if this seconds is passed from last update.
+Always update if value of this variable is nil.
+
 #### `helm-gtags-cache-select-result`(Default `nil`)
 
 If this variable is non-nil, use cache for `helm-gtags-select` and `helm-gtags-select-path`
