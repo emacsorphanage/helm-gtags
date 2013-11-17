@@ -113,6 +113,7 @@ Always update if value of this variable is nil."
 (defvar helm-gtags-local-directory nil)
 (defvar helm-gtags-parsed-file nil)
 (defvar helm-gtags--update-tags-buffer " *helm-gtags-update-tag*")
+(defvar helm-gtags--current-position nil)
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -197,10 +198,19 @@ Always update if value of this variable is nil."
         (root helm-gtags-tag-location)
         (otherwise default-directory))))
 
-(defun helm-gtags-save-current-context ()
+(defsubst helm-gtags--new-context-info (index stack)
+  (list :index index :stack stack))
+
+(defun helm-gtags--put-context-stack (tag-location index stack)
+  (puthash tag-location (helm-gtags--new-context-info index stack)
+           helm-gtags-context-stack))
+
+(defsubst helm-gtags--current-context ()
   (let ((file (buffer-file-name (current-buffer))))
-    (setq helm-gtags-saved-context
-          (list :file file :position (point) :readonly buffer-file-read-only))))
+    (list :file file :position (point) :readonly buffer-file-read-only)))
+
+(defun helm-gtags-save-current-context ()
+  (setq helm-gtags-saved-context (helm-gtags--current-context)))
 
 (defun helm-gtags-open-file (file readonly)
   (if readonly
@@ -213,9 +223,18 @@ Always update if value of this variable is nil."
       (find-file-read-only-other-window file)
     (find-file-other-window file)))
 
-(defun helm-gtags-get-context-stack ()
+(defun helm-gtags--get-context-info ()
+  (let* ((tag-location (helm-gtags-find-tag-directory))
+         (context-info (gethash tag-location helm-gtags-context-stack))
+         (context-stack (plist-get context-info :stack)))
+    (if (null context-stack)
+        (error "Context stack is empty(TAG at %s)" tag-location)
+      context-info)))
+
+(defun helm-gtags--get-or-create-context-info ()
   (let ((tag-location (helm-gtags-find-tag-directory)))
-    (gethash tag-location helm-gtags-context-stack)))
+    (or (gethash tag-location helm-gtags-context-stack)
+        (helm-gtags--new-context-info -1 nil))))
 
 ;;;###autoload
 (defun helm-gtags-clear-all-cache ()
@@ -229,6 +248,51 @@ Always update if value of this variable is nil."
         (gpath-path (concat (helm-gtags-find-tag-directory) "GPATH")))
     (remhash gtags-path helm-gtags-result-cache)
     (remhash gpath-path helm-gtags-result-cache)))
+
+(defun helm-gtags--move-to-context (context)
+  (let ((file (plist-get context :file))
+        (curpoint (plist-get context :position))
+        (readonly (plist-get context :readonly)))
+    (helm-gtags-open-file file readonly)
+    (goto-char curpoint)))
+
+;;;###autoload
+(defun helm-gtags-next-history ()
+  "Jump to next position on context stack"
+  (interactive)
+  (let* ((context-info (helm-gtags--get-context-info))
+         (current-index (plist-get context-info :index))
+         (context-stack (plist-get context-info :stack))
+         context)
+    (when (<= current-index -1)
+      (error "This context is latest in context stack"))
+    (decf current-index)
+    (if (= current-index -1)
+        (setq context helm-gtags--current-position
+              helm-gtags--current-position nil)
+      (setq context (nth current-index context-stack)))
+    (helm-gtags--put-context-stack helm-gtags-tag-location
+                                   current-index context-stack)
+    (helm-gtags--move-to-context context)))
+
+;;;###autoload
+(defun helm-gtags-previous-history ()
+  "Jump to previous position on context stack"
+  (interactive)
+  (let* ((context-info (helm-gtags--get-context-info))
+         (current-index (plist-get context-info :index))
+         (context-stack (plist-get context-info :stack))
+         (context-length (length context-stack))
+         context)
+    (incf current-index)
+    (when (>= current-index context-length)
+      (error "This context is last in context stack"))
+    (when (= current-index 0)
+      (setq helm-gtags--current-position (helm-gtags--current-context)))
+    (let ((prev-context (nth current-index context-stack)))
+      (helm-gtags--move-to-context prev-context))
+    (helm-gtags--put-context-stack helm-gtags-tag-location
+                                   current-index context-stack)))
 
 (defun helm-gtags-get-result-cache (file)
   (let* ((file-path (concat (helm-gtags-find-tag-directory) file))
@@ -246,16 +310,11 @@ Always update if value of this variable is nil."
     (puthash file-path hash-value helm-gtags-result-cache)))
 
 (defun helm-gtags-pop-context ()
-  (let ((context-stack (helm-gtags-get-context-stack)))
-    (unless context-stack
-      (error "Context stack is empty(TAG at %s)" helm-gtags-tag-location))
-    (let* ((context (pop context-stack))
-           (file (plist-get context :file))
-           (curpoint (plist-get context :position))
-           (readonly (plist-get context :readonly)))
-      (puthash helm-gtags-tag-location context-stack helm-gtags-context-stack)
-      (helm-gtags-open-file file readonly)
-      (goto-char curpoint))))
+  (let* ((context-info (helm-gtags--get-context-info))
+         (context-stack (plist-get context-info :stack))
+         (context (pop context-stack)))
+    (helm-gtags--put-context-stack helm-gtags-tag-location -1 context-stack)
+    (helm-gtags--move-to-context context)))
 
 (defun helm-gtags-exec-global-command (cmd)
   (helm-gtags-find-tag-directory)
@@ -334,10 +393,16 @@ Always update if value of this variable is nil."
       (unless (zerop (call-process-shell-command cmd nil t))
         (error "Failed: %s" cmd)))))
 
-(defun helm-gtags-push-context (context)
-  (let ((stack (gethash helm-gtags-tag-location helm-gtags-context-stack)))
-    (push context stack)
-    (puthash helm-gtags-tag-location stack helm-gtags-context-stack)))
+(defun helm-gtags--push-context (context)
+  (let* ((context-info (helm-gtags--get-or-create-context-info))
+         (current-index (plist-get context-info :index))
+         (context-stack (plist-get context-info :stack))
+         (last-index (1- (length context-stack))))
+    (unless (= current-index -1)
+      (setq context-stack (nthcdr (1+ current-index) context-stack)))
+    (setq helm-gtags--current-position nil)
+    (push context context-stack)
+    (helm-gtags--put-context-stack helm-gtags-tag-location -1 context-stack)))
 
 (defun helm-gtags-select-find-file-func ()
   (if helm-gtags-use-otherwin
@@ -348,7 +413,7 @@ Always update if value of this variable is nil."
   (funcall open-func file helm-gtags-read-only)
   (goto-char (point-min))
   (forward-line (1- line))
-  (helm-gtags-push-context helm-gtags-saved-context))
+  (helm-gtags--push-context helm-gtags-saved-context))
 
 (defun helm-gtags-parse-file-action (cand)
   (let ((line (when (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)
@@ -379,9 +444,9 @@ Always update if value of this variable is nil."
                 content)))))
 
 (defun helm-gtags-show-stack-init ()
-  (let ((context-stack (helm-gtags-get-context-stack)))
+  (let ((context-stack (helm-gtags--get-context-info)))
     (with-current-buffer (helm-candidate-buffer 'global)
-      (loop for context in (reverse context-stack)
+      (loop for context in (reverse (plist-get context-stack :stack))
             for file = (plist-get context :file)
             for pos  = (plist-get context :position)
             do
