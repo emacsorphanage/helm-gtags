@@ -23,6 +23,9 @@ by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 * GNU Global 5.7.1 or higher
 
 `helm-gtags.el` does not require `gtags.el`.
+I recommend you to use GNU Global 5.9 or higher version. Because lower
+versions are too slow. Debian/Ubuntu GNU global package is too old(5.7.1),
+so you should install it from source code.
 
 
 ## Basic Usage
