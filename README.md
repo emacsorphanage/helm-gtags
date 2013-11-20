@@ -61,10 +61,9 @@ You can use those searching commands with prefix key.
 | C--         | Jump to symbol with other window  |
 
 
-
 #### `helm-gtags-select`
 
-Tag jump using gtags and helm(experimental)
+Tag jump using gtags and helm
 
 
 #### `helm-gtags-update-tags`
@@ -81,6 +80,14 @@ any files with `C-u` prefix.
 
 Move to previous point on the stack.
 helm-gtags pushes current point to stack before executing each jump functions.
+
+#### `helm-gtags-next-history`
+
+Move to next history on context stack.
+
+#### `helm-gtags-previous-history`
+
+Move to previous history on context stack.
 
 #### `helm-gtags-show-stack`
 
@@ -139,9 +146,6 @@ Max size(bytes) to cache for each select result
 ## Sample Configuration
 
 ```elisp
-(require 'helm-config)
-(require 'helm-gtags)
-
 ;;; Enable helm-gtags-mode
 (add-hook 'c-mode-hook 'helm-gtags-mode)
 (add-hook 'c++-mode-hook 'helm-gtags-mode)
@@ -154,11 +158,13 @@ Max size(bytes) to cache for each select result
 (setq helm-gtags-auto-update t)
 
 ;; key bindings
-(add-hook 'helm-gtags-mode-hook
-          '(lambda ()
-              (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
-              (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
-              (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
-              (local-set-key (kbd "M-g M-p") 'helm-gtags-parse-file)
-              (local-set-key (kbd "M-,") 'helm-gtags-pop-stack)))
+(eval-after-load "helm-gtags"
+  '(progn
+     (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
+     (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
+     (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
+     (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
+     (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
+     (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+     (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
 ```
