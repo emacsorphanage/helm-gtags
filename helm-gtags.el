@@ -188,15 +188,23 @@ Always update if value of this variable is nil."
       (completing-read prompt comp-func nil nil nil
                        'helm-gtags-completing-history tagname))))
 
+(defun helm-gtags--path-libpath-p (tagroot)
+  (let ((gtags-libpath (getenv "GTAGSLIBPATH")))
+    (when gtags-libpath
+      (loop for path in (parse-colon-path gtags-libpath)
+            thereis (string= tagroot path)))))
+
 (defun helm-gtags-find-tag-directory ()
   (with-temp-buffer
     (let ((status (call-process-shell-command "global -p" nil t)))
       (unless (zerop status)
         (error "GTAGS not found"))
       (goto-char (point-min))
-      (let ((tagroot (buffer-substring-no-properties
-                      (point) (line-end-position))))
-        (setq helm-gtags-tag-location (file-name-as-directory tagroot))))))
+      (let ((tagroot (file-name-as-directory
+                      (buffer-substring-no-properties (point) (line-end-position)))))
+        (if (and (helm-gtags--path-libpath-p tagroot) helm-gtags-tag-location)
+            helm-gtags-tag-location
+          (setq helm-gtags-tag-location tagroot))))))
 
 (defun helm-gtags-base-directory ()
   (or helm-gtags-local-directory
