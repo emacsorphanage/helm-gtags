@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.0.5 2013/11/20 syohex
+  - Implement context stack history commands
+    (Suggestion by lbsx)
+
 Revision 1.0.4 2013/11/12 syohex
   - Generate tags at other directory with 'C-u C-u' prefix
   - Introduce interval of updating tags
