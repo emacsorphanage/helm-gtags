@@ -246,9 +246,8 @@ Always update if value of this variable is nil."
       context-info)))
 
 (defun helm-gtags--get-or-create-context-info ()
-  (let ((tag-location (helm-gtags-find-tag-directory)))
-    (or (gethash tag-location helm-gtags-context-stack)
-        (helm-gtags--new-context-info -1 nil))))
+  (or (gethash helm-gtags-tag-location helm-gtags-context-stack)
+      (helm-gtags--new-context-info -1 nil)))
 
 ;;;###autoload
 (defun helm-gtags-clear-all-cache ()
