@@ -392,7 +392,7 @@ Always update if value of this variable is nil."
   (let* ((token (helm-gtags-token-at-point))
          (cmd (format "global --result=grep --from-here=%d:%s %s"
                       (line-number-at-pos)
-                      (buffer-file-name)
+                      (shell-quote-argument (buffer-file-name))
                       token)))
     (with-current-buffer (helm-candidate-buffer 'global)
       (let ((default-directory (helm-gtags-base-directory)))
@@ -401,7 +401,8 @@ Always update if value of this variable is nil."
           (error "%s: not found" token))))))
 
 (defun helm-gtags-parse-file-init ()
-  (let ((cmd (concat "global --result cscope -f " helm-gtags-parsed-file)))
+  (let ((cmd (concat "global --result cscope -f "
+                     (shell-quote-argument helm-gtags-parsed-file))))
     (with-current-buffer (helm-candidate-buffer 'global)
       (unless (zerop (call-process-shell-command cmd nil t))
         (error "Failed: %s" cmd)))))
@@ -754,7 +755,8 @@ Always update if value of this variable is nil."
     (entire-update "global -u")
     (generate-other-directory (concat "gtags " (helm-gtags--read-tag-directory)))
     (single-update (concat "global -u --single-update "
-                           (expand-file-name (buffer-file-name))))))
+                           (shell-quote-argument
+                            (expand-file-name (buffer-file-name)))))))
 
 (defsubst helm-gtags--update-tags-process-live-p ()
   (get-buffer helm-gtags--update-tags-buffer))
