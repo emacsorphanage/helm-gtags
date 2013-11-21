@@ -155,10 +155,10 @@ Max size(bytes) to cache for each select result
 (add-hook 'asm-mode-hook 'helm-gtags-mode)
 
 ;; customize
-(setq helm-gtags-path-style 'relative)
-(setq helm-gtags-ignore-case t)
-(setq helm-gtags-read-only t)
-(setq helm-gtags-auto-update t)
+(custom-set-variables
+ '(helm-gtags-path-style 'relative)
+ '(helm-gtags-ignore-case t)
+ '(helm-gtags-auto-update t))
 
 ;; key bindings
 (eval-after-load "helm-gtags"
