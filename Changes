@@ -1,5 +1,11 @@
 Revision history for helm-gtags.el
 
+Revision 1.0.6 2013/11/21 syohex
+  - Apply shell quote for file path(#17)
+  - Support GTAGSLIBPATH(#16)
+
+  Thanks jixiuf, lbsx, afa311
+
 Revision 1.0.5 2013/11/20 syohex
   - Implement context stack history commands
     (Suggestion by lbsx)
