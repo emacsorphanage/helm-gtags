@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.0.7 2013/11/24 syohex
+  - Fix GTAGSLIBPATH issue(#13)
+  Thanks lbsx
+
 Revision 1.0.6 2013/11/21 syohex
   - Apply shell quote for file path(#17)
   - Support GTAGSLIBPATH(#16)
