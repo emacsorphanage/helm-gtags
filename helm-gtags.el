@@ -120,6 +120,7 @@ Always update if value of this variable is nil."
 (defvar helm-gtags-parsed-file nil)
 (defvar helm-gtags--update-tags-buffer " *helm-gtags-update-tag*")
 (defvar helm-gtags--current-position nil)
+(defvar helm-gtags--real-tag-location nil)
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -195,6 +196,7 @@ Always update if value of this variable is nil."
             thereis (string= tagroot path)))))
 
 (defun helm-gtags-find-tag-directory ()
+  (setq helm-gtags--real-tag-location nil)
   (with-temp-buffer
     (let ((status (call-process-shell-command "global -p" nil t)))
       (unless (zerop status)
@@ -203,13 +205,16 @@ Always update if value of this variable is nil."
       (let ((tagroot (file-name-as-directory
                       (buffer-substring-no-properties (point) (line-end-position)))))
         (if (and (helm-gtags--path-libpath-p tagroot) helm-gtags-tag-location)
-            helm-gtags-tag-location
+            (progn
+              (setq helm-gtags--real-tag-location tagroot)
+              helm-gtags-tag-location)
           (setq helm-gtags-tag-location tagroot))))))
 
 (defun helm-gtags-base-directory ()
   (or helm-gtags-local-directory
       (case helm-gtags-path-style
-        (root helm-gtags-tag-location)
+        (root (or helm-gtags--real-tag-location
+                  helm-gtags-tag-location))
         (otherwise default-directory))))
 
 (defsubst helm-gtags--new-context-info (index stack)
