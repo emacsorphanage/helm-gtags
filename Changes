@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.0.8 2013/11/26 syohex
+  - Fix for latest helm and update dependency version
+  Thanks lbsx
+
 Revision 1.0.7 2013/11/24 syohex
   - Fix GTAGSLIBPATH issue(#13)
   Thanks lbsx
