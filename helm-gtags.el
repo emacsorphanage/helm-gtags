@@ -479,7 +479,7 @@ Always update if value of this variable is nil."
     (find-file filename)
     (goto-char (point-min))
     (forward-line (1- line))
-    (helm-match-line-color-current-line)))
+    (helm-highlight-current-line)))
 
 (defvar helm-source-gtags-tags
   '((name . "GNU GLOBAL")
