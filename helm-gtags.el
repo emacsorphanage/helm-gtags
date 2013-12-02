@@ -262,8 +262,13 @@ Always update if value of this variable is nil."
 ;;;###autoload
 (defun helm-gtags-clear-cache ()
   (interactive)
-  (let ((gtags-path (concat (helm-gtags-find-tag-directory) "GTAGS"))
-        (gpath-path (concat (helm-gtags-find-tag-directory) "GPATH")))
+  (helm-gtags-find-tag-directory)
+  (let ((gtags-path (concat (or helm-gtags--real-tag-location
+                                helm-gtags-tag-location)
+                            "GTAGS"))
+        (gpath-path (concat (or helm-gtags--real-tag-location
+                                helm-gtags-tag-location)
+                            "GPATH")))
     (remhash gtags-path helm-gtags-result-cache)
     (remhash gpath-path helm-gtags-result-cache)))
 
@@ -313,7 +318,10 @@ Always update if value of this variable is nil."
                                    current-index context-stack)))
 
 (defun helm-gtags-get-result-cache (file)
-  (let* ((file-path (concat (helm-gtags-find-tag-directory) file))
+  (helm-gtags-find-tag-directory)
+  (let* ((file-path (concat (or helm-gtags--real-tag-location
+                                helm-gtags-tag-location)
+                            file))
          (file-mtime (nth 5 (file-attributes file-path)))
          (hash-value (gethash file-path helm-gtags-result-cache))
          (cached-file-mtime (nth 0 hash-value)))
@@ -322,7 +330,10 @@ Always update if value of this variable is nil."
       nil)))
 
 (defun helm-gtags-put-result-cache (file cache)
-  (let* ((file-path (concat (helm-gtags-find-tag-directory) file))
+  (helm-gtags-find-tag-directory)
+  (let* ((file-path (concat (or helm-gtags--real-tag-location
+                                helm-gtags-tag-location)
+                            file))
          (file-mtime (nth 5 (file-attributes file-path)))
          (hash-value (list file-mtime cache)))
     (puthash file-path hash-value helm-gtags-result-cache)))
