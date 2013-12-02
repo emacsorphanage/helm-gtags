@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.0.9 2013/12/03 syohex
+  - Fix tag location issue
+  Thanks lbsx
+
 Revision 1.0.8 2013/11/26 syohex
   - Fix for latest helm and update dependency version
   Thanks lbsx
