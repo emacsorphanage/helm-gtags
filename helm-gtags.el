@@ -54,6 +54,7 @@
 (require 'helm)
 (require 'helm-files)
 (require 'which-func)
+(require 'pulse)
 
 (defgroup helm-gtags nil
   "GNU GLOBAL for helm"
@@ -444,7 +445,8 @@ Always update if value of this variable is nil."
   (goto-char (point-min))
   (forward-line (1- line))
   (recenter)
-  (helm-gtags--push-context helm-gtags-saved-context))
+  (helm-gtags--push-context helm-gtags-saved-context)
+  (pulse-momentary-highlight-one-line (point)))
 
 (defun helm-gtags-parse-file-action (cand)
   (let ((line (when (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)
