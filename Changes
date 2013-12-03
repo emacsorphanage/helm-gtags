@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.1.1 2013/12/04 syohex
+  - Pulse highlight after jumping point
+  Advised by lbsx
+
 Revision 1.1.0 2013/12/04 syohex
   - Recenter after jumping to file for smooth scrolling
   Thanks lbsx
