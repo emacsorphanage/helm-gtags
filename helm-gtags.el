@@ -355,9 +355,9 @@ Always update if value of this variable is nil."
             (input (car (last (split-string cmd))))
             (coding-system-for-read buf-coding)
             (coding-system-for-write buf-coding))
-        (call-process-shell-command cmd nil t)
-        (when (helm-empty-buffer-p (current-buffer))
-          (error (format "%s: not found" input)))))))
+        (let ((status (call-process-shell-command cmd nil t)))
+          (unless (zerop status)
+            (error (format "%s: not found" input))))))))
 
 (defvar helm-gtags-command-option-alist
   '((:tag    . "")
@@ -407,15 +407,20 @@ Always update if value of this variable is nil."
   (helm-gtags-find-tag-directory)
   (helm-gtags-save-current-context)
   (let* ((token (helm-gtags-token-at-point))
+         (filename (buffer-file-name))
          (cmd (format "global --result=grep --from-here=%d:%s %s"
                       (line-number-at-pos)
-                      (shell-quote-argument (buffer-file-name))
+                      (shell-quote-argument filename)
                       token)))
     (with-current-buffer (helm-candidate-buffer 'global)
-      (let ((default-directory (helm-gtags-base-directory)))
-        (call-process-shell-command cmd nil t)
-        (when (helm-empty-buffer-p (current-buffer))
-          (error "%s: not found" token))))))
+      (let* ((default-directory (helm-gtags-base-directory))
+             (status (call-process-shell-command cmd nil t)))
+        (cond ((= status 1)
+               (error "%s%s" (buffer-string) filename))
+              ((= status 3)
+               (error "%s" (buffer-string)))
+              ((/= status 0)
+               (error "%s: not found" token)))))))
 
 (defun helm-gtags-parse-file-init ()
   (let ((cmd (concat "global --result cscope -f "
