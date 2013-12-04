@@ -1,5 +1,10 @@
 Revision history for helm-gtags.el
 
+Revision 1.1.2 2013/12/04 syohex
+  - Check exit status of global command
+  - back-to-indentation after jumping point
+  Thanks lbsx
+
 Revision 1.1.1 2013/12/04 syohex
   - Pulse highlight after jumping point
   Advised by lbsx
