@@ -449,6 +449,7 @@ Always update if value of this variable is nil."
   (funcall open-func file helm-gtags-read-only)
   (goto-char (point-min))
   (forward-line (1- line))
+  (back-to-indentation)
   (recenter)
   (helm-gtags--push-context helm-gtags-saved-context)
   (pulse-momentary-highlight-one-line (point)))
