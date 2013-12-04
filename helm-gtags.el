@@ -278,7 +278,8 @@ Always update if value of this variable is nil."
         (curpoint (plist-get context :position))
         (readonly (plist-get context :readonly)))
     (helm-gtags-open-file file readonly)
-    (goto-char curpoint)))
+    (goto-char curpoint)
+    (recenter)))
 
 ;;;###autoload
 (defun helm-gtags-next-history ()
