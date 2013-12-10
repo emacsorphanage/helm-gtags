@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.1.4 2013/12/11 syohex
+  - Add customize flag of pulsing at cursor
+
 Revision 1.1.3 2013/12/04 syohex
   - Recenter after moving point
   Thanks lbsx
