@@ -82,6 +82,11 @@
   :type 'boolean
   :group 'helm-gtags)
 
+(defcustom helm-gtags-pulse-at-cursor t
+  "If non-nil, pulse at point after jumping"
+  :type 'boolean
+  :group 'helm-gtags)
+
 (defcustom helm-gtags-cache-select-result nil
   "*If non-nil, results of helm-gtags-select and helm-gtags-select-path are cached."
   :type 'boolean
@@ -453,7 +458,8 @@ Always update if value of this variable is nil."
   (back-to-indentation)
   (recenter)
   (helm-gtags--push-context helm-gtags-saved-context)
-  (pulse-momentary-highlight-one-line (point)))
+  (when helm-gtags-pulse-at-cursor
+    (pulse-momentary-highlight-one-line (point))))
 
 (defun helm-gtags-parse-file-action (cand)
   (let ((line (when (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)

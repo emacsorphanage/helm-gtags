@@ -142,6 +142,10 @@ If this variable is non-nil, use cache for `helm-gtags-select` and `helm-gtags-s
 
 Max size(bytes) to cache for each select result
 
+#### `helm-gtags-pulse-at-cursor`(Default `nil`)
+
+If this variable is non-nil, pulse at point after jumpint
+
 
 ## Sample Configuration
 
