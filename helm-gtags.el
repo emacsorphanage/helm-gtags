@@ -291,6 +291,7 @@ Always update if value of this variable is nil."
          context)
     (when (<= current-index -1)
       (error "This context is latest in context stack"))
+    (setf (nth current-index context-stack) (helm-gtags--current-context))
     (decf current-index)
     (if (= current-index -1)
         (setq context helm-gtags--current-position
@@ -312,8 +313,9 @@ Always update if value of this variable is nil."
     (incf current-index)
     (when (>= current-index context-length)
       (error "This context is last in context stack"))
-    (when (= current-index 0)
-      (setq helm-gtags--current-position (helm-gtags--current-context)))
+    (if (= current-index 0)
+        (setq helm-gtags--current-position (helm-gtags--current-context))
+      (setf (nth (- current-index 1) context-stack) (helm-gtags--current-context)))
     (let ((prev-context (nth current-index context-stack)))
       (helm-gtags--move-to-context prev-context))
     (helm-gtags--put-context-stack helm-gtags-tag-location
