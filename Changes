@@ -1,5 +1,10 @@
 Revision history for helm-gtags.el
 
+Revision 1.1.5 2013/12/13 syohex
+  - Update the location info in the stack if the cursor has moved before jumping
+
+  Thanks lbsx
+
 Revision 1.1.4 2013/12/11 syohex
   - Add customize flag of pulsing at cursor
 
