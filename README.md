@@ -144,7 +144,13 @@ Max size(bytes) to cache for each select result
 
 #### `helm-gtags-pulse-at-cursor`(Default `nil`)
 
-If this variable is non-nil, pulse at point after jumpint
+If this variable is non-nil, pulse at point after jumping
+
+#### `helm-gtags-maximum-candidates`(Default `9999`)
+
+Maximum number of helm candidates in `helm-gtags.el`.
+If you feel slow for big source tree such as linux kernel,
+please set small number to this variable.
 
 
 ## Sample Configuration
