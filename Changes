@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.1.6 2013/12/27 syohex
+  - Introduce variable of limit of helm candidates
+
 Revision 1.1.5 2013/12/13 syohex
   - Update the location info in the stack if the cursor has moved before jumping
 
