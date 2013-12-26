@@ -104,6 +104,11 @@ Always update if value of this variable is nil."
                  (boolean :tag "Update every time" nil))
   :group 'helm-gtags)
 
+(defcustom helm-gtags-maximum-candidates 9999
+  "Maximum number of helm candidates"
+  :type 'integer
+  :group 'helm-gtags)
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -511,26 +516,26 @@ Always update if value of this variable is nil."
     (helm-highlight-current-line)))
 
 (defvar helm-source-gtags-tags
-  '((name . "GNU GLOBAL")
+  `((name . "GNU GLOBAL")
     (init . helm-gtags-tags-init)
     (candidates-in-buffer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-rtags
-  '((name . "GNU GLOBAL")
+  `((name . "GNU GLOBAL")
     (init . helm-gtags-rtags-init)
     (candidates-in-buffer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-gsyms
-  '((name . "GNU GLOBAL")
+  `((name . "GNU GLOBAL")
     (init . helm-gtags-gsyms-init)
     (candidates-in-buffer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -547,35 +552,35 @@ Always update if value of this variable is nil."
               (match-string-no-properties 3 removed-file)))))
 
 (defvar helm-source-gtags-files
-  '((name . "GNU GLOBAL")
+  `((name . "GNU GLOBAL")
     (init . helm-gtags-files-init)
     (candidates-in-buffer)
     (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (type . file)))
 
 (defvar helm-source-gtags-find-tag-from-here
-  '((name . "GNU GLOBAL")
+  `((name . "GNU GLOBAL")
     (init . helm-gtags-find-tag-from-here-init)
     (candidates-in-buffer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
 (defvar helm-source-gtags-parse-file
-  '((name . "Parsed File")
+  `((name . "Parsed File")
     (init . helm-gtags-parse-file-init)
     (candidates-in-buffer)
     (real-to-display . helm-gtags-parse-file-candidate-transformer)
     (action . helm-gtags-parse-file-action)
-    (candidate-number-limit . 9999)))
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)))
 
 (defvar helm-source-gtags-show-stack
-  '((name . "Show Context Stack")
+  `((name . "Show Context Stack")
     (init . helm-gtags-show-stack-init)
     (candidates-in-buffer)
     (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -594,7 +599,7 @@ Always update if value of this variable is nil."
     (init . (lambda ()
               (helm-gtags-tags-init ,candidate)))
     (candidates-in-buffer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -603,7 +608,7 @@ Always update if value of this variable is nil."
     (init . (lambda ()
               (helm-gtags-rtags-init ,candidate)))
     (candidates-in-buffer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -635,10 +640,10 @@ Always update if value of this variable is nil."
     (helm-source-gtags-select-cache-init-common "global -c" "GTAGS"))))
 
 (defvar helm-source-gtags-select
-  '((name . "GNU GLOBAL SELECT")
+  `((name . "GNU GLOBAL SELECT")
     (init . helm-source-gtags-select-init)
     (candidates-in-buffer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (action . (("Goto the location" . helm-source-gtags-select-tag-action)
                ("Goto the location(other buffer)" .
                 (lambda (c)
@@ -654,11 +659,11 @@ Always update if value of this variable is nil."
     (helm-source-gtags-select-cache-init-common "global -Poa" "GPATH"))))
 
 (defvar helm-source-gtags-select-path
-  '((name . "GNU GLOBAL PATH")
+  `((name . "GNU GLOBAL PATH")
     (init . helm-source-gtags-select-path-init)
     (candidates-in-buffer)
     (real-to-display . helm-gtags-files-candidate-transformer)
-    (candidate-number-limit . 9999)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (type . file)))
 
 (defun helm-gtags-searched-directory ()
