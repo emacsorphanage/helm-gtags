@@ -132,6 +132,7 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--update-tags-buffer " *helm-gtags-update-tag*")
 (defvar helm-gtags--current-position nil)
 (defvar helm-gtags--real-tag-location nil)
+(defvar helm-gtags--remote-p nil)
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -165,11 +166,16 @@ Always update if value of this variable is nil."
   (let ((option (helm-gtags-construct-option type t)))
     (format "global %s %s" option input)))
 
+(defun helm-gtags--execute-command (cmd)
+  (if helm-gtags--remote-p
+      (process-file-shell-command cmd nil t)
+    (call-process-shell-command cmd nil t)))
+
 (defun helm-gtags-complete (type string predicate code)
   (let ((candidates-list nil)
         (cmd (helm-gtags-construct-completion-command type string)))
     (with-temp-buffer
-      (call-process-shell-command cmd nil t nil)
+      (helm-gtags--execute-command cmd)
       (goto-char (point-min))
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (push (match-string 1) candidates-list)))
@@ -207,9 +213,10 @@ Always update if value of this variable is nil."
             thereis (string= tagroot path)))))
 
 (defun helm-gtags-find-tag-directory ()
-  (setq helm-gtags--real-tag-location nil)
+  (setq helm-gtags--real-tag-location nil
+        helm-gtags--remote-p (file-remote-p default-directory))
   (with-temp-buffer
-    (let ((status (call-process-shell-command "global -p" nil t)))
+    (let ((status (helm-gtags--execute-command "global -p")))
       (unless (zerop status)
         (error "GTAGS not found"))
       (goto-char (point-min))
@@ -222,11 +229,15 @@ Always update if value of this variable is nil."
           (setq helm-gtags-tag-location tagroot))))))
 
 (defun helm-gtags-base-directory ()
-  (or helm-gtags-local-directory
-      (case helm-gtags-path-style
-        (root (or helm-gtags--real-tag-location
-                  helm-gtags-tag-location))
-        (otherwise default-directory))))
+  (let ((dir (or helm-gtags-local-directory
+                 (case helm-gtags-path-style
+                   (root (or helm-gtags--real-tag-location
+                             helm-gtags-tag-location))
+                   (otherwise default-directory))))
+        (remote (file-remote-p default-directory)))
+    (if (and remote (not (file-remote-p dir)))
+        (concat remote dir)
+      dir)))
 
 (defsubst helm-gtags--new-context-info (index stack)
   (list :index index :stack stack))
@@ -368,7 +379,7 @@ Always update if value of this variable is nil."
             (input (car (last (split-string cmd))))
             (coding-system-for-read buf-coding)
             (coding-system-for-write buf-coding))
-        (let ((status (call-process-shell-command cmd nil t)))
+        (let ((status (helm-gtags--execute-command cmd)))
           (unless (zerop status)
             (error (format "%s: not found" input))))))))
 
@@ -427,7 +438,7 @@ Always update if value of this variable is nil."
                       token)))
     (with-current-buffer (helm-candidate-buffer 'global)
       (let* ((default-directory (helm-gtags-base-directory))
-             (status (call-process-shell-command cmd nil t)))
+             (status (helm-gtags--execute-command cmd)))
         (cond ((= status 1)
                (error "%s%s" (buffer-string) filename))
               ((= status 3)
@@ -439,7 +450,7 @@ Always update if value of this variable is nil."
   (let ((cmd (concat "global --result cscope -f "
                      (shell-quote-argument helm-gtags-parsed-file))))
     (with-current-buffer (helm-candidate-buffer 'global)
-      (unless (zerop (call-process-shell-command cmd nil t))
+      (unless (zerop (helm-gtags--execute-command cmd))
         (error "Failed: %s" cmd)))))
 
 (defun helm-gtags--push-context (context)
@@ -624,20 +635,20 @@ Always update if value of this variable is nil."
 
 (defun helm-source-gtags-select-cache-init-common (command tagfile)
   (let ((cache (helm-gtags-get-result-cache tagfile)))
-      (if cache
-          (insert cache)
-        (progn
-          (call-process-shell-command command nil t nil)
-          (let* ((cache (buffer-string))
-                 (cache-size (length cache)))
-            (when (<= cache-size helm-gtags-cache-max-result-size)
-              (helm-gtags-put-result-cache tagfile cache)))))))
+    (if cache
+        (insert cache)
+      (helm-gtags--execute-command command)
+      (let* ((cache (buffer-string))
+             (cache-size (length cache)))
+        (when (<= cache-size helm-gtags-cache-max-result-size)
+          (helm-gtags-put-result-cache tagfile cache))))))
 
 (defun helm-source-gtags-select-init ()
+  (setq helm-gtags--remote-p (file-remote-p default-directory))
   (with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
-      (call-process-shell-command "global -c" nil t nil)
-    (helm-source-gtags-select-cache-init-common "global -c" "GTAGS"))))
+        (helm-gtags--execute-command "global -c")
+      (helm-source-gtags-select-cache-init-common "global -c" "GTAGS"))))
 
 (defvar helm-source-gtags-select
   `((name . "GNU GLOBAL SELECT")
@@ -653,10 +664,11 @@ Always update if value of this variable is nil."
                 helm-source-gtags-select-rtag-action)))))
 
 (defun helm-source-gtags-select-path-init ()
+  (setq helm-gtags--remote-p (file-remote-p default-directory))
   (with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
-      (call-process-shell-command "global -Poa" nil t nil)
-    (helm-source-gtags-select-cache-init-common "global -Poa" "GPATH"))))
+        (helm-gtags--execute-command "global -Poa")
+      (helm-source-gtags-select-cache-init-common "global -Poa" "GPATH"))))
 
 (defvar helm-source-gtags-select-path
   `((name . "GNU GLOBAL PATH")
