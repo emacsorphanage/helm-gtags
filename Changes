@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.1.7 2014/01/25 syohex
+  - Support TRAMP
+
 Revision 1.1.6 2013/12/27 syohex
   - Introduce variable of limit of helm candidates
 
