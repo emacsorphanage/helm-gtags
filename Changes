@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.1.8 2014/01/28 syohex
+  - Use buffer name instead of buffer object
+  Thanks nanasess
+
 Revision 1.1.7 2014/01/25 syohex
   - Support TRAMP
 
