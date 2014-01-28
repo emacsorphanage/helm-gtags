@@ -701,7 +701,7 @@ Always update if value of this variable is nil."
     (helm-attrset 'name
                   (format "Searched at %s" (or dir default-directory))
                   src)
-    (helm :sources srcs :buffer buf)))
+    (helm :sources srcs :buffer (format "%s" buf))))
 
 ;;;###autoload
 (defun helm-gtags-find-tag ()
@@ -755,7 +755,7 @@ Always update if value of this variable is nil."
                                             helm-gtags-tag-location))
                 helm-source-gtags-parse-file)
   (helm :sources '(helm-source-gtags-parse-file)
-        :buffer (get-buffer-create helm-gtags-buffer)))
+        :buffer (format "%s" (get-buffer-create helm-gtags-buffer))))
 
 ;;;###autoload
 (defun helm-gtags-pop-stack ()
