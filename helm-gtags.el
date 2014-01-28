@@ -690,7 +690,6 @@ Always update if value of this variable is nil."
 (defun helm-gtags-common (srcs)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
-        (buf (get-buffer-create helm-gtags-buffer))
         (dir (helm-gtags-searched-directory))
         (src (car srcs)))
     (when (symbolp src)
@@ -701,7 +700,7 @@ Always update if value of this variable is nil."
     (helm-attrset 'name
                   (format "Searched at %s" (or dir default-directory))
                   src)
-    (helm :sources srcs :buffer buf)))
+    (helm :sources srcs :buffer helm-gtags-buffer)))
 
 ;;;###autoload
 (defun helm-gtags-find-tag ()
@@ -754,8 +753,7 @@ Always update if value of this variable is nil."
                         (file-relative-name helm-gtags-parsed-file
                                             helm-gtags-tag-location))
                 helm-source-gtags-parse-file)
-  (helm :sources '(helm-source-gtags-parse-file)
-        :buffer (get-buffer-create helm-gtags-buffer)))
+  (helm :sources '(helm-source-gtags-parse-file) :buffer helm-gtags-buffer))
 
 ;;;###autoload
 (defun helm-gtags-pop-stack ()
