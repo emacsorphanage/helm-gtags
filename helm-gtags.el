@@ -407,6 +407,7 @@ Always update if value of this variable is nil."
       (setq helm-gtags-local-directory dir)))
   (let ((input (or in (helm-gtags-input type)))
         (option (helm-gtags-construct-option type)))
+    (helm-attrset 'helm-gtags-tagname input)
     (when (string= input "")
       (error "Input is empty!!"))
     (format "global %s %s" option input)))
