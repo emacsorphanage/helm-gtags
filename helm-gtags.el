@@ -487,12 +487,12 @@ Always update if value of this variable is nil."
     (helm-gtags-do-open-file open-func helm-gtags-parsed-file line)))
 
 (defun helm-gtags-action-openfile (elm)
-  (let* ((elems (split-string elm ":"))
-         (filename (first elems))
-         (line (string-to-number (second elems)))
-         (open-func (helm-gtags-select-find-file-func))
-         (default-directory (helm-gtags-base-directory)))
-    (helm-gtags-do-open-file open-func filename line)))
+  (when (string-match "\\(.+?\\):\\([0-9]+\\):\\(.+\\)" elm)
+    (let* ((filename (match-string 1 elm))
+           (line (string-to-number (match-string 2 elm)))
+           (open-func (helm-gtags-select-find-file-func))
+           (default-directory (helm-gtags-base-directory)))
+      (helm-gtags-do-open-file open-func filename line))))
 
 (defun helm-gtags-file-content-at-pos (file pos)
   (with-current-buffer (find-file-noselect file)
@@ -553,7 +553,7 @@ Always update if value of this variable is nil."
     (action . helm-gtags-action-openfile)))
 
 (defun helm-gtags-tags-candidate-transformer (candidate)
-  (when (string-match "\\(.+?\\):\\(.+?\\):\\(.+\\)" candidate)
+  (when (string-match "\\(.+?\\):\\([0-9]+\\):\\(.+\\)" candidate)
     (format "%s:%s:%s"
             (propertize (match-string 1 candidate) 'face 'compilation-info)
             (propertize (match-string 2 candidate) 'face 'compilation-line-number)
