@@ -109,6 +109,21 @@ Always update if value of this variable is nil."
   :type 'integer
   :group 'helm-gtags)
 
+(defcustom helm-gtags-highlight-candidate t
+  "Highlight candidate or not"
+  :type 'boolean
+  :group 'helm-gtags)
+
+(defface helm-gtags-file
+  '((t :inherit font-lock-keyword-face))
+  "Face for line numbers in the error list."
+  :group 'helm-gtags)
+
+(defface helm-gtags-lineno
+  '((t :inherit font-lock-doc-face))
+  "Face for line numbers in the error list."
+  :group 'helm-gtags)
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -531,6 +546,7 @@ Always update if value of this variable is nil."
     (init . helm-gtags-tags-init)
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
+    (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -539,6 +555,7 @@ Always update if value of this variable is nil."
     (init . helm-gtags-rtags-init)
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
+    (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
@@ -547,8 +564,18 @@ Always update if value of this variable is nil."
     (init . helm-gtags-gsyms-init)
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
+    (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
+
+(defun helm-gtags--candidate-transformer (candidate)
+  (if (not helm-gtags-highlight-candidate)
+      candidate
+    (when (string-match "\\`\\([^:]+\\):\\([^:]+\\):\\(.*\\)" candidate)
+      (format "%s:%s:%s"
+              (propertize (match-string 1 candidate) 'face 'helm-gtags-file)
+              (propertize (match-string 2 candidate) 'face 'helm-gtags-lineno)
+              (match-string 3 candidate)))))
 
 (defun helm-gtags-files-candidate-transformer (file)
   (let ((removed-regexp (format "^%s" helm-gtags-tag-location)))
