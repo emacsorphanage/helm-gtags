@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.1.9 2014/02/21 syohex
+  - Support highlighting candidates
+  Thanks fgeller
+
 Revision 1.1.8 2014/01/28 syohex
   - Use buffer name instead of buffer object
   Thanks nanasess
