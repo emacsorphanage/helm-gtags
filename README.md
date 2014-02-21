@@ -117,21 +117,25 @@ Clear all result cache for `helm-gtags-select` and `helm-gtags-select-path`
 
 File path style, `'root` or `'relative` or `'absolute`
 
-#### `helm-gtags-ignore-case`
+#### `helm-gtags-ignore-case`(Default `nil`)
 
-Ignore case for searching flag (Default `nil`)
+Ignore case for searching flag
 
-#### `helm-gtags-read-only`
+#### `helm-gtags-read-only`(Default `nil`)
 
-Open file as readonly, if this value is `non-nil`(Default `nil`).
+Open file as readonly, if this value is `non-nil`
 
-#### `helm-gtags-auto-update`
+#### `helm-gtags-highlight-candidate`(Default `t`)
 
-If this variable is non-nil, TAG file is updated after saving buffer.
+Highlighting candidates if this value is `non-nil`
+
+#### `helm-gtags-auto-update`(Default `nil`)
+
+If this variable is non-nil, TAG file is updated after saving buffer
 
 #### `helm-gtags-update-interval-second`(Default `60`)
 
-Tags are updated in `after-save-hook' if this seconds is passed from last update.
+Tags are updated in `after-save-hook' if this seconds is passed from last update
 Always update if value of this variable is nil.
 
 #### `helm-gtags-cache-select-result`(Default `nil`)
@@ -151,6 +155,17 @@ If this variable is non-nil, pulse at point after jumping
 Maximum number of helm candidates in `helm-gtags.el`.
 If you feel slow for big source tree such as linux kernel,
 please set small number to this variable.
+
+
+## Faces
+
+#### `helm-gtags-file`
+
+Face of file name of candidates
+
+#### `helm-gtags-lineno`
+
+Face of line number of candidates
 
 
 ## Sample Configuration
