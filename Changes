@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.2.0 2014/02/22 syohex
+  - Fix missing source highlighting setting
+  Thanks lbsx
+
 Revision 1.1.9 2014/02/21 syohex
   - Support highlighting candidates
   Thanks fgeller
