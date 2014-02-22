@@ -602,6 +602,7 @@ Always update if value of this variable is nil."
     (init . helm-gtags-find-tag-from-here-init)
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
+    (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
