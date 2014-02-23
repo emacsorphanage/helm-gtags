@@ -5,7 +5,7 @@
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
 ;; Version: 1.2.0
-;; Package-Requires: ((helm "1.5.6"))
+;; Package-Requires: ((helm "1.5.6") (cl-lib "0.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -48,9 +48,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
+(require 'cl-lib)
 (require 'helm)
 (require 'helm-files)
 (require 'which-func)
@@ -224,8 +222,8 @@ Always update if value of this variable is nil."
 (defun helm-gtags--path-libpath-p (tagroot)
   (let ((gtags-libpath (getenv "GTAGSLIBPATH")))
     (when gtags-libpath
-      (loop for path in (parse-colon-path gtags-libpath)
-            thereis (string= tagroot path)))))
+      (cl-loop for path in (parse-colon-path gtags-libpath)
+               thereis (string= tagroot path)))))
 
 (defun helm-gtags-find-tag-directory ()
   (setq helm-gtags--real-tag-location nil
@@ -245,7 +243,7 @@ Always update if value of this variable is nil."
 
 (defun helm-gtags-base-directory ()
   (let ((dir (or helm-gtags-local-directory
-                 (case helm-gtags-path-style
+                 (cl-case helm-gtags-path-style
                    (root (or helm-gtags--real-tag-location
                              helm-gtags-tag-location))
                    (otherwise default-directory))))
@@ -328,7 +326,7 @@ Always update if value of this variable is nil."
     (when (<= current-index -1)
       (error "This context is latest in context stack"))
     (setf (nth current-index context-stack) (helm-gtags--current-context))
-    (decf current-index)
+    (cl-decf current-index)
     (if (= current-index -1)
         (setq context helm-gtags--current-position
               helm-gtags--current-position nil)
@@ -346,7 +344,7 @@ Always update if value of this variable is nil."
          (context-stack (plist-get context-info :stack))
          (context-length (length context-stack))
          context)
-    (incf current-index)
+    (cl-incf current-index)
     (when (>= current-index context-length)
       (error "This context is last in context stack"))
     (if (= current-index 0)
@@ -502,8 +500,8 @@ Always update if value of this variable is nil."
 
 (defun helm-gtags-action-openfile (elm)
   (let* ((elems (split-string elm ":"))
-         (filename (first elems))
-         (line (string-to-number (second elems)))
+         (filename (cl-first elems))
+         (line (string-to-number (cl-second elems)))
          (open-func (helm-gtags-select-find-file-func))
          (default-directory (helm-gtags-base-directory)))
     (helm-gtags-do-open-file open-func filename line)))
@@ -525,16 +523,16 @@ Always update if value of this variable is nil."
 (defun helm-gtags-show-stack-init ()
   (let ((context-stack (helm-gtags--get-context-info)))
     (with-current-buffer (helm-candidate-buffer 'global)
-      (loop for context in (reverse (plist-get context-stack :stack))
-            for file = (plist-get context :file)
-            for pos  = (plist-get context :position)
-            do
-            (insert (helm-gtags-file-content-at-pos file pos))))))
+      (cl-loop for context in (reverse (plist-get context-stack :stack))
+               for file = (plist-get context :file)
+               for pos  = (plist-get context :position)
+               do
+               (insert (helm-gtags-file-content-at-pos file pos))))))
 
 (defun helm-gtags-tags-persistent-action (cand)
   (let* ((elems (split-string cand ":"))
-         (filename (first elems))
-         (line (string-to-number (second elems)))
+         (filename (cl-first elems))
+         (line (string-to-number (cl-second elems)))
          (default-directory (helm-gtags-base-directory)))
     (find-file filename)
     (goto-char (point-min))
@@ -707,7 +705,7 @@ Always update if value of this variable is nil."
     (type . file)))
 
 (defun helm-gtags-searched-directory ()
-  (case (prefix-numeric-value current-prefix-arg)
+  (cl-case (prefix-numeric-value current-prefix-arg)
     (4 (let ((dir (read-directory-name "Input Directory: ")))
          (setq helm-gtags-local-directory (file-name-as-directory dir))))
     (16 (file-name-directory (buffer-file-name)))))
@@ -822,13 +820,13 @@ Always update if value of this variable is nil."
     (directory-file-name (expand-file-name dir))))
 
 (defsubst helm-gtags--how-to-update-tags ()
-  (case (prefix-numeric-value current-prefix-arg)
+  (cl-case (prefix-numeric-value current-prefix-arg)
     (4 'entire-update)
     (16 'generate-other-directory)
     (t 'single-update)))
 
 (defun helm-gtags--update-tags-command (how-to)
-  (case how-to
+  (cl-case how-to
     (entire-update "global -u")
     (generate-other-directory (concat "gtags " (helm-gtags--read-tag-directory)))
     (single-update (concat "global -u --single-update "
