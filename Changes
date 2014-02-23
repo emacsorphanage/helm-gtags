@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.2.1 2014/02/23 syohex
+  - Switch to cl-lib.el from cl.el
+
 Revision 1.2.0 2014/02/22 syohex
   - Fix missing source highlighting setting
   Thanks lbsx
