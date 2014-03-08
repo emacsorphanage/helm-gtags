@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.2.2 2014/03/08 syohex
+  - Enable lexical binding
+  - Update requirement cl-lib version
+
 Revision 1.2.1 2014/02/23 syohex
   - Switch to cl-lib.el from cl.el
 
