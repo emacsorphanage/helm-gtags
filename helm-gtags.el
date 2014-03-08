@@ -1,4 +1,4 @@
-;;; helm-gtags.el --- GNU GLOBAL helm interface
+;;; helm-gtags.el --- GNU GLOBAL helm interface  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014 by Syohei YOSHIDA
 
@@ -342,8 +342,7 @@ Always update if value of this variable is nil."
   (let* ((context-info (helm-gtags--get-context-info))
          (current-index (plist-get context-info :index))
          (context-stack (plist-get context-info :stack))
-         (context-length (length context-stack))
-         context)
+         (context-length (length context-stack)))
     (cl-incf current-index)
     (when (>= current-index context-length)
       (error "This context is last in context stack"))
@@ -469,8 +468,7 @@ Always update if value of this variable is nil."
 (defun helm-gtags--push-context (context)
   (let* ((context-info (helm-gtags--get-or-create-context-info))
          (current-index (plist-get context-info :index))
-         (context-stack (plist-get context-info :stack))
-         (last-index (1- (length context-stack))))
+         (context-stack (plist-get context-info :stack)))
     (unless (= current-index -1)
       (setq context-stack (nthcdr (1+ current-index) context-stack)))
     (setq helm-gtags--current-position nil)
@@ -807,7 +805,7 @@ Always update if value of this variable is nil."
   (interactive)
   (setq helm-gtags-context-stack (make-hash-table :test 'equal)))
 
-(defun helm-gtags--update-tags-sentinel (process state)
+(defun helm-gtags--update-tags-sentinel (process _state)
   (when (eq (process-status process) 'exit)
     (if (zerop (process-exit-status process))
         (message "Update TAGS successfully")
