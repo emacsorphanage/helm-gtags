@@ -131,6 +131,7 @@ Always update if value of this variable is nil."
 
 (defvar helm-gtags-prompt-alist
   '((:tag    . "Find Definition: ")
+    (:pattern . "Find Pattern: ")
     (:rtag   . "Find Reference: ")
     (:symbol . "Find Symbol: ")
     (:file   . "Find File: ")))
@@ -162,6 +163,8 @@ Always update if value of this variable is nil."
 ;; completsion function for completing-read.
 (defun helm-gtags-completing-gtags (string predicate code)
   (helm-gtags-complete :tag string predicate code))
+(defun helm-gtags-completing-pattern (string predicate code)
+  (helm-gtags-complete :pattern string predicate code))
 (defun helm-gtags-completing-grtags (string predicate code)
   (helm-gtags-complete :rtag string predicate code))
 (defun helm-gtags-completing-gsyms (string predicate code)
@@ -171,6 +174,7 @@ Always update if value of this variable is nil."
 
 (defvar helm-gtags-comp-func-alist
   '((:tag    . helm-gtags-completing-gtags)
+    (:pattern . helm-gtags-completing-pattern)
     (:rtag   . helm-gtags-completing-grtags)
     (:symbol . helm-gtags-completing-gsyms)
     (:file   . helm-gtags-completing-files)))
@@ -397,6 +401,7 @@ Always update if value of this variable is nil."
 
 (defvar helm-gtags-command-option-alist
   '((:tag    . "")
+    (:pattern . "-g")
     (:rtag   . "-r")
     (:symbol . "-s")
     (:file   . "-Poa")))
@@ -426,6 +431,12 @@ Always update if value of this variable is nil."
 (defun helm-gtags-tags-init (&optional input)
   (let ((cmd (helm-gtags-construct-command :tag input)))
     (helm-gtags-exec-global-command cmd)))
+
+(defun helm-gtags-pattern-init (&optional input)
+  (let ((cmd (helm-gtags-construct-command :pattern input)))
+    (helm-gtags-exec-global-command cmd)))
+
+
 
 (defun helm-gtags-rtags-init (&optional input)
   (let ((cmd (helm-gtags-construct-command :rtag input)))
@@ -545,6 +556,16 @@ Always update if value of this variable is nil."
     (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
+
+(defvar helm-source-gtags-pattern
+  `((name . "GNU GLOBAL")
+    (init . helm-gtags-pattern-init)
+    (candidates-in-buffer)
+    (candidate-number-limit . ,helm-gtags-maximum-candidates)
+    (real-to-display . helm-gtags--candidate-transformer)
+    (persistent-action . helm-gtags-tags-persistent-action)
+    (action . helm-gtags-action-openfile)))
+
 
 (defvar helm-source-gtags-rtags
   `((name . "GNU GLOBAL")
@@ -743,6 +764,11 @@ Always update if value of this variable is nil."
   "Jump to the symbol location"
   (interactive)
   (helm-gtags-common '(helm-source-gtags-gsyms)))
+
+(defun helm-gtags-find-pattern ()
+  "Jump to pattern"
+  (interactive)
+  (helm-gtags-common '(helm-source-gtags-pattern)))
 
 ;;;###autoload
 (defun helm-gtags-find-files ()
