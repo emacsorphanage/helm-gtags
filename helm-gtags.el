@@ -436,8 +436,6 @@ Always update if value of this variable is nil."
   (let ((cmd (helm-gtags-construct-command :pattern input)))
     (helm-gtags-exec-global-command cmd)))
 
-
-
 (defun helm-gtags-rtags-init (&optional input)
   (let ((cmd (helm-gtags-construct-command :rtag input)))
     (helm-gtags-exec-global-command cmd)))
@@ -565,7 +563,6 @@ Always update if value of this variable is nil."
     (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
-
 
 (defvar helm-source-gtags-rtags
   `((name . "GNU GLOBAL")
