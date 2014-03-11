@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.2.3 2014/03/08 syohex
+  - Implement 'helm-gtags-find-pattern' which looks like grep but fast
+    Thanks byplayer
+
 Revision 1.2.2 2014/03/08 syohex
   - Enable lexical binding
   - Update requirement cl-lib version
