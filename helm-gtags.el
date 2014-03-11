@@ -762,6 +762,7 @@ Always update if value of this variable is nil."
   (interactive)
   (helm-gtags-common '(helm-source-gtags-gsyms)))
 
+;;;###autoload
 (defun helm-gtags-find-pattern ()
   "Jump to pattern"
   (interactive)
