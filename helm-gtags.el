@@ -112,10 +112,10 @@ Always update if value of this variable is nil."
   :type 'boolean
   :group 'helm-gtags)
 
-(defconst helm-gtags-symbol-look-at "[a-zA-Z0-9_]"
+(defcustom helm-gtags-symbol-look-at "[a-zA-Z0-9_]"
   "Regexp matching tag look-at")
 
-(defconst helm-gtags-symbol-skip-chars "a-zA-Z0-9_"
+(defcustom helm-gtags-symbol-skip-chars "a-zA-Z0-9_"
   "Skip character skip tag find")
 
 (defface helm-gtags-file
