@@ -200,14 +200,8 @@ Always update if value of this variable is nil."
         (try-completion string candidates-list predicate)
       (all-completions string candidates-list predicate))))
 
-(defun helm-gtags-token-at-point ()
-  (save-excursion
-    (let (start)
-      (when (looking-at "[a-zA-Z0-9_]")
-        (skip-chars-backward "a-zA-Z0-9_")
-        (setq start (point))
-        (skip-chars-forward "a-zA-Z0-9_")
-        (buffer-substring-no-properties start (point))))))
+(defsubst helm-gtags-token-at-point ()
+  (thing-at-point 'symbol))
 
 (defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
