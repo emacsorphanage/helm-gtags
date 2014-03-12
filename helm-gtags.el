@@ -112,6 +112,16 @@ Always update if value of this variable is nil."
   :type 'boolean
   :group 'helm-gtags)
 
+(defcustom helm-gtags-symbol-look-at "[a-zA-Z0-9_]"
+  "Regexp matching tag look-at"
+  :type 'string
+  :group 'helm-gtags)
+
+(defcustom helm-gtags-symbol-skip-chars "a-zA-Z0-9_"
+  "Skip character skip tag find"
+  :type 'string
+  :group 'helm-gtags)
+
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
   "Face for line numbers in the error list."
@@ -203,10 +213,10 @@ Always update if value of this variable is nil."
 (defun helm-gtags-token-at-point ()
   (save-excursion
     (let (start)
-      (when (looking-at "[a-zA-Z0-9_]")
-        (skip-chars-backward "a-zA-Z0-9_")
+      (when (looking-at helm-gtags-symbol-look-at)
+        (skip-chars-backward helm-gtags-symbol-skip-chars)
         (setq start (point))
-        (skip-chars-forward "a-zA-Z0-9_")
+        (skip-chars-forward helm-gtags-symbol-skip-chars)
         (buffer-substring-no-properties start (point))))))
 
 (defsubst helm-gtags-type-is-not-file-p (type)
