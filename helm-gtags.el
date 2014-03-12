@@ -113,10 +113,14 @@ Always update if value of this variable is nil."
   :group 'helm-gtags)
 
 (defcustom helm-gtags-symbol-look-at "[a-zA-Z0-9_]"
-  "Regexp matching tag look-at")
+  "Regexp matching tag look-at"
+  :type 'string
+  :group 'helm-gtags)
 
 (defcustom helm-gtags-symbol-skip-chars "a-zA-Z0-9_"
-  "Skip character skip tag find")
+  "Skip character skip tag find"
+  :type 'string
+  :group 'helm-gtags)
 
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
