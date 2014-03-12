@@ -1,6 +1,10 @@
 Revision history for helm-gtags.el
 
-Revision 1.2.3 2014/03/08 syohex
+Revision 1.2.4 2014/03/12 syohex
+  - Improve getting symbol at cursor
+    Reported by byplayer
+
+Revision 1.2.3 2014/03/11 syohex
   - Implement 'helm-gtags-find-pattern' which looks like grep but fast
     Thanks byplayer
 
