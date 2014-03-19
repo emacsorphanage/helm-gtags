@@ -516,19 +516,20 @@ Always update if value of this variable is nil."
             (content (or (buffer-substring-no-properties
                           (line-beginning-position) (line-end-position))
                          "")))
-        (format "%s:%d%s:%s\n"
+        (format "%s:%d%s:%s"
                 file line
                 (helm-aif curfunc (format "[%s]" it) "")
                 content)))))
 
 (defun helm-gtags-show-stack-init ()
-  (let ((context-stack (helm-gtags--get-context-info)))
-    (with-current-buffer (helm-candidate-buffer 'global)
-      (cl-loop for context in (reverse (plist-get context-stack :stack))
-               for file = (plist-get context :file)
-               for pos  = (plist-get context :position)
-               do
-               (insert (helm-gtags-file-content-at-pos file pos))))))
+  (cl-loop with context-stack = (plist-get (helm-gtags--get-context-info) :stack)
+           with stack-length = (length context-stack)
+           for context in (reverse context-stack)
+           for file = (plist-get context :file)
+           for pos  = (plist-get context :position)
+           for index = (1- stack-length) then (1- index)
+           for line = (helm-gtags-file-content-at-pos file pos)
+           collect (cons (helm-gtags-files-candidate-transformer line) index)))
 
 (defun helm-gtags-tags-persistent-action (cand)
   (let* ((elems (split-string cand ":"))
@@ -622,14 +623,20 @@ Always update if value of this variable is nil."
     (action . helm-gtags-parse-file-action)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)))
 
+(defun helm-gtags--show-stack-action (index)
+  (let* ((context-info (helm-gtags--get-context-info))
+         (context-stack (plist-get context-info :stack)))
+    (helm-gtags--put-context-stack helm-gtags-tag-location
+                                   index context-stack)
+    (helm-gtags--move-to-context (nth index context-stack))))
+
 (defvar helm-source-gtags-show-stack
   `((name . "Show Context Stack")
-    (init . helm-gtags-show-stack-init)
-    (candidates-in-buffer)
-    (real-to-display . helm-gtags-files-candidate-transformer)
+    (candidates . helm-gtags-show-stack-init)
+    (volatile)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags-tags-persistent-action)
-    (action . helm-gtags-action-openfile)))
+    (action . helm-gtags--show-stack-action)))
 
 ;;;###autoload
 (defun helm-gtags-select ()
