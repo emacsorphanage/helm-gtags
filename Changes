@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.2.5 2014/03/20 syohex
+  - Fix helm-gtags-show-stack issue(#40)
+    Reported by tuhdo
+
 Revision 1.2.4 2014/03/12 syohex
   - Improve getting symbol at cursor
     Reported by byplayer
