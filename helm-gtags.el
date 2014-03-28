@@ -122,6 +122,11 @@ Always update if value of this variable is nil."
   "Face for line numbers in the error list."
   :group 'helm-gtags)
 
+(defface helm-gtags-match
+  '((t :inherit helm-match))
+  "Face for word matched against tagname"
+  :group 'helm-gtags)
+
 (defvar helm-gtags-tag-location nil
   "GNU global tag `GTAGS' location")
 
@@ -147,6 +152,7 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--current-position nil)
 (defvar helm-gtags--real-tag-location nil)
 (defvar helm-gtags--remote-p nil)
+(defvar helm-gtags--last-input nil)
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -418,6 +424,7 @@ Always update if value of this variable is nil."
       (setq helm-gtags-local-directory dir)))
   (let ((input (or in (helm-gtags-input type)))
         (option (helm-gtags-construct-option type)))
+    (setq helm-gtags--last-input input)
     (when (string= input "")
       (error "Input is empty!!"))
     (format "global %s %s" option input)))
@@ -451,6 +458,7 @@ Always update if value of this variable is nil."
                       (line-number-at-pos)
                       (shell-quote-argument filename)
                       token)))
+    (setq helm-gtags--last-input token)
     (with-current-buffer (helm-candidate-buffer 'global)
       (let* ((default-directory (helm-gtags-base-directory))
              (status (helm-gtags--execute-command cmd)))
@@ -577,6 +585,18 @@ Always update if value of this variable is nil."
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
+(defun helm-gtags--highlight-candidate (candidate)
+  (let ((regexp (concat "\\_<" helm-gtags--last-input "\\_>"))
+        (limit (1- (length candidate)))
+        (last-pos 0))
+    (while (and (< last-pos limit)
+                (string-match regexp candidate last-pos))
+      (put-text-property (match-beginning 0) (match-end 0)
+                         'face 'helm-gtags-match
+                         candidate)
+      (setq last-pos (1+ (match-end 0))))
+    candidate))
+
 (defun helm-gtags--candidate-transformer (candidate)
   (if (not helm-gtags-highlight-candidate)
       candidate
@@ -584,7 +604,7 @@ Always update if value of this variable is nil."
       (format "%s:%s:%s"
               (propertize (match-string 1 candidate) 'face 'helm-gtags-file)
               (propertize (match-string 2 candidate) 'face 'helm-gtags-lineno)
-              (match-string 3 candidate)))))
+              (helm-gtags--highlight-candidate (match-string 3 candidate))))))
 
 (defun helm-gtags-files-candidate-transformer (file)
   (let ((removed-regexp (format "^%s" helm-gtags-tag-location)))
