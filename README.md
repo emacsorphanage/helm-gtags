@@ -125,6 +125,10 @@ Ignore case for searching flag
 
 Open file as readonly, if this value is `non-nil`
 
+#### `helm-gtags-use-input-at-cursor`(Default `nil`)
+
+Use word at cursor as input if this value is `non-nil`
+
 #### `helm-gtags-highlight-candidate`(Default `t`)
 
 Highlighting candidates if this value is `non-nil`
