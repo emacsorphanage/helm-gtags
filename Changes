@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.2.6 2014/03/28 syohex
+  - Improve highlighting (suggested by lbsx)
+  - Add feature use word at cursor as default(suggested by tuhdo)
+
 Revision 1.2.5 2014/03/20 syohex
   - Fix helm-gtags-show-stack issue(#40)
     Reported by tuhdo
