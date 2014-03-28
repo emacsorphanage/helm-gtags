@@ -112,6 +112,11 @@ Always update if value of this variable is nil."
   :type 'boolean
   :group 'helm-gtags)
 
+(defcustom helm-gtags-use-input-at-cursor nil
+  "Use input at cursor"
+  :type 'boolean
+  :group 'helm-gtags)
+
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
   "Face for line numbers in the error list."
@@ -216,12 +221,14 @@ Always update if value of this variable is nil."
   (let ((tagname (helm-gtags-token-at-point))
         (prompt (assoc-default type helm-gtags-prompt-alist))
         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
-    (when (and tagname (helm-gtags-type-is-not-file-p type))
-      (setq prompt (format "%s(default \"%s\") " prompt tagname)))
-    (let ((completion-ignore-case helm-gtags-ignore-case)
-          (completing-read-function 'completing-read-default))
-      (completing-read prompt comp-func nil nil nil
-                       'helm-gtags-completing-history tagname))))
+    (if (and tagname helm-gtags-use-input-at-cursor)
+        tagname
+      (when (and tagname (helm-gtags-type-is-not-file-p type))
+        (setq prompt (format "%s(default \"%s\") " prompt tagname)))
+      (let ((completion-ignore-case helm-gtags-ignore-case)
+            (completing-read-function 'completing-read-default))
+        (completing-read prompt comp-func nil nil nil
+                         'helm-gtags-completing-history tagname)))))
 
 (defun helm-gtags--path-libpath-p (tagroot)
   (let ((gtags-libpath (getenv "GTAGSLIBPATH")))
