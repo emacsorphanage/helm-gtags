@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.2.7 2014/06/08 syohex
+  - Support remote file for helm-gtags-find-tag-from-here
+    Thanks gifnksm
+
 Revision 1.2.6 2014/03/28 syohex
   - Improve highlighting (suggested by lbsx)
   - Add feature use word at cursor as default(suggested by tuhdo)
