@@ -460,7 +460,9 @@ Always update if value of this variable is nil."
   (helm-gtags-find-tag-directory)
   (helm-gtags-save-current-context)
   (let* ((token (helm-gtags-token-at-point))
-         (filename (buffer-file-name))
+         (filename (if helm-gtags--remote-p
+                       (tramp-file-name-localname (tramp-dissect-file-name (buffer-file-name)))
+                       (buffer-file-name)))
          (cmd (format "global --result=grep --from-here=%d:%s %s"
                       (line-number-at-pos)
                       (shell-quote-argument filename)
