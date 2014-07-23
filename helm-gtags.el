@@ -924,6 +924,14 @@ Generate new TAG file in selected directory with `C-u C-u'"
           (set-process-sentinel proc 'helm-gtags--update-tags-sentinel)
           (setq helm-gtags--last-update-time current-time))))))
 
+;;;###autoload
+(defun helm-gtags-resume ()
+  "Resurrect previously invoked `helm-gtags` command."
+  (interactive)
+  (unless (get-buffer helm-gtags-buffer)
+    (error "Error: helm-gtags buffer is not existed."))
+  (helm-resume helm-gtags-buffer))
+
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
 
