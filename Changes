@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.2.8 2014/07/23 syohex
+  - Add helm-gtags-resume command
+
 Revision 1.2.7 2014/06/08 syohex
   - Support remote file for helm-gtags-find-tag-from-here
     Thanks gifnksm
