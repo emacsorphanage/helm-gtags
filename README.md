@@ -18,8 +18,8 @@ by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 
 
 ## Requirements
-* Emacs 23 or higher.
-* helm 1.0 or higher
+* Emacs 24 or higher.
+* helm 1.5.6 or higher
 * GNU Global 6.2.3 or higher
 
 `helm-gtags.el` does not require `gtags.el`.
@@ -109,6 +109,12 @@ Clear current project cache for `helm-gtags-select` and `helm-gtags-select-path`
 #### `helm-gtags-clear-all-cache`
 
 Clear all result cache for `helm-gtags-select` and `helm-gtags-select-path`
+
+#### `helm-gtags-resume`
+
+Resurrect previously invoked `helm-gtags` command.
+This is similar to `helm-resume` however this command resurrects helm gtags
+buffer if other helm commands are called.
 
 
 ## Customize Variables
