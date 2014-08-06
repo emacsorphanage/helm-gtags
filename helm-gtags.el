@@ -959,26 +959,24 @@ Generate new TAG file in selected directory with `C-u C-u'"
         (run-hooks 'helm-gtags-mode-hook)
         (when helm-gtags-auto-update
           (add-hook 'after-save-hook 'helm-gtags-update-tags nil t)))
-    (progn
-      (when helm-gtags-auto-update
-        (remove-hook 'after-save-hook 'helm-gtags-update-tags t)))))
+    (when helm-gtags-auto-update
+      (remove-hook 'after-save-hook 'helm-gtags-update-tags t))))
 
 ;; Key mapping of gtags-mode.
-(if helm-gtags-suggested-key-mapping
-    (progn
-      ; Current key mapping.
-      (define-key helm-gtags-mode-map "\C-]" 'helm-gtags-find-tag-from-here)
-      (define-key helm-gtags-mode-map "\C-t" 'helm-gtags-pop-stack)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "P") 'helm-gtags-find-files)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "f") 'helm-gtags-parse-file)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "s") 'helm-gtags-find-symbol)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "r") 'helm-gtags-find-rtag)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "t") 'helm-gtags-find-tag)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "d") 'helm-gtags-find-tag)
+(when helm-gtags-suggested-key-mapping
+  ;; Current key mapping.
+  (define-key helm-gtags-mode-map "\C-]" 'helm-gtags-find-tag-from-here)
+  (define-key helm-gtags-mode-map "\C-t" 'helm-gtags-pop-stack)
+  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "P") 'helm-gtags-find-files)
+  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "f") 'helm-gtags-parse-file)
+  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "s") 'helm-gtags-find-symbol)
+  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "r") 'helm-gtags-find-rtag)
+  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "t") 'helm-gtags-find-tag)
+  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "d") 'helm-gtags-find-tag)
 
-      ; common
-      (define-key helm-gtags-mode-map "\e*" 'helm-gtags-pop-stack)
-      (define-key helm-gtags-mode-map "\e." 'helm-gtags-find-tag)))
+  ;; common
+  (define-key helm-gtags-mode-map "\e*" 'helm-gtags-pop-stack)
+  (define-key helm-gtags-mode-map "\e." 'helm-gtags-find-tag))
 
 (provide 'helm-gtags)
 
