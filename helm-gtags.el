@@ -964,18 +964,20 @@ Generate new TAG file in selected directory with `C-u C-u'"
 ;; Key mapping of gtags-mode.
 (when helm-gtags-suggested-key-mapping
   ;; Current key mapping.
-  (define-key helm-gtags-mode-map "\C-]" 'helm-gtags-find-tag-from-here)
-  (define-key helm-gtags-mode-map "\C-t" 'helm-gtags-pop-stack)
-  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "P") 'helm-gtags-find-files)
-  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "f") 'helm-gtags-parse-file)
-  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "s") 'helm-gtags-find-symbol)
-  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "r") 'helm-gtags-find-rtag)
-  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "t") 'helm-gtags-find-tag)
-  (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "d") 'helm-gtags-find-tag)
+  (let ((prefix helm-gtags-prefix-key))
+    (define-key helm-gtags-mode-map (concat prefix "h") 'helm-gtags-display-browser)
+    (define-key helm-gtags-mode-map "\C-]" 'helm-gtags-find-tag-from-here)
+    (define-key helm-gtags-mode-map "\C-t" 'helm-gtags-pop-stack)
+    (define-key helm-gtags-mode-map (concat prefix "P") 'helm-gtags-find-files)
+    (define-key helm-gtags-mode-map (concat prefix "f") 'helm-gtags-parse-file)
+    (define-key helm-gtags-mode-map (concat prefix "s") 'helm-gtags-find-symbol)
+    (define-key helm-gtags-mode-map (concat prefix "r") 'helm-gtags-find-rtag)
+    (define-key helm-gtags-mode-map (concat prefix "t") 'helm-gtags-find-tag)
+    (define-key helm-gtags-mode-map (concat prefix "d") 'helm-gtags-find-tag)
 
-  ;; common
-  (define-key helm-gtags-mode-map "\e*" 'helm-gtags-pop-stack)
-  (define-key helm-gtags-mode-map "\e." 'helm-gtags-find-tag))
+    ;; common
+    (define-key helm-gtags-mode-map "\e*" 'helm-gtags-pop-stack)
+    (define-key helm-gtags-mode-map "\e." 'helm-gtags-find-tag)))
 
 (provide 'helm-gtags)
 
