@@ -118,15 +118,14 @@ Always update if value of this variable is nil."
   :group 'helm-gtags)
 
 (defcustom helm-gtags-prefix-key "\C-c"
-  "*If non-nil, it is used for the prefix key of gtags-xxx command."
-  :group 'gtags
-  :type 'string)
+  "If non-nil, it is used for the prefix key of gtags-xxx command."
+  :type 'string
+  :group 'helm-gtags)
 
 (defcustom helm-gtags-suggested-key-mapping nil
-  "*If non-nil, suggested key mapping is enabled."
-  :group 'gtags
-  :type 'boolean)
-
+  "If non-nil, suggested key mapping is enabled."
+  :type 'boolean
+  :group 'helm-gtags)
 
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
