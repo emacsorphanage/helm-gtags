@@ -942,6 +942,28 @@ Generate new TAG file in selected directory with `C-u C-u'"
     (error "Error: helm-gtags buffer is not existed."))
   (helm-resume helm-gtags-buffer))
 
+(defsubst helm-gtags--check-browser-installed (browser)
+  (let ((used-browser (or browser "mozilla")))
+    (unless (executable-find used-browser)
+      (error "Not found browser '%s'" used-browser))))
+
+(defun helm-gtags-display-browser ()
+  "Display current screen on hypertext browser.
+`browse-url-generic-program' is used as browser if its value is non-nil.
+`mozilla' is used in other case."
+  (interactive)
+  (let ((file (buffer-file-name)))
+    (if (not file)
+        (error "This buffer is not related to file.")
+      (let* ((lineopt (concat "+" (number-to-string (line-number-at-pos))))
+             (browser (symbol-value 'browse-url-generic-program))
+             (args (list lineopt file)))
+        (helm-gtags--check-browser-installed browser)
+        (when browser
+          (setq args (append (list "-b" browser) args)))
+        ;; `gozilla' commend never returns error status if command is failed.
+        (apply 'call-process "gozilla" nil nil nil args)))))
+
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
 
