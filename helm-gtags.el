@@ -992,6 +992,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
     (define-key helm-gtags-mode-map "\C-t" 'helm-gtags-pop-stack)
     (define-key helm-gtags-mode-map (concat prefix "P") 'helm-gtags-find-files)
     (define-key helm-gtags-mode-map (concat prefix "f") 'helm-gtags-parse-file)
+    (define-key helm-gtags-mode-map (concat prefix "g") 'helm-gtags-find-pattern)
     (define-key helm-gtags-mode-map (concat prefix "s") 'helm-gtags-find-symbol)
     (define-key helm-gtags-mode-map (concat prefix "r") 'helm-gtags-find-rtag)
     (define-key helm-gtags-mode-map (concat prefix "t") 'helm-gtags-find-tag)
