@@ -791,6 +791,13 @@ Always update if value of this variable is nil."
   (helm-gtags-common '(helm-source-gtags-tags)))
 
 ;;;###autoload
+(defun helm-gtags-find-tag-other-window ()
+  "Jump to definition in other window."
+  (interactive)
+  (let ((helm-gtags-use-otherwin t))
+    (helm-gtags-common '(helm-source-gtags-tags))))
+
+;;;###autoload
 (defun helm-gtags-find-rtag ()
   "Jump to referenced point"
   (interactive)
@@ -1000,7 +1007,8 @@ Generate new TAG file in selected directory with `C-u C-u'"
 
     ;; common
     (define-key helm-gtags-mode-map "\e*" 'helm-gtags-pop-stack)
-    (define-key helm-gtags-mode-map "\e." 'helm-gtags-find-tag)))
+    (define-key helm-gtags-mode-map "\e." 'helm-gtags-find-tag)
+    (define-key helm-gtags-mode-map "\C-x4." 'helm-gtags-find-tag-other-window)))
 
 (provide 'helm-gtags)
 
