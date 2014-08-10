@@ -118,15 +118,14 @@ Always update if value of this variable is nil."
   :group 'helm-gtags)
 
 (defcustom helm-gtags-prefix-key "\C-c"
-  "*If non-nil, it is used for the prefix key of gtags-xxx command."
-  :group 'gtags
-  :type 'string)
+  "If non-nil, it is used for the prefix key of gtags-xxx command."
+  :type 'string
+  :group 'helm-gtags)
 
 (defcustom helm-gtags-suggested-key-mapping nil
-  "*If non-nil, suggested key mapping is enabled."
-  :group 'gtags
-  :type 'boolean)
-
+  "If non-nil, suggested key mapping is enabled."
+  :type 'boolean
+  :group 'helm-gtags)
 
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
@@ -792,6 +791,13 @@ Always update if value of this variable is nil."
   (helm-gtags-common '(helm-source-gtags-tags)))
 
 ;;;###autoload
+(defun helm-gtags-find-tag-other-window ()
+  "Jump to definition in other window."
+  (interactive)
+  (let ((helm-gtags-use-otherwin t))
+    (helm-gtags-common '(helm-source-gtags-tags))))
+
+;;;###autoload
 (defun helm-gtags-find-rtag ()
   "Jump to referenced point"
   (interactive)
@@ -943,6 +949,28 @@ Generate new TAG file in selected directory with `C-u C-u'"
     (error "Error: helm-gtags buffer is not existed."))
   (helm-resume helm-gtags-buffer))
 
+(defsubst helm-gtags--check-browser-installed (browser)
+  (let ((used-browser (or browser "mozilla")))
+    (unless (executable-find used-browser)
+      (error "Not found browser '%s'" used-browser))))
+
+(defun helm-gtags-display-browser ()
+  "Display current screen on hypertext browser.
+`browse-url-generic-program' is used as browser if its value is non-nil.
+`mozilla' is used in other case."
+  (interactive)
+  (let ((file (buffer-file-name)))
+    (if (not file)
+        (error "This buffer is not related to file.")
+      (let* ((lineopt (concat "+" (number-to-string (line-number-at-pos))))
+             (browser (symbol-value 'browse-url-generic-program))
+             (args (list lineopt file)))
+        (helm-gtags--check-browser-installed browser)
+        (when browser
+          (setq args (append (list "-b" browser) args)))
+        ;; `gozilla' commend never returns error status if command is failed.
+        (apply 'call-process "gozilla" nil nil nil args)))))
+
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
 
@@ -959,26 +987,28 @@ Generate new TAG file in selected directory with `C-u C-u'"
         (run-hooks 'helm-gtags-mode-hook)
         (when helm-gtags-auto-update
           (add-hook 'after-save-hook 'helm-gtags-update-tags nil t)))
-    (progn
-      (when helm-gtags-auto-update
-        (remove-hook 'after-save-hook 'helm-gtags-update-tags t)))))
+    (when helm-gtags-auto-update
+      (remove-hook 'after-save-hook 'helm-gtags-update-tags t))))
 
 ;; Key mapping of gtags-mode.
-(if helm-gtags-suggested-key-mapping
-    (progn
-      ; Current key mapping.
-      (define-key helm-gtags-mode-map "\C-]" 'helm-gtags-find-tag-from-here)
-      (define-key helm-gtags-mode-map "\C-t" 'helm-gtags-pop-stack)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "P") 'helm-gtags-find-files)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "f") 'helm-gtags-parse-file)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "s") 'helm-gtags-find-symbol)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "r") 'helm-gtags-find-rtag)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "t") 'helm-gtags-find-tag)
-      (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "d") 'helm-gtags-find-tag)
+(when helm-gtags-suggested-key-mapping
+  ;; Current key mapping.
+  (let ((prefix helm-gtags-prefix-key))
+    (define-key helm-gtags-mode-map (concat prefix "h") 'helm-gtags-display-browser)
+    (define-key helm-gtags-mode-map "\C-]" 'helm-gtags-find-tag-from-here)
+    (define-key helm-gtags-mode-map "\C-t" 'helm-gtags-pop-stack)
+    (define-key helm-gtags-mode-map (concat prefix "P") 'helm-gtags-find-files)
+    (define-key helm-gtags-mode-map (concat prefix "f") 'helm-gtags-parse-file)
+    (define-key helm-gtags-mode-map (concat prefix "g") 'helm-gtags-find-pattern)
+    (define-key helm-gtags-mode-map (concat prefix "s") 'helm-gtags-find-symbol)
+    (define-key helm-gtags-mode-map (concat prefix "r") 'helm-gtags-find-rtag)
+    (define-key helm-gtags-mode-map (concat prefix "t") 'helm-gtags-find-tag)
+    (define-key helm-gtags-mode-map (concat prefix "d") 'helm-gtags-find-tag)
 
-      ; common
-      (define-key helm-gtags-mode-map "\e*" 'helm-gtags-pop-stack)
-      (define-key helm-gtags-mode-map "\e." 'helm-gtags-find-tag)))
+    ;; common
+    (define-key helm-gtags-mode-map "\e*" 'helm-gtags-pop-stack)
+    (define-key helm-gtags-mode-map "\e." 'helm-gtags-find-tag)
+    (define-key helm-gtags-mode-map "\C-x4." 'helm-gtags-find-tag-other-window)))
 
 (provide 'helm-gtags)
 
