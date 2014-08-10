@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.2.9 2014/08/10 syohex
+  - Add recommendation keymaps
+    (Thanks kosaki-san!!)
+
 Revision 1.2.8 2014/07/23 syohex
   - Add helm-gtags-resume command
 
