@@ -168,6 +168,10 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--real-tag-location nil)
 (defvar helm-gtags--remote-p nil)
 (defvar helm-gtags--last-input nil)
+(defvar helm-gtags--default-tagname nil)
+
+(defconst helm-gtags--include-regexp
+  "\\`\\s-*#\\(?:include\\|import\\)\\s-*[\"<]\\(?:[./]*\\)?\\(.*?\\)[\">]")
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -221,19 +225,24 @@ Always update if value of this variable is nil."
         (try-completion string candidates-list predicate)
       (all-completions string candidates-list predicate))))
 
-(defsubst helm-gtags-token-at-point ()
-  (thing-at-point 'symbol))
-
 (defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
 
+(defun helm-gtags-token-at-point (&optional type)
+  (if (helm-gtags-type-is-not-file-p type)
+      (thing-at-point 'symbol)
+    (let ((line (buffer-substring-no-properties
+                 (line-beginning-position) (line-end-position))))
+      (when (string-match helm-gtags--include-regexp line)
+        (match-string-no-properties 1 line)))))
+
 (defun helm-gtags-input (type)
-  (let ((tagname (helm-gtags-token-at-point))
+  (let ((tagname (or helm-gtags--default-tagname (helm-gtags-token-at-point type)))
         (prompt (assoc-default type helm-gtags-prompt-alist))
         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
     (if (and tagname helm-gtags-use-input-at-cursor)
         tagname
-      (when (and tagname (helm-gtags-type-is-not-file-p type))
+      (when tagname
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
       (let ((completion-ignore-case helm-gtags-ignore-case)
             (completing-read-function 'completing-read-default))
@@ -826,6 +835,20 @@ Always update if value of this variable is nil."
   "Find from here with gnu global"
   (interactive)
   (helm-gtags-common '(helm-source-gtags-find-tag-from-here)))
+
+;;;###autoload
+(defun helm-gtags-dwim ()
+  "Find by context"
+  (interactive)
+  (let ((line (buffer-substring-no-properties
+               (line-beginning-position) (line-end-position))))
+    (if (string-match helm-gtags--include-regexp line)
+        (let ((helm-gtags-use-input-at-cursor t)
+              (helm-gtags--default-tagname (match-string-no-properties 1 line)))
+          (call-interactively 'helm-gtags-find-files))
+      (if (thing-at-point 'symbol)
+          (call-interactively 'helm-gtags-find-tag-from-here)
+        (call-interactively 'helm-gtags-find-tag)))))
 
 (defun helm-gtags-set-parsed-file ()
   (let* ((this-file (file-name-nondirectory (buffer-file-name)))
