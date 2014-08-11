@@ -221,19 +221,25 @@ Always update if value of this variable is nil."
         (try-completion string candidates-list predicate)
       (all-completions string candidates-list predicate))))
 
-(defsubst helm-gtags-token-at-point ()
-  (thing-at-point 'symbol))
-
 (defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
 
+(defun helm-gtags-token-at-point (&optional type)
+  (if (helm-gtags-type-is-not-file-p type)
+      (thing-at-point 'symbol)
+    (let ((line (buffer-substring-no-properties
+                 (line-beginning-position) (line-end-position)))
+          (regexp "^\\s-*#\\(?:include\\|import\\)\\s-*[\"<]\\(?:[./]*\\)?\\(.*?\\)[\">]"))
+      (when (string-match regexp line)
+        (match-string-no-properties 1 line)))))
+
 (defun helm-gtags-input (type)
-  (let ((tagname (helm-gtags-token-at-point))
+  (let ((tagname (helm-gtags-token-at-point type))
         (prompt (assoc-default type helm-gtags-prompt-alist))
         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
     (if (and tagname helm-gtags-use-input-at-cursor)
         tagname
-      (when (and tagname (helm-gtags-type-is-not-file-p type))
+      (when tagname
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
       (let ((completion-ignore-case helm-gtags-ignore-case)
             (completing-read-function 'completing-read-default))
