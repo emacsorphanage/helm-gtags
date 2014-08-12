@@ -439,9 +439,10 @@ Always update if value of this variable is nil."
         (case-opt (or (and helm-gtags-ignore-case "-i") ""))
         (comp-opt (or (and comp "-c") ""))
         (local-opt (or (and current-prefix-arg
-                            (helm-gtags-type-is-not-file-p type) "-l") "")))
-    (format "%s %s %s %s %s %s"
-            result-opt comp-opt type-opt abs-opt case-opt local-opt)))
+                            (helm-gtags-type-is-not-file-p type) "-l") ""))
+        (through-opt (or (and (getenv "GTAGSLIBPATH") "-T") "")))
+    (format "%s %s %s %s %s %s %s"
+            result-opt comp-opt type-opt abs-opt case-opt local-opt through-opt)))
 
 (defun helm-gtags-construct-command (type &optional in)
   (setq helm-gtags-local-directory nil)
