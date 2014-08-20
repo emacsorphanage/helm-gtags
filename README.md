@@ -65,6 +65,14 @@ You can use those searching commands with prefix key.
 
 Tag jump using gtags and helm
 
+#### `helm-gtags-dwim`
+
+Find name by context.
+
+- Jump to header file if cursor is on include statement
+- Jump to tag definition if cursor is on tag reference
+- Jump to tag reference if cursor is on tag definition
+
 
 #### `helm-gtags-update-tags`
 
