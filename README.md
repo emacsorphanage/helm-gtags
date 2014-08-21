@@ -65,6 +65,14 @@ You can use those searching commands with prefix key.
 
 Tag jump using gtags and helm
 
+#### `helm-gtags-dwim`
+
+Find name by context.
+
+- Jump to header file if cursor is on include statement
+- Jump to tag definition if cursor is on tag reference
+- Jump to tag reference if cursor is on tag definition
+
 
 #### `helm-gtags-update-tags`
 
@@ -115,6 +123,39 @@ Clear all result cache for `helm-gtags-select` and `helm-gtags-select-path`
 Resurrect previously invoked `helm-gtags` command.
 This is similar to `helm-resume` however this command resurrects helm gtags
 buffer if other helm commands are called.
+
+## Using Suggested Key Mapping
+
+`helm-gtags.el` provides suggested key maps like `gtags.el` by setting
+`helm-gtags-suggested-key-mapping` to non-nil. Its prefix key is `C-c`
+as default. You can change prefix by setting `helm-gtags-prefix-key`.
+
+These value must be set before loading `helm-gtags.el`.
+I recommend you to use `custom-set-variables` for setting this value.
+
+```lisp
+(custom-set-variables
+ '(helm-gtags-prefix-key "C-t")
+ '(helm-gtags-suggested-key-mapping t))
+```
+
+### Default Key Mapping
+
+|Key         |Command                          |
+|:-----------|:--------------------------------|
+|Prefix `h`  | helm-gtags-display-browser      |
+|Prefix `C-]`| helm-gtags-find-tag-from-here   |
+|Prefix `C-t`| helm-gtags-pop-stack            |
+|Prefix `P`  | helm-gtags-find-files           |
+|Prefix `f`  | helm-gtags-parse-file           |
+|Prefix `g`  | helm-gtags-find-pattern         |
+|Prefix `s`  | helm-gtags-find-symbol          |
+|Prefix `r`  | helm-gtags-find-rtag            |
+|Prefix `t`  | helm-gtags-find-tag             |
+|Prefix `d`  | helm-gtags-find-tag             |
+|M-*         | helm-gtags-pop-stack            |
+|M-.         | helm-gtags-find-tag             |
+|C-x 4 .     | helm-gtags-find-tag-other-window|
 
 
 ## Customize Variables
@@ -180,7 +221,7 @@ Face of line number of candidates
 
 ## Sample Configuration
 
-```elisp
+```lisp
 ;;; Enable helm-gtags-mode
 (add-hook 'c-mode-hook 'helm-gtags-mode)
 (add-hook 'c++-mode-hook 'helm-gtags-mode)
