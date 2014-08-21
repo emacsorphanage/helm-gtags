@@ -293,7 +293,7 @@ Always update if value of this variable is nil."
   (let ((file (buffer-file-name (current-buffer))))
     (list :file file :position (point) :readonly buffer-file-read-only)))
 
-(defun helm-gtags-save-current-context ()
+(defsubst helm-gtags-save-current-context ()
   (setq helm-gtags-saved-context (helm-gtags--current-context)))
 
 (defun helm-gtags-open-file (file readonly)
@@ -825,11 +825,17 @@ Always update if value of this variable is nil."
   (interactive)
   (helm-gtags-common '(helm-source-gtags-pattern)))
 
+(defun helm-gtags--find-file-after-hook ()
+  (helm-gtags--push-context helm-gtags-saved-context))
+
 ;;;###autoload
 (defun helm-gtags-find-files ()
   "Find file with gnu global"
   (interactive)
-  (helm-gtags-common '(helm-source-gtags-files)))
+  (add-hook 'helm-after-action-hook 'helm-gtags--find-file-after-hook)
+  (unwind-protect
+      (helm-gtags-common '(helm-source-gtags-files))
+    (remove-hook 'helm-after-action-hook 'helm-gtags--find-file-after-hook)))
 
 ;;;###autoload
 (defun helm-gtags-find-tag-from-here ()
