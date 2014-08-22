@@ -250,10 +250,10 @@ Always update if value of this variable is nil."
                          'helm-gtags-completing-history tagname)))))
 
 (defun helm-gtags--path-libpath-p (tagroot)
-  (let ((gtags-libpath (getenv "GTAGSLIBPATH")))
-    (when gtags-libpath
-      (cl-loop for path in (parse-colon-path gtags-libpath)
-               thereis (string= tagroot path)))))
+  (helm-aif (getenv "GTAGSLIBPATH")
+      (cl-loop for path in (parse-colon-path it)
+               for libpath = (file-name-as-directory (expand-file-name path))
+               thereis (string= tagroot libpath))))
 
 (defun helm-gtags-find-tag-directory ()
   (setq helm-gtags--real-tag-location nil
