@@ -789,8 +789,9 @@ Always update if value of this variable is nil."
     (when (helm-gtags--using-other-window-p)
       (setq helm-gtags-use-otherwin t))
     (helm-attrset 'helm-gtags-base-directory dir src)
-    (helm-attrset 'name
-                  (format "Searched at %s" (or dir default-directory))
+    (helm-attrset 'name (format "GNU Global at %s"
+                                (or dir (locate-dominating-file
+                                         default-directory "GTAGS")))
                   src)
     (helm :sources srcs :buffer helm-gtags-buffer)))
 
