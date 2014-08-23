@@ -496,12 +496,11 @@ Always update if value of this variable is nil."
               ((/= status 0)
                (error "%s: not found" token)))))))
 
-(defun helm-gtags-parse-file-init ()
-  (let ((cmd (concat "global --result cscope -f "
-                     (shell-quote-argument helm-gtags--parsed-file))))
-    (with-current-buffer (helm-candidate-buffer 'global)
-      (unless (zerop (helm-gtags--execute-command cmd))
-        (error "Failed: %s" cmd)))))
+(defun helm-gtags--parse-file-init ()
+  (with-current-buffer (helm-candidate-buffer 'global)
+    (unless (zerop (process-file "global" nil t nil
+                                 "--result=cscope" "-f" helm-gtags--parsed-file))
+      (error "Failed: 'global --result=cscope -f %s" helm-gtags--parsed-file))))
 
 (defun helm-gtags--push-context (context)
   (let* ((context-info (helm-gtags--get-or-create-context-info))
@@ -518,7 +517,7 @@ Always update if value of this variable is nil."
       'helm-gtags-open-file-other-window
     'helm-gtags-open-file))
 
-(defun helm-gtags-do-open-file (open-func file line)
+(defun helm-gtags--do-open-file (open-func file line)
   (funcall open-func file helm-gtags-read-only)
   (goto-char (point-min))
   (forward-line (1- line))
@@ -528,11 +527,15 @@ Always update if value of this variable is nil."
   (when helm-gtags-pulse-at-cursor
     (pulse-momentary-highlight-one-line (point))))
 
-(defun helm-gtags-parse-file-action (cand)
-  (let ((line (when (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)
-                (string-to-number (match-string-no-properties 1 cand))))
+(defun helm-gtags--find-line-number (cand)
+  (if (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)
+      (string-to-number (match-string-no-properties 1 cand))
+    (error "Can't find line number in %s" cand)))
+
+(defun helm-gtags--parse-file-action (cand)
+  (let ((line (helm-gtags--find-line-number cand))
         (open-func (helm-gtags-select-find-file-func)))
-    (helm-gtags-do-open-file open-func helm-gtags--parsed-file line)))
+    (helm-gtags--do-open-file open-func helm-gtags--parsed-file line)))
 
 (defun helm-gtags-action-openfile (elm)
   (let* ((elems (split-string elm ":"))
@@ -540,7 +543,7 @@ Always update if value of this variable is nil."
          (line (string-to-number (cl-second elems)))
          (open-func (helm-gtags-select-find-file-func))
          (default-directory (helm-gtags-base-directory)))
-    (helm-gtags-do-open-file open-func filename line)))
+    (helm-gtags--do-open-file open-func filename line)))
 
 (defun helm-gtags-file-content-at-pos (file pos)
   (with-current-buffer (find-file-noselect file)
@@ -659,10 +662,10 @@ Always update if value of this variable is nil."
 
 (defvar helm-source-gtags-parse-file
   `((name . "Parsed File")
-    (init . helm-gtags-parse-file-init)
+    (init . helm-gtags--parse-file-init)
     (candidates-in-buffer)
     (real-to-display . helm-gtags-parse-file-candidate-transformer)
-    (action . helm-gtags-parse-file-action)
+    (action . helm-gtags--parse-file-action)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)))
 
 (defun helm-gtags--show-stack-action (index)
