@@ -162,7 +162,7 @@ Always update if value of this variable is nil."
 (defvar helm-gtags-saved-context nil)
 (defvar helm-gtags-use-otherwin nil)
 (defvar helm-gtags-local-directory nil)
-(defvar helm-gtags-parsed-file nil)
+(defvar helm-gtags--parsed-file nil)
 (defvar helm-gtags--update-tags-buffer " *helm-gtags-update-tag*")
 (defvar helm-gtags--current-position nil)
 (defvar helm-gtags--real-tag-location nil)
@@ -498,7 +498,7 @@ Always update if value of this variable is nil."
 
 (defun helm-gtags-parse-file-init ()
   (let ((cmd (concat "global --result cscope -f "
-                     (shell-quote-argument helm-gtags-parsed-file))))
+                     (shell-quote-argument helm-gtags--parsed-file))))
     (with-current-buffer (helm-candidate-buffer 'global)
       (unless (zerop (helm-gtags--execute-command cmd))
         (error "Failed: %s" cmd)))))
@@ -532,7 +532,7 @@ Always update if value of this variable is nil."
   (let ((line (when (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)
                 (string-to-number (match-string-no-properties 1 cand))))
         (open-func (helm-gtags-select-find-file-func)))
-    (helm-gtags-do-open-file open-func helm-gtags-parsed-file line)))
+    (helm-gtags-do-open-file open-func helm-gtags--parsed-file line)))
 
 (defun helm-gtags-action-openfile (elm)
   (let* ((elems (split-string elm ":"))
@@ -850,12 +850,12 @@ Always update if value of this variable is nil."
           (call-interactively 'helm-gtags-find-tag-from-here)
         (call-interactively 'helm-gtags-find-tag)))))
 
-(defun helm-gtags-set-parsed-file ()
+(defun helm-gtags--set-parsed-file ()
   (let* ((this-file (file-name-nondirectory (buffer-file-name)))
          (file (if current-prefix-arg
                    (read-file-name "Parsed File: " nil this-file)
                  this-file)))
-    (setq helm-gtags-parsed-file (expand-file-name file))))
+    (setq helm-gtags--parsed-file (expand-file-name file))))
 
 ;;;###autoload
 (defun helm-gtags-parse-file ()
@@ -865,10 +865,10 @@ Always update if value of this variable is nil."
   (helm-gtags-save-current-context)
   (when (helm-gtags--using-other-window-p)
     (setq helm-gtags-use-otherwin t))
-  (helm-gtags-set-parsed-file)
+  (helm-gtags--set-parsed-file)
   (helm-attrset 'name
                 (format "Parsed File: %s"
-                        (file-relative-name helm-gtags-parsed-file
+                        (file-relative-name helm-gtags--parsed-file
                                             helm-gtags-tag-location))
                 helm-source-gtags-parse-file)
   (helm :sources '(helm-source-gtags-parse-file) :buffer helm-gtags-buffer))
