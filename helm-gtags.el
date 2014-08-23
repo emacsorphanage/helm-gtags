@@ -187,15 +187,15 @@ Always update if value of this variable is nil."
 
 ;; completsion function for completing-read.
 (defun helm-gtags-completing-gtags (string predicate code)
-  (helm-gtags-complete :tag string predicate code))
+  (helm-gtags--complete :tag string predicate code))
 (defun helm-gtags-completing-pattern (string predicate code)
-  (helm-gtags-complete :pattern string predicate code))
+  (helm-gtags--complete :pattern string predicate code))
 (defun helm-gtags-completing-grtags (string predicate code)
-  (helm-gtags-complete :rtag string predicate code))
+  (helm-gtags--complete :rtag string predicate code))
 (defun helm-gtags-completing-gsyms (string predicate code)
-  (helm-gtags-complete :symbol string predicate code))
+  (helm-gtags--complete :symbol string predicate code))
 (defun helm-gtags-completing-files (string predicate code)
-  (helm-gtags-complete :file string predicate code))
+  (helm-gtags--complete :file string predicate code))
 
 (defvar helm-gtags-comp-func-alist
   '((:tag    . helm-gtags-completing-gtags)
@@ -213,14 +213,14 @@ Always update if value of this variable is nil."
       (process-file-shell-command cmd nil t)
     (call-process-shell-command cmd nil t)))
 
-(defun helm-gtags-complete (type string predicate code)
+(defun helm-gtags--complete (type string predicate code)
   (let ((candidates-list nil)
         (cmd (helm-gtags-construct-completion-command type string)))
     (with-temp-buffer
       (helm-gtags--execute-command cmd)
       (goto-char (point-min))
       (while (re-search-forward "^\\(.+\\)$" nil t)
-        (push (match-string 1) candidates-list)))
+        (push (match-string-no-properties 1) candidates-list)))
     (if (not code)
         (try-completion string candidates-list predicate)
       (all-completions string candidates-list predicate))))
