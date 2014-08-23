@@ -476,27 +476,25 @@ Always update if value of this variable is nil."
   (let ((cmd (helm-gtags-construct-command :file)))
     (helm-gtags-exec-global-command cmd)))
 
-(defun helm-gtags-find-tag-from-here-init ()
+(defun helm-gtags--find-tag-from-here-init ()
   (helm-gtags--find-tag-directory)
   (helm-gtags-save-current-context)
   (let* ((token (helm-gtags-token-at-point))
          (filename (if helm-gtags--remote-p
                        (tramp-file-name-localname (tramp-dissect-file-name (buffer-file-name)))
                      (buffer-file-name)))
-         (cmd (format "global --result=grep --from-here=%d:%s %s"
-                      (line-number-at-pos)
-                      (shell-quote-argument filename)
-                      token)))
+         (from-here-opt (format "--from-here=%d:%s" (line-number-at-pos) filename)))
     (setq helm-gtags--last-input token)
     (with-current-buffer (helm-candidate-buffer 'global)
       (let* ((default-directory (helm-gtags-base-directory))
-             (status (helm-gtags--execute-command cmd)))
-        (cond ((= status 1)
-               (error "%s%s" (buffer-string) filename))
-              ((= status 3)
-               (error "%s" (buffer-string)))
-              ((/= status 0)
-               (error "%s: not found" token)))))))
+             (status (process-file "global" nil t nil
+                                   "--result=grep" from-here-opt token)))
+        (unless (zerop status)
+          (cond ((= status 1)
+                 (error "%s%s" (buffer-string) filename))
+                ((= status 3)
+                 (error "%s" (buffer-string)))
+                (t (error "%s: not found" token))))))))
 
 (defun helm-gtags--parse-file-init ()
   (with-current-buffer (helm-candidate-buffer 'global)
@@ -655,7 +653,7 @@ Always update if value of this variable is nil."
 
 (defvar helm-source-gtags-find-tag-from-here
   `((name . "GNU GLOBAL")
-    (init . helm-gtags-find-tag-from-here-init)
+    (init . helm-gtags--find-tag-from-here-init)
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (real-to-display . helm-gtags--candidate-transformer)
