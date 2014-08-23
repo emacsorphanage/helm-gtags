@@ -244,15 +244,16 @@ Always update if value of this variable is nil."
 (defsubst helm-gtags-type-is-not-file-p (type)
   (not (eq type :file)))
 
-(defun helm-gtags-token-at-point (&optional type)
-  (if (helm-gtags-type-is-not-file-p type)
+(defun helm-gtags--token-at-point (type)
+  (if (not (eq type :file))
       (thing-at-point 'symbol)
     (let ((line (helm-current-line-contents)))
       (when (string-match helm-gtags--include-regexp line)
         (match-string-no-properties 1 line)))))
 
 (defun helm-gtags-input (type)
-  (let ((tagname (or helm-gtags--default-tagname (helm-gtags-token-at-point type)))
+  (let ((tagname (or helm-gtags--default-tagname
+                     (helm-gtags--token-at-point type)))
         (prompt (assoc-default type helm-gtags-prompt-alist))
         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
     (if (and tagname helm-gtags-use-input-at-cursor)
@@ -443,7 +444,7 @@ Always update if value of this variable is nil."
 (defun helm-gtags-construct-command (type &optional in)
   (setq helm-gtags-local-directory nil)
   (let ((dir (helm-attr 'helm-gtags-base-directory (helm-get-current-source))))
-    (when (and dir (helm-gtags-type-is-not-file-p type))
+    (when (and dir (not (eq type :file)))
       (setq helm-gtags-local-directory dir)))
   (let ((input (or in (helm-gtags-input type)))
         (options (helm-gtags--construct-options type nil)))
@@ -475,7 +476,7 @@ Always update if value of this variable is nil."
 (defun helm-gtags--find-tag-from-here-init ()
   (helm-gtags--find-tag-directory)
   (helm-gtags-save-current-context)
-  (let* ((token (helm-gtags-token-at-point))
+  (let* ((token (helm-gtags--token-at-point 'from-here))
          (filename (if helm-gtags--remote-p
                        (tramp-file-name-localname (tramp-dissect-file-name (buffer-file-name)))
                      (buffer-file-name)))
