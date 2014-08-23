@@ -231,8 +231,7 @@ Always update if value of this variable is nil."
 (defun helm-gtags-token-at-point (&optional type)
   (if (helm-gtags-type-is-not-file-p type)
       (thing-at-point 'symbol)
-    (let ((line (buffer-substring-no-properties
-                 (line-beginning-position) (line-end-position))))
+    (let ((line (helm-current-line-contents)))
       (when (string-match helm-gtags--include-regexp line)
         (match-string-no-properties 1 line)))))
 
@@ -263,8 +262,7 @@ Always update if value of this variable is nil."
       (unless (zerop status)
         (error "GTAGS not found"))
       (goto-char (point-min))
-      (let ((tagroot (file-name-as-directory
-                      (buffer-substring-no-properties (point) (line-end-position)))))
+      (let ((tagroot (file-name-as-directory (helm-current-line-contents))))
         (if (and (helm-gtags--path-libpath-p tagroot) helm-gtags-tag-location)
             (progn
               (setq helm-gtags--real-tag-location tagroot)
@@ -843,8 +841,7 @@ Always update if value of this variable is nil."
 (defun helm-gtags-dwim ()
   "Find by context"
   (interactive)
-  (let ((line (buffer-substring-no-properties
-               (line-beginning-position) (line-end-position))))
+  (let ((line (helm-current-line-contents)))
     (if (string-match helm-gtags--include-regexp line)
         (let ((helm-gtags-use-input-at-cursor t)
               (helm-gtags--default-tagname (match-string-no-properties 1 line)))
