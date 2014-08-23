@@ -997,7 +997,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
         ;; `gozilla' commend never returns error status if command is failed.
         (apply 'call-process "gozilla" nil nil nil args)))))
 
-(defvar helm-gtags-mode-name " Helm Gtags")
+(defvar helm-gtags-mode-name " HelmGtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
 
 ;;;###autoload
