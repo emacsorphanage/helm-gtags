@@ -228,11 +228,6 @@ Always update if value of this variable is nil."
       (push "-T" options))
     options))
 
-(defun helm-gtags--execute-command (cmd)
-  (if helm-gtags--remote-p
-      (process-file-shell-command cmd nil t)
-    (call-process-shell-command cmd nil t)))
-
 (defun helm-gtags--complete (type string predicate code)
   (let* ((options (helm-gtags--construct-options type t))
          (args (reverse (cons string options)))
@@ -712,56 +707,55 @@ Always update if value of this variable is nil."
     (persistent-action . helm-gtags-tags-persistent-action)
     (action . helm-gtags-action-openfile)))
 
-(defun helm-source-gtags-select-tag-action (c)
+(defun helm-gtags--select-tag-action (c)
   (helm-run-after-quit
    `(lambda ()
       (helm-gtags-common (list (helm-source-gtags-select-tag ,c))))))
 
-(defun helm-source-gtags-select-rtag-action (c)
+(defun helm-gtags--select-rtag-action (c)
   (helm-run-after-quit
    `(lambda ()
       (helm-gtags-common (list (helm-source-gtags-select-rtag ,c))))))
 
-(defun helm-source-gtags-select-cache-init-common (command tagfile)
+(defun helm-gtags--select-cache-init-common (args tagfile)
   (let ((cache (helm-gtags-get-result-cache tagfile)))
     (if cache
         (insert cache)
-      (helm-gtags--execute-command command)
+      (apply 'process-file "global" nil t nil args)
       (let* ((cache (buffer-string))
              (cache-size (length cache)))
         (when (<= cache-size helm-gtags-cache-max-result-size)
           (helm-gtags-put-result-cache tagfile cache))))))
 
-(defun helm-source-gtags-select-init ()
+(defun helm-gtags--source-select-init ()
   (setq helm-gtags--remote-p (file-remote-p default-directory))
   (with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
-        (helm-gtags--execute-command "global -c")
-      (helm-source-gtags-select-cache-init-common "global -c" "GTAGS"))))
+        (process-file "global" nil t nil "-c")
+      (helm-gtags--select-cache-init-common '("-c") "GTAGS"))))
 
 (defvar helm-source-gtags-select
   `((name . "GNU GLOBAL SELECT")
-    (init . helm-source-gtags-select-init)
+    (init . helm-gtags--source-select-init)
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (action . (("Goto the location" . helm-source-gtags-select-tag-action)
+    (action . (("Goto the location" . helm-gtags--select-tag-action)
                ("Goto the location(other buffer)" .
                 (lambda (c)
                   (setq helm-gtags-use-otherwin t)
-                  (helm-source-gtags-select-tag-action c)))
-               ("Move to the referenced point" .
-                helm-source-gtags-select-rtag-action)))))
+                  (helm-gtags--select-tag-action c)))
+               ("Move to the referenced point" . helm-gtags--select-rtag-action)))))
 
-(defun helm-source-gtags-select-path-init ()
+(defun helm-gtags--select-path-init ()
   (setq helm-gtags--remote-p (file-remote-p default-directory))
   (with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
-        (helm-gtags--execute-command "global -Poa")
-      (helm-source-gtags-select-cache-init-common "global -Poa" "GPATH"))))
+        (process-file "global" nil t nil "-Poa")
+      (helm-gtags--select-cache-init-common '("-Poa") "GPATH"))))
 
 (defvar helm-source-gtags-select-path
   `((name . "GNU GLOBAL PATH")
-    (init . helm-source-gtags-select-path-init)
+    (init . helm-gtags--select-path-init)
     (candidates-in-buffer)
     (real-to-display . helm-gtags-files-candidate-transformer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
