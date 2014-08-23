@@ -548,15 +548,10 @@ Always update if value of this variable is nil."
   (with-current-buffer (find-file-noselect file)
     (save-excursion
       (goto-char pos)
-      (let ((curfunc (which-function))
-            (line (line-number-at-pos))
-            (content (or (buffer-substring-no-properties
-                          (line-beginning-position) (line-end-position))
-                         "")))
-        (format "%s:%d%s:%s"
-                file line
-                (helm-aif curfunc (format "[%s]" it) "")
-                content)))))
+      (format "%s:%d%s:%s"
+              file (line-number-at-pos)
+              (helm-aif (which-function) (format "[%s]" it) "")
+              (helm-current-line-contents)))))
 
 (defun helm-gtags-show-stack-init ()
   (cl-loop with context-stack = (plist-get (helm-gtags--get-context-info) :stack)
