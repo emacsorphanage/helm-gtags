@@ -149,13 +149,6 @@ Always update if value of this variable is nil."
 
 (defvar helm-gtags-buffer "*helm gtags*")
 
-(defvar helm-gtags-prompt-alist
-  '((:tag    . "Find Definition: ")
-    (:pattern . "Find Pattern: ")
-    (:rtag   . "Find Reference: ")
-    (:symbol . "Find Symbol: ")
-    (:file   . "Find File: ")))
-
 (defvar helm-gtags-completing-history nil)
 (defvar helm-gtags-context-stack (make-hash-table :test 'equal))
 (defvar helm-gtags-result-cache (make-hash-table :test 'equal))
@@ -186,32 +179,33 @@ Always update if value of this variable is nil."
 
 ;; completsion function for completing-read.
 (defun helm-gtags-completing-gtags (string predicate code)
-  (helm-gtags--complete :tag string predicate code))
+  (helm-gtags--complete 'tag string predicate code))
 (defun helm-gtags-completing-pattern (string predicate code)
-  (helm-gtags--complete :pattern string predicate code))
+  (helm-gtags--complete 'pattern string predicate code))
 (defun helm-gtags-completing-grtags (string predicate code)
-  (helm-gtags--complete :rtag string predicate code))
+  (helm-gtags--complete 'rtag string predicate code))
 (defun helm-gtags-completing-gsyms (string predicate code)
-  (helm-gtags--complete :symbol string predicate code))
+  (helm-gtags--complete 'symbol string predicate code))
 (defun helm-gtags-completing-files (string predicate code)
-  (helm-gtags--complete :file string predicate code))
+  (helm-gtags--complete 'find-file string predicate code))
 
-(defvar helm-gtags-comp-func-alist
-  '((:tag    . helm-gtags-completing-gtags)
-    (:pattern . helm-gtags-completing-pattern)
-    (:rtag   . helm-gtags-completing-grtags)
-    (:symbol . helm-gtags-completing-gsyms)
-    (:file   . helm-gtags-completing-files)))
+(defconst helm-gtags-comp-func-alist
+  '((tag       . helm-gtags-completing-gtags)
+    (pattern   . helm-gtags-completing-pattern)
+    (rtag      . helm-gtags-completing-grtags)
+    (symbol    . helm-gtags-completing-gsyms)
+    (find-file . helm-gtags-completing-files)))
 
 (defconst helm-gtags--search-option-alist
-  '((:pattern . "-g")
-    (:rtag    . "-r")
-    (:symbol  . "-s")
-    (:file    . "-Poa")))
+  '((pattern   . "-g")
+    (rtag      . "-r")
+    (symbol    . "-s")
+    (find-file . "-Poa")))
 
 (defun helm-gtags--construct-options (type completion)
-  (let (options)
-    (unless (eq type :file)
+  (let ((find-file-p (eq type 'find-file))
+        options)
+    (unless find-file-p
       (push "--result=grep" options))
     (when completion
       (push "-c" options))
@@ -221,7 +215,7 @@ Always update if value of this variable is nil."
       (push "-a" options))
     (when helm-gtags-ignore-case
       (push "-i" options))
-    (when (and current-prefix-arg (not (eq type :file)))
+    (when (and current-prefix-arg (not find-file-p))
       (push "-l" options))
     (when (getenv "GTAGSLIBPATH")
       (push "-T" options))
@@ -240,20 +234,24 @@ Always update if value of this variable is nil."
         (try-completion string candidates predicate)
       (all-completions string candidates predicate))))
 
-(defsubst helm-gtags-type-is-not-file-p (type)
-  (not (eq type :file)))
-
 (defun helm-gtags--token-at-point (type)
-  (if (not (eq type :file))
+  (if (not (eq type 'find-file))
       (thing-at-point 'symbol)
     (let ((line (helm-current-line-contents)))
       (when (string-match helm-gtags--include-regexp line)
         (match-string-no-properties 1 line)))))
 
+(defconst helm-gtags--prompt-alist
+  '((tag       . "Find Definition: ")
+    (pattern   . "Find Pattern: ")
+    (rtag      . "Find Reference: ")
+    (symbol    . "Find Symbol: ")
+    (find-file . "Find File: ")))
+
 (defun helm-gtags-input (type)
   (let ((tagname (or helm-gtags--default-tagname
                      (helm-gtags--token-at-point type)))
-        (prompt (assoc-default type helm-gtags-prompt-alist))
+        (prompt (assoc-default type helm-gtags--prompt-alist))
         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
     (if (and tagname helm-gtags-use-input-at-cursor)
         tagname
@@ -443,7 +441,7 @@ Always update if value of this variable is nil."
 (defun helm-gtags-construct-command (type &optional in)
   (setq helm-gtags-local-directory nil)
   (let ((dir (helm-attr 'helm-gtags-base-directory (helm-get-current-source))))
-    (when (and dir (not (eq type :file)))
+    (when (and dir (not (eq type 'find-file)))
       (setq helm-gtags-local-directory dir)))
   (let ((input (or in (helm-gtags-input type)))
         (options (helm-gtags--construct-options type nil)))
@@ -453,23 +451,23 @@ Always update if value of this variable is nil."
     (reverse (cons input options))))
 
 (defun helm-gtags-tags-init (&optional input)
-  (let ((args (helm-gtags-construct-command :tag input)))
+  (let ((args (helm-gtags-construct-command 'tag input)))
     (helm-gtags-exec-global-command args)))
 
 (defun helm-gtags-pattern-init (&optional input)
-  (let ((args (helm-gtags-construct-command :pattern input)))
+  (let ((args (helm-gtags-construct-command 'pattern input)))
     (helm-gtags-exec-global-command args)))
 
 (defun helm-gtags-rtags-init (&optional input)
-  (let ((args (helm-gtags-construct-command :rtag input)))
+  (let ((args (helm-gtags-construct-command 'rtag input)))
     (helm-gtags-exec-global-command args)))
 
 (defun helm-gtags-gsyms-init ()
-  (let ((args (helm-gtags-construct-command :symbol)))
+  (let ((args (helm-gtags-construct-command 'symbol)))
     (helm-gtags-exec-global-command args)))
 
 (defun helm-gtags-files-init ()
-  (let ((args (helm-gtags-construct-command :file)))
+  (let ((args (helm-gtags-construct-command 'find-file)))
     (helm-gtags-exec-global-command args)))
 
 (defun helm-gtags--find-tag-from-here-init ()

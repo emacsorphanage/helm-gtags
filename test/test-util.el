@@ -82,15 +82,15 @@
 
 (ert-deftest helm-gtags--construct-options ()
   "Test utility `helm-gtags--construct-options'"
-  (let ((got (helm-gtags--construct-options :file t)))
+  (let ((got (helm-gtags--construct-options 'find-file t)))
     (should (equal got '("-Poa" "-c"))))
 
-  (let ((got (helm-gtags--construct-options :tag nil)))
+  (let ((got (helm-gtags--construct-options 'tag nil)))
     (should (equal got '("--result=grep"))))
 
   (let* ((helm-gtags-path-style 'absolute)
          (helm-gtags-ignore-case t)
          (current-prefix-arg t)
          (process-environment (list "GTAGSLIBPATH=foo:bar" ))
-         (got (helm-gtags--construct-options :symbol t)))
+         (got (helm-gtags--construct-options 'symbol t)))
     (should (equal got '("-T" "-l" "-i" "-a" "-s" "-c" "--result=grep")))))
