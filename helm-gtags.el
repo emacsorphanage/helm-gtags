@@ -550,6 +550,10 @@ Always update if value of this variable is nil."
               (helm-aif (which-function) (format "[%s]" it) "")
               (helm-current-line-contents)))))
 
+(defun helm-gtags--files-candidate-transformer (file)
+  (let ((removed-regexp (concat "\\`" helm-gtags-tag-location)))
+    (replace-regexp-in-string removed-regexp "" file)))
+
 (defun helm-gtags-show-stack-init ()
   (cl-loop with context-stack = (plist-get (helm-gtags--get-context-info) :stack)
            with stack-length = (length context-stack)
@@ -558,7 +562,7 @@ Always update if value of this variable is nil."
            for pos  = (plist-get context :position)
            for index = (1- stack-length) then (1- index)
            for line = (helm-gtags-file-content-at-pos file pos)
-           collect (cons (helm-gtags-files-candidate-transformer line) index)))
+           collect (cons (helm-gtags--files-candidate-transformer line) index)))
 
 (defun helm-gtags-tags-persistent-action (cand)
   (let* ((elems (split-string cand ":"))
@@ -627,10 +631,6 @@ Always update if value of this variable is nil."
               (propertize (match-string 2 candidate) 'face 'helm-gtags-lineno)
               (helm-gtags--highlight-candidate (match-string 3 candidate))))))
 
-(defun helm-gtags-files-candidate-transformer (file)
-  (let ((removed-regexp (format "^%s" helm-gtags-tag-location)))
-    (replace-regexp-in-string removed-regexp "" file)))
-
 (defun helm-gtags-parse-file-candidate-transformer (file)
   (let ((removed-file (replace-regexp-in-string "\\`\\S-+ " "" file)))
     (when (string-match "\\`\\(\\S-+\\) \\(\\S-+\\) \\(.+\\)\\'" removed-file)
@@ -643,7 +643,7 @@ Always update if value of this variable is nil."
   `((name . "GNU GLOBAL")
     (init . helm-gtags-files-init)
     (candidates-in-buffer)
-    (real-to-display . helm-gtags-files-candidate-transformer)
+    (real-to-display . helm-gtags--files-candidate-transformer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (type . file)))
 
@@ -757,7 +757,7 @@ Always update if value of this variable is nil."
   `((name . "GNU GLOBAL PATH")
     (init . helm-gtags--select-path-init)
     (candidates-in-buffer)
-    (real-to-display . helm-gtags-files-candidate-transformer)
+    (real-to-display . helm-gtags--files-candidate-transformer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (type . file)))
 
