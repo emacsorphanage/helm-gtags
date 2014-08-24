@@ -163,7 +163,6 @@ Always update if value of this variable is nil."
 (defvar helm-gtags-use-otherwin nil)
 (defvar helm-gtags-local-directory nil)
 (defvar helm-gtags--parsed-file nil)
-(defvar helm-gtags--update-tags-buffer " *helm-gtags-update-tag*")
 (defvar helm-gtags--current-position nil)
 (defvar helm-gtags--real-tag-location nil)
 (defvar helm-gtags--remote-p nil)
@@ -898,13 +897,6 @@ Always update if value of this variable is nil."
   (interactive)
   (setq helm-gtags-context-stack (make-hash-table :test 'equal)))
 
-(defun helm-gtags--update-tags-sentinel (process _state)
-  (when (eq (process-status process) 'exit)
-    (if (zerop (process-exit-status process))
-        (message "Update TAGS successfully")
-      (message "Failed to update TAGS"))
-    (kill-buffer helm-gtags--update-tags-buffer)))
-
 (defun helm-gtags--read-tag-directory ()
   (let ((dir (read-directory-name "Directory tag generated: " nil nil t)))
     ;; On Windows, "gtags d:/tmp" work, but "gtags d:/tmp/" doesn't
@@ -918,31 +910,22 @@ Always update if value of this variable is nil."
 
 (defun helm-gtags--update-tags-command (how-to)
   (cl-case how-to
-    (entire-update "global -u")
-    (generate-other-directory (concat "gtags " (helm-gtags--read-tag-directory)))
-    (single-update (concat "global -u --single-update "
-                           (shell-quote-argument
-                            (expand-file-name (buffer-file-name)))))))
-
-(defsubst helm-gtags--update-tags-process-live-p ()
-  (get-buffer helm-gtags--update-tags-buffer))
+    (entire-update '("global" "-u"))
+    (generate-other-directory (list "gtags" (helm-gtags--read-tag-directory)))
+    (single-update (list "global" "-u" "--single-update"
+                         (expand-file-name (buffer-file-name))))))
 
 (defun helm-gtags--check-from-last-update (current-time)
   (let ((delta (- current-time helm-gtags--last-update-time)))
     (> delta helm-gtags-update-interval-second)))
 
-(defun helm-gtags--update-tags-p (how-to interactive-p current-time)
-  (unless (helm-gtags--update-tags-process-live-p)
+(defun helm-gtags--update-tags-p (proc-buf how-to interactive-p current-time)
+  (unless (get-buffer proc-buf)
     (or interactive-p
         (and (eq how-to 'single-update)
              (buffer-file-name)
              (or (not helm-gtags-update-interval-second)
                  (helm-gtags--check-from-last-update current-time))))))
-
-(defsubst helm-gtags--start-update-tags-process (cmd)
-  (start-process-shell-command "helm-gtags-update-tag"
-                               helm-gtags--update-tags-buffer
-                               cmd))
 
 ;;;###autoload
 (defun helm-gtags-update-tags ()
@@ -951,16 +934,24 @@ Generate new TAG file in selected directory with `C-u C-u'"
   (interactive)
   (let ((how-to (helm-gtags--how-to-update-tags))
         (interactive-p (called-interactively-p 'interactive))
+        (proc-buf " *helm-gtags-update-tag*")
         (current-time (float-time (current-time))))
-    (when (helm-gtags--update-tags-p how-to interactive-p current-time)
-      (let* ((cmd (helm-gtags--update-tags-command how-to))
-             (proc (helm-gtags--start-update-tags-process cmd)))
+    (when (helm-gtags--update-tags-p proc-buf how-to interactive-p current-time)
+      (let* ((cmds (helm-gtags--update-tags-command how-to))
+             (proc (apply 'start-process "helm-gtags-update-tag" proc-buf cmds)))
         (if (not proc)
             (progn
-              (message "Failed: %s" cmd)
-              (kill-buffer helm-gtags--update-tags-buffer))
+              (message "Failed: %s" (mapconcat 'identity cmds " "))
+              (kill-buffer proc-buf))
           (set-process-query-on-exit-flag proc nil)
-          (set-process-sentinel proc 'helm-gtags--update-tags-sentinel)
+          (set-process-sentinel
+           proc
+           (lambda (process _state)
+             (when (eq (process-status process) 'exit)
+               (if (zerop (process-exit-status process))
+                   (message "Update TAGS successfully")
+                 (message "Failed to update TAGS"))
+               (kill-buffer proc-buf))))
           (setq helm-gtags--last-update-time current-time))))))
 
 ;;;###autoload
