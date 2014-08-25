@@ -153,7 +153,7 @@ Always update if value of this variable is nil."
 (defvar helm-gtags-context-stack (make-hash-table :test 'equal))
 (defvar helm-gtags-result-cache (make-hash-table :test 'equal))
 (defvar helm-gtags-saved-context nil)
-(defvar helm-gtags-use-otherwin nil)
+(defvar helm-gtags--use-otherwin nil)
 (defvar helm-gtags-local-directory nil)
 (defvar helm-gtags--parsed-file nil)
 (defvar helm-gtags--current-position nil)
@@ -316,7 +316,7 @@ Always update if value of this variable is nil."
     (find-file file)))
 
 (defun helm-gtags-open-file-other-window (file readonly)
-  (setq helm-gtags-use-otherwin nil)
+  (setq helm-gtags--use-otherwin nil)
   (if readonly
       (find-file-read-only-other-window file)
     (find-file-other-window file)))
@@ -507,7 +507,7 @@ Always update if value of this variable is nil."
     (helm-gtags--put-context-stack helm-gtags-tag-location -1 context-stack)))
 
 (defun helm-gtags-select-find-file-func ()
-  (if helm-gtags-use-otherwin
+  (if helm-gtags--use-otherwin
       'helm-gtags-open-file-other-window
     'helm-gtags-open-file))
 
@@ -741,7 +741,7 @@ Always update if value of this variable is nil."
     (action . (("Goto the location" . helm-gtags--select-tag-action)
                ("Goto the location(other buffer)" .
                 (lambda (c)
-                  (setq helm-gtags-use-otherwin t)
+                  (setq helm-gtags--use-otherwin t)
                   (helm-gtags--select-tag-action c)))
                ("Move to the referenced point" . helm-gtags--select-rtag-action)))))
 
@@ -776,8 +776,7 @@ Always update if value of this variable is nil."
         (src (car srcs)))
     (when (symbolp src)
       (setq src (symbol-value src)))
-    (when (helm-gtags--using-other-window-p)
-      (setq helm-gtags-use-otherwin t))
+    (setq helm-gtags--use-otherwin (helm-gtags--using-other-window-p))
     (helm-attrset 'helm-gtags-base-directory dir src)
     (helm-attrset 'name (format "GNU Global at %s"
                                 (or dir (locate-dominating-file
@@ -795,8 +794,8 @@ Always update if value of this variable is nil."
 (defun helm-gtags-find-tag-other-window ()
   "Jump to definition in other window."
   (interactive)
-  (let ((helm-gtags-use-otherwin t))
-    (helm-gtags-common '(helm-source-gtags-tags))))
+  (setq helm-gtags--use-otherwin t)
+  (helm-gtags-common '(helm-source-gtags-tags)))
 
 ;;;###autoload
 (defun helm-gtags-find-rtag ()
@@ -866,8 +865,7 @@ You can jump definitions of functions, symbols in this file."
   (interactive)
   (helm-gtags--find-tag-directory)
   (helm-gtags-save-current-context)
-  (when (helm-gtags--using-other-window-p)
-    (setq helm-gtags-use-otherwin t))
+  (setq helm-gtags--use-otherwin (helm-gtags--using-other-window-p))
   (helm-gtags--set-parsed-file)
   (helm-attrset 'name
                 (format "Parsed File: %s"
