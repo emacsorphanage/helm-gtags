@@ -812,7 +812,7 @@ Always update if value of this variable is nil."
 
 ;;;###autoload
 (defun helm-gtags-find-pattern ()
-  "Jump to pattern"
+  "Grep and jump by gtags tag files."
   (interactive)
   (helm-gtags-common '(helm-source-gtags-pattern)))
 
@@ -821,7 +821,7 @@ Always update if value of this variable is nil."
 
 ;;;###autoload
 (defun helm-gtags-find-files ()
-  "Find file with gnu global"
+  "Find file from tagged with gnu global."
   (interactive)
   (add-hook 'helm-after-action-hook 'helm-gtags--find-file-after-hook)
   (unwind-protect
@@ -830,13 +830,18 @@ Always update if value of this variable is nil."
 
 ;;;###autoload
 (defun helm-gtags-find-tag-from-here ()
-  "Find from here with gnu global"
+  "Jump point by current point information.
+Jump to definition point if cursor is on its reference.
+Jump to reference point if curosr is on its definition"
   (interactive)
   (helm-gtags-common '(helm-source-gtags-find-tag-from-here)))
 
 ;;;###autoload
 (defun helm-gtags-dwim ()
-  "Find by context"
+  "Find by context. Here is
+- on include statement then jump to included file
+- on symbol definition then jump to its references
+- on reference point then jump to its definition."
   (interactive)
   (let ((line (helm-current-line-contents)))
     (if (string-match helm-gtags--include-regexp line)
@@ -856,7 +861,8 @@ Always update if value of this variable is nil."
 
 ;;;###autoload
 (defun helm-gtags-parse-file ()
-  "Find file with gnu global"
+  "Parse current file with gnu global. This is similar to `imenu'.
+You can jump definitions of functions, symbols in this file."
   (interactive)
   (helm-gtags--find-tag-directory)
   (helm-gtags-save-current-context)
@@ -872,27 +878,27 @@ Always update if value of this variable is nil."
 
 ;;;###autoload
 (defun helm-gtags-pop-stack ()
-  "Jump to previous point on the stack"
+  "Jump to previous point on the context stack and pop it from stack."
   (interactive)
   (helm-gtags-pop-context))
 
 ;;;###autoload
 (defun helm-gtags-show-stack ()
-  "Show context stack"
+  "Show current context stack."
   (interactive)
   (helm-other-buffer 'helm-source-gtags-show-stack
                      (get-buffer-create helm-gtags-buffer)))
 
 ;;;###autoload
 (defun helm-gtags-clear-stack ()
-  "Clear jumped point stack"
+  "Clear current context stack."
   (interactive)
   (let ((tag-location (helm-gtags--find-tag-directory)))
     (puthash tag-location nil helm-gtags-context-stack)))
 
 ;;;###autoload
 (defun helm-gtags-clear-all-stacks ()
-  "Clear all jumped point stacks"
+  "Clear all context stacks."
   (interactive)
   (setq helm-gtags-context-stack (make-hash-table :test 'equal)))
 
@@ -988,7 +994,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
 
 ;;;###autoload
 (define-minor-mode helm-gtags-mode ()
-  "Enable for helm-gtags"
+  "Enable helm-gtags"
   :group      'helm-gtags
   :init-value nil
   :global     nil
