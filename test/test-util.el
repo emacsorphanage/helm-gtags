@@ -68,14 +68,14 @@
     (with-gtags-project (dummy-directory)
       (let ((got (helm-gtags--find-tag-directory)))
         (should (string= (helm-gtags--find-tag-directory) dummy))
-        (should (string= helm-gtags-tag-location dummy))))))
+        (should (string= helm-gtags--tag-location dummy))))))
 
 (ert-deftest helm-gtags--find-tag-directory-in-libpath ()
   "Test utility `helm-gtags--find-tag-directory' in library path"
   (let ((dummy (dummy-directory)))
     (with-gtags-project (dummy-directory)
       (let* ((process-environment (list (concat "GTAGSLIBPATH=" dummy)))
-             (helm-gtags-tag-location "/tmp/")
+             (helm-gtags--tag-location "/tmp/")
              (got (helm-gtags--find-tag-directory)))
         (should (string= (helm-gtags--find-tag-directory) "/tmp/"))
         (should (string= helm-gtags--real-tag-location dummy))))))
