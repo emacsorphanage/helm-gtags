@@ -1,5 +1,10 @@
 Revision history for helm-gtags.el
 
+Revision 1.3.0 2014/08/26 syohex
+  - Implement helm-dwim
+  - Fix helm-gtags-find-files issue
+  - Refactoring
+
 Revision 1.2.9 2014/08/10 syohex
   - Add recommendation keymaps
     (Thanks kosaki-san!!)
