@@ -772,7 +772,8 @@ Always update if value of this variable is nil."
         (src (car srcs)))
     (when (symbolp src)
       (setq src (symbol-value src)))
-    (setq helm-gtags--use-otherwin (helm-gtags--using-other-window-p))
+    (unless helm-gtags--use-otherwin
+      (setq helm-gtags--use-otherwin (helm-gtags--using-other-window-p)))
     (helm-attrset 'helm-gtags-base-directory dir src)
     (helm-attrset 'name (format "GNU Global at %s"
                                 (or dir (locate-dominating-file
