@@ -1,0 +1,96 @@
+;;; test-util.el ---
+
+;; Copyright (C) 2014 by Syohei YOSHIDA
+
+;; Author: Syohei YOSHIDA <syohex@gmail.com>
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;; Code:
+
+(require 'ert)
+(require 'helm-gtags)
+
+(defmacro with-gtags-project (dirname &rest body)
+  "Create temporary gtags project, executes body, remove temporary project."
+  (declare (indent 1) (debug t))
+  (let ((orig-dir (cl-gensym)))
+    `(let ((,orig-dir default-directory))
+       (make-directory ,dirname)
+       (with-temp-file (concat ,dirname "test.c")
+         (insert "int func(void) {}\n"))
+       (let ((default-directory ,dirname))
+         (unwind-protect
+             (progn
+               (process-file "gtags")
+               ,@body)
+           (let ((default-directory ,orig-dir))
+             (delete-directory ,dirname t nil)))))))
+
+(defsubst dummy-directory ()
+  (file-name-as-directory (concat (expand-file-name default-directory) "dummy")))
+
+(ert-deftest helm-gtags--set-parsed-file ()
+  "Test utility `helm-gtags--set-parsed-file'"
+  (let ((this-file (expand-file-name "./this-util.el")))
+    (with-current-buffer (find-file-noselect this-file)
+      (should (string= (helm-gtags--set-parsed-file) this-file))
+      (should helm-gtags--parsed-file)
+      (should (string= helm-gtags--parsed-file this-file)))))
+
+(ert-deftest helm-gtags--path-libpath-p ()
+  "Test utility `helm-gtags--path-libpath-p'"
+  (let ((process-environment '("GTAGSLIBPATH=/foo:/bar:/baz")))
+    (should (helm-gtags--path-libpath-p "/foo/"))))
+
+(ert-deftest helm-gtags--tag-directory ()
+  "Test utility `helm-gtags--tag-directory'"
+  (let ((dummy (dummy-directory)))
+    (with-gtags-project dummy
+      (should (string= (helm-gtags--tag-directory) dummy)))))
+
+(ert-deftest helm-gtags--find-tag-directory ()
+  "Test utility `helm-gtags--find-tag-directory'"
+  (let ((dummy (dummy-directory)))
+    (with-gtags-project (dummy-directory)
+      (let ((got (helm-gtags--find-tag-directory)))
+        (should (string= (helm-gtags--find-tag-directory) dummy))
+        (should (string= helm-gtags--tag-location dummy))))))
+
+(ert-deftest helm-gtags--find-tag-directory-in-libpath ()
+  "Test utility `helm-gtags--find-tag-directory' in library path"
+  (let ((dummy (dummy-directory)))
+    (with-gtags-project (dummy-directory)
+      (let* ((process-environment (list (concat "GTAGSLIBPATH=" dummy)))
+             (helm-gtags--tag-location "/tmp/")
+             (got (helm-gtags--find-tag-directory)))
+        (should (string= (helm-gtags--find-tag-directory) "/tmp/"))
+        (should (string= helm-gtags--real-tag-location dummy))))))
+
+(ert-deftest helm-gtags--construct-options ()
+  "Test utility `helm-gtags--construct-options'"
+  (let ((got (helm-gtags--construct-options 'find-file t)))
+    (should (equal got '("-Poa" "-c"))))
+
+  (let ((got (helm-gtags--construct-options 'tag nil)))
+    (should (equal got '("--result=grep"))))
+
+  (let* ((helm-gtags-path-style 'absolute)
+         (helm-gtags-ignore-case t)
+         (current-prefix-arg t)
+         (process-environment (list "GTAGSLIBPATH=foo:bar" ))
+         (got (helm-gtags--construct-options 'symbol t)))
+    (should (equal got '("-T" "-l" "-i" "-a" "-s" "-c" "--result=grep")))))
