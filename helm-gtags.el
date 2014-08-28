@@ -696,7 +696,7 @@ Always update if value of this variable is nil."
 (defun helm-gtags--source-select-rtag (candidate)
   `((name . "GNU GLOBAL")
     (init . (lambda ()
-              (helm-gtags-rtags-init ,candidate)))
+              (helm-gtags--rtags-init ,candidate)))
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags--persistent-action)
