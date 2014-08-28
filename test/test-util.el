@@ -94,3 +94,8 @@
          (process-environment (list "GTAGSLIBPATH=foo:bar" ))
          (got (helm-gtags--construct-options 'symbol t)))
     (should (equal got '("-T" "-l" "-i" "-a" "-s" "-c" "--result=grep")))))
+
+(ert-deftest helm-gtags--check-browser-installed ()
+  "Test utility `helm-gtags--browser-installed-p'"
+  (should (ignore-errors (helm-gtags--check-browser-installed "emacs") t))
+  (should-error (helm-gtags--check-browser-installed "InternetChromeFox")))
