@@ -154,7 +154,6 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--parsed-file nil)
 (defvar helm-gtags--current-position nil)
 (defvar helm-gtags--real-tag-location nil)
-(defvar helm-gtags--remote-p nil)
 (defvar helm-gtags--last-input nil)
 (defvar helm-gtags--default-tagname nil)
 
@@ -272,8 +271,7 @@ Always update if value of this variable is nil."
     (file-name-as-directory (helm-current-line-contents))))
 
 (defun helm-gtags--find-tag-directory ()
-  (setq helm-gtags--real-tag-location nil
-        helm-gtags--remote-p (file-remote-p default-directory))
+  (setq helm-gtags--real-tag-location nil)
   (let ((tagroot (helm-gtags--tag-directory)))
     (if (and (helm-gtags--path-libpath-p tagroot) helm-gtags--tag-location)
         (progn
@@ -466,13 +464,19 @@ Always update if value of this variable is nil."
   (let ((args (helm-gtags--construct-command 'find-file)))
     (helm-gtags--exec-global-command args)))
 
+(defun helm-gtags--real-file-name ()
+  (let ((buffile (buffer-file-name)))
+    (unless buffile
+      (error "This buffer is not related to file."))
+    (if (file-remote-p buffile)
+        (tramp-file-name-localname (tramp-dissect-file-name buffile))
+      buffile)))
+
 (defun helm-gtags--find-tag-from-here-init ()
   (helm-gtags--find-tag-directory)
   (helm-gtags--save-current-context)
   (let* ((token (helm-gtags--token-at-point 'from-here))
-         (filename (if helm-gtags--remote-p
-                       (tramp-file-name-localname (tramp-dissect-file-name (buffer-file-name)))
-                     (buffer-file-name)))
+         (filename (helm-gtags--real-file-name))
          (from-here-opt (format "--from-here=%d:%s" (line-number-at-pos) filename)))
     (setq helm-gtags--last-input token)
     (with-current-buffer (helm-candidate-buffer 'global)
@@ -723,7 +727,6 @@ Always update if value of this variable is nil."
           (helm-gtags--put-result-cache tagfile cache))))))
 
 (defun helm-gtags--source-select-init ()
-  (setq helm-gtags--remote-p (file-remote-p default-directory))
   (with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
         (process-file "global" nil t nil "-c")
@@ -742,7 +745,6 @@ Always update if value of this variable is nil."
                ("Move to the referenced point" . helm-gtags--select-rtag-action)))))
 
 (defun helm-gtags--select-path-init ()
-  (setq helm-gtags--remote-p (file-remote-p default-directory))
   (with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
         (process-file "global" nil t nil "-Poa")
