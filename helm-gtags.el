@@ -155,6 +155,7 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--real-tag-location nil)
 (defvar helm-gtags--last-input nil)
 (defvar helm-gtags--default-tagname nil)
+(defvar helm-gtags--query nil)
 
 (defconst helm-gtags--buffer "*helm gtags*")
 
@@ -244,7 +245,7 @@ Always update if value of this variable is nil."
     (symbol    . "Find Symbol: ")
     (find-file . "Find File: ")))
 
-(defun helm-gtags--input (type)
+(defun helm-gtags--read-tagname (type)
   (let ((tagname (or helm-gtags--default-tagname
                      (helm-gtags--token-at-point type)))
         (prompt (assoc-default type helm-gtags--prompt-alist))
@@ -436,7 +437,7 @@ Always update if value of this variable is nil."
   (let ((dir (helm-attr 'helm-gtags-base-directory (helm-get-current-source))))
     (when (and dir (not (eq type 'find-file)))
       (setq helm-gtags--local-directory dir)))
-  (let ((input (or in (helm-gtags--input type)))
+  (let ((input (or in helm-gtags--query))
         (options (helm-gtags--construct-options type nil)))
     (when (string= input "")
       (error "Input is empty!!"))
@@ -680,12 +681,12 @@ Always update if value of this variable is nil."
 ;;;###autoload
 (defun helm-gtags-select ()
   (interactive)
-  (helm-gtags--common '(helm-source-gtags-select)))
+  (helm-gtags--common '(helm-source-gtags-select) nil))
 
 ;;;###autoload
 (defun helm-gtags-select-path ()
   (interactive)
-  (helm-gtags--common '(helm-source-gtags-select-path)))
+  (helm-gtags--common '(helm-source-gtags-select-path) nil))
 
 (defun helm-gtags--source-select-tag (candidate)
   `((name . "GNU GLOBAL")
@@ -708,12 +709,12 @@ Always update if value of this variable is nil."
 (defun helm-gtags--select-tag-action (c)
   (helm-run-after-quit
    `(lambda ()
-      (helm-gtags--common (list (helm-gtags--source-select-tag ,c))))))
+      (helm-gtags--common (list (helm-gtags--source-select-tag ,c)) nil))))
 
 (defun helm-gtags--select-rtag-action (c)
   (helm-run-after-quit
    `(lambda ()
-      (helm-gtags--common (list (helm-gtags--source-select-rtag ,c))))))
+      (helm-gtags--common (list (helm-gtags--source-select-rtag ,c)) nil))))
 
 (defun helm-gtags--select-cache-init-common (args tagfile)
   (let ((cache (helm-gtags--get-result-cache tagfile)))
@@ -766,7 +767,7 @@ Always update if value of this variable is nil."
 (defsubst helm-gtags--using-other-window-p ()
   (< (prefix-numeric-value current-prefix-arg) 0))
 
-(defun helm-gtags--common (srcs)
+(defun helm-gtags--common (srcs tagname)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
         (dir (helm-gtags--searched-directory))
@@ -775,6 +776,8 @@ Always update if value of this variable is nil."
       (setq src (symbol-value src)))
     (unless helm-gtags--use-otherwin
       (setq helm-gtags--use-otherwin (helm-gtags--using-other-window-p)))
+    (when tagname
+      (setq helm-gtags--query tagname))
     (helm-attrset 'helm-gtags-base-directory dir src)
     (helm-attrset 'name (format "GNU Global at %s"
                                 (or dir (locate-dominating-file
@@ -783,46 +786,52 @@ Always update if value of this variable is nil."
     (helm :sources srcs :buffer helm-gtags--buffer)))
 
 ;;;###autoload
-(defun helm-gtags-find-tag ()
+(defun helm-gtags-find-tag (tag)
   "Jump to definition"
-  (interactive)
-  (helm-gtags--common '(helm-source-gtags-tags)))
+  (interactive
+   (list (helm-gtags--read-tagname 'tag)))
+  (helm-gtags--common '(helm-source-gtags-tags) tag))
 
 ;;;###autoload
-(defun helm-gtags-find-tag-other-window ()
+(defun helm-gtags-find-tag-other-window (tag)
   "Jump to definition in other window."
-  (interactive)
+  (interactive
+   (list (helm-gtags--read-tagname 'tag)))
   (setq helm-gtags--use-otherwin t)
-  (helm-gtags--common '(helm-source-gtags-tags)))
+  (helm-gtags-find-tag tag))
 
 ;;;###autoload
-(defun helm-gtags-find-rtag ()
+(defun helm-gtags-find-rtag (tag)
   "Jump to referenced point"
-  (interactive)
-  (helm-gtags--common '(helm-source-gtags-rtags)))
+  (interactive
+   (list (helm-gtags--read-tagname 'rtag)))
+  (helm-gtags--common '(helm-source-gtags-rtags) tag))
 
 ;;;###autoload
-(defun helm-gtags-find-symbol ()
+(defun helm-gtags-find-symbol (tag)
   "Jump to the symbol location"
-  (interactive)
-  (helm-gtags--common '(helm-source-gtags-gsyms)))
+  (interactive
+   (list (helm-gtags--read-tagname 'symbol)))
+  (helm-gtags--common '(helm-source-gtags-gsyms) tag))
 
 ;;;###autoload
-(defun helm-gtags-find-pattern ()
+(defun helm-gtags-find-pattern (pattern)
   "Grep and jump by gtags tag files."
-  (interactive)
-  (helm-gtags--common '(helm-source-gtags-pattern)))
+  (interactive
+   (list (helm-gtags--read-tagname 'pattern)))
+  (helm-gtags--common '(helm-source-gtags-pattern) pattern))
 
 (defun helm-gtags--find-file-after-hook ()
   (helm-gtags--push-context helm-gtags--saved-context))
 
 ;;;###autoload
-(defun helm-gtags-find-files ()
+(defun helm-gtags-find-files (file)
   "Find file from tagged with gnu global."
-  (interactive)
+  (interactive
+   (list (helm-gtags--read-tagname 'find-file)))
   (add-hook 'helm-after-action-hook 'helm-gtags--find-file-after-hook)
   (unwind-protect
-      (helm-gtags--common '(helm-source-gtags-files))
+      (helm-gtags--common '(helm-source-gtags-files) file)
     (remove-hook 'helm-after-action-hook 'helm-gtags--find-file-after-hook)))
 
 ;;;###autoload
@@ -831,7 +840,7 @@ Always update if value of this variable is nil."
 Jump to definition point if cursor is on its reference.
 Jump to reference point if curosr is on its definition"
   (interactive)
-  (helm-gtags--common '(helm-source-gtags-find-tag-from-here)))
+  (helm-gtags--common '(helm-source-gtags-find-tag-from-here) nil))
 
 ;;;###autoload
 (defun helm-gtags-dwim ()
