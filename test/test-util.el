@@ -1,4 +1,4 @@
-;;; test-util.el ---
+;;; test-util.el --- Test utilities of helm-gtags
 
 ;; Copyright (C) 2014 by Syohei YOSHIDA
 
