@@ -908,7 +908,7 @@ You can jump definitions of functions, symbols in this file."
   (cl-case (prefix-numeric-value current-prefix-arg)
     (4 'entire-update)
     (16 'generate-other-directory)
-    (t 'single-update)))
+    (otherwise 'single-update)))
 
 (defun helm-gtags--update-tags-command (how-to)
   (cl-case how-to
