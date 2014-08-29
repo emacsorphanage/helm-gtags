@@ -891,7 +891,7 @@ You can jump definitions of functions, symbols in this file."
   "Clear current context stack."
   (interactive)
   (let ((tag-location (helm-gtags--find-tag-directory)))
-    (puthash tag-location nil helm-gtags--context-stack)))
+    (remhash tag-location helm-gtags--context-stack)))
 
 ;;;###autoload
 (defun helm-gtags-clear-all-stacks ()
