@@ -144,7 +144,6 @@ Always update if value of this variable is nil."
 
 (defvar helm-gtags--tag-location nil)
 (defvar helm-gtags--last-update-time 0)
-(defvar helm-gtags--buffer "*helm gtags*")
 (defvar helm-gtags--completing-history nil)
 (defvar helm-gtags--context-stack (make-hash-table :test 'equal))
 (defvar helm-gtags--result-cache (make-hash-table :test 'equal))
@@ -156,6 +155,8 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--real-tag-location nil)
 (defvar helm-gtags--last-input nil)
 (defvar helm-gtags--default-tagname nil)
+
+(defconst helm-gtags--buffer "*helm gtags*")
 
 (defconst helm-gtags--include-regexp
   "\\`\\s-*#\\(?:include\\|import\\)\\s-*[\"<]\\(?:[./]*\\)?\\(.*?\\)[\">]")
