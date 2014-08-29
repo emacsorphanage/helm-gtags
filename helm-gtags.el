@@ -337,12 +337,10 @@ Always update if value of this variable is nil."
 (defun helm-gtags-clear-cache ()
   (interactive)
   (helm-gtags--find-tag-directory)
-  (let ((gtags-path (concat (or helm-gtags--real-tag-location
-                                helm-gtags--tag-location)
-                            "GTAGS"))
-        (gpath-path (concat (or helm-gtags--real-tag-location
-                                helm-gtags--tag-location)
-                            "GPATH")))
+  (let* ((tag-location (or helm-gtags--real-tag-location
+                           helm-gtags--tag-location))
+         (gtags-path (concat tag-location "GTAGS"))
+         (gpath-path (concat tag-location "GPATH")))
     (remhash gtags-path helm-gtags--result-cache)
     (remhash gpath-path helm-gtags--result-cache)))
 
