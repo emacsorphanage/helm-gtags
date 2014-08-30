@@ -1,4 +1,4 @@
-;;; test-util.el ---
+;;; test-util.el --- Test utilities of helm-gtags
 
 ;; Copyright (C) 2014 by Syohei YOSHIDA
 
@@ -94,3 +94,17 @@
          (process-environment (list "GTAGSLIBPATH=foo:bar" ))
          (got (helm-gtags--construct-options 'symbol t)))
     (should (equal got '("-T" "-l" "-i" "-a" "-s" "-c" "--result=grep")))))
+
+(ert-deftest helm-gtags--check-browser-installed ()
+  "Test utility `helm-gtags--browser-installed-p'"
+  (should (ignore-errors (helm-gtags--check-browser-installed "emacs") t))
+  (should-error (helm-gtags--check-browser-installed "InternetChromeFox")))
+
+(ert-deftest helm-gtags--how-to-update-tags ()
+  "Test utility `helm-gtags--how-to-update-tags'"
+  (should (eq (helm-gtags--how-to-update-tags) 'single-update))
+  (should (eq (helm-gtags--how-to-update-tags) 'single-update))
+  (let ((current-prefix-arg '(4)))
+    (should (eq (helm-gtags--how-to-update-tags) 'entire-update)))
+  (let ((current-prefix-arg 16))
+    (should (eq (helm-gtags--how-to-update-tags) 'generate-other-directory))))
