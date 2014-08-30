@@ -204,8 +204,8 @@ If this variable is non-nil, pulse at point after jumping
 #### `helm-gtags-maximum-candidates`(Default `9999`)
 
 Maximum number of helm candidates in `helm-gtags.el`.
-If you feel slow for big source tree such as linux kernel,
-please set small number to this variable.
+Please set small number if you feel slow for large source tree
+such as Linux kernel.
 
 
 ## Faces
