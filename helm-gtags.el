@@ -127,6 +127,12 @@ Always update if value of this variable is nil."
   :type 'boolean
   :group 'helm-gtags)
 
+(defcustom helm-gtags-display-style nil
+  "Style of display result."
+  :type '(choice (const :tag "Show in detail" detail)
+                 (const :tag "Normal style" nil))
+  :group 'helm-gtags)
+
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
   "Face for line numbers in the error list."
@@ -420,17 +426,50 @@ Always update if value of this variable is nil."
     (helm-gtags--put-context-stack helm-gtags--tag-location -1 context-stack)
     (helm-gtags--move-to-context context)))
 
-(defun helm-gtags--exec-global-command (args)
-  (helm-gtags--find-tag-directory)
-  (helm-gtags--save-current-context)
-  (let ((buf-coding buffer-file-coding-system))
-    (with-current-buffer (helm-candidate-buffer 'global)
-      (let ((default-directory (helm-gtags--base-directory))
-            (input (car (last args)))
-            (coding-system-for-read buf-coding)
-            (coding-system-for-write buf-coding))
-        (unless (zerop (apply 'process-file "global" nil t nil args))
-          (error (format "%s: not found" input)))))))
+(defun helm-gtags--referer-function (file ref-line)
+  (with-temp-buffer
+    (unless (zerop (process-file "global" nil t nil "-f" file))
+      (error "Fail: global -f %s" file))
+    (goto-char (point-min))
+    (let (last-func finish)
+      (while (and (not finish) (not (eobp)))
+        (let* ((line (helm-current-line-contents))
+               (cols (split-string line nil t))
+               (func (cl-first cols))
+               (lineno (string-to-number (cl-second cols))))
+          (if (>= lineno ref-line)
+              (setq finish t)
+            (setq last-func func))
+          (forward-line 1)))
+      last-func)))
+
+(defun helm-gtags--show-detail ()
+  (goto-char (point-min))
+  (while (not (eobp))
+    (let ((line (helm-current-line-contents)))
+      (let* ((cols (split-string line ":"))
+             (file (cl-first cols))
+             (ref-line (string-to-number (cl-second cols)))
+             (ref-func (helm-gtags--referer-function file ref-line)))
+        (when ref-func
+          (search-forward ":" nil nil 2)
+          (insert " " ref-func "|"))
+        (forward-line 1)))))
+
+(defun helm-gtags--exec-global-command (type input &optional detail)
+  (let ((args (helm-gtags--construct-command type input)))
+    (helm-gtags--find-tag-directory)
+    (helm-gtags--save-current-context)
+    (let ((buf-coding buffer-file-coding-system))
+      (with-current-buffer (helm-candidate-buffer 'global)
+        (let ((default-directory (helm-gtags--base-directory))
+              (input (car (last args)))
+              (coding-system-for-read buf-coding)
+              (coding-system-for-write buf-coding))
+          (unless (zerop (apply 'process-file "global" nil t nil args))
+            (error (format "%s: not found" input)))
+          (when detail
+            (helm-gtags--show-detail)))))))
 
 (defun helm-gtags--construct-command (type &optional in)
   (setq helm-gtags--local-directory nil)
