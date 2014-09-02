@@ -180,6 +180,11 @@ Use word at cursor as input if this value is `non-nil`
 
 Highlighting candidates if this value is `non-nil`
 
+#### `helm-gtags-display-style`(Default `nil`)
+
+Show detail information if this value is `'detail`,
+show reference point of function etc.
+
 #### `helm-gtags-auto-update`(Default `nil`)
 
 If this variable is non-nil, TAG file is updated after saving buffer
