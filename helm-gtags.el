@@ -767,9 +767,12 @@ Always update if value of this variable is nil."
 (defun helm-gtags-tags-in-this-function ()
   "Show tagnames which is referenced by this function and jump to it."
   (interactive)
-  (let* ((tags (helm-gtags--tagnames-refered-from-this-function))
-         (tagname (helm-comp-read "Tagnames: " tags :must-match t)))
-    (helm-gtags-find-tag tagname)))
+  (let ((tags (helm-gtags--tags-refered-from-this-function)))
+    (unless tags
+      (error "There are no tags which are refered from this function."))
+    (let ((name (format "Tags in [%s]" (which-function))))
+      (helm-gtags-find-tag (helm-comp-read "Tagnames: " tags
+                                           :must-match t :name name)))))
 
 (defun helm-gtags--source-select-tag (candidate)
   `((name . "GNU GLOBAL")
