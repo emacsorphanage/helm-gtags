@@ -765,7 +765,7 @@ Always update if value of this variable is nil."
 
 ;;;###autoload
 (defun helm-gtags-tags-in-this-function ()
-  "Show tagnames which is referenced by this function and jump to it."
+  "Show tagnames which are referenced in this function and jump to it."
   (interactive)
   (let ((tags (helm-gtags--tags-refered-from-this-function)))
     (unless tags

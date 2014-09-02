@@ -73,6 +73,10 @@ Find name by context.
 - Jump to tag definition if cursor is on tag reference
 - Jump to tag reference if cursor is on tag definition
 
+#### `helm-gtags-tags-in-this-function`
+
+Show tagnames which are referenced in this function and jump to them.
+
 
 #### `helm-gtags-update-tags`
 
