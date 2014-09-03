@@ -127,6 +127,12 @@ Always update if value of this variable is nil."
   :type 'boolean
   :group 'helm-gtags)
 
+(defcustom helm-gtags-display-style nil
+  "Style of display result."
+  :type '(choice (const :tag "Show in detail" detail)
+                 (const :tag "Normal style" nil))
+  :group 'helm-gtags)
+
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
   "Face for line numbers in the error list."
@@ -154,7 +160,6 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--current-position nil)
 (defvar helm-gtags--real-tag-location nil)
 (defvar helm-gtags--last-input nil)
-(defvar helm-gtags--default-tagname nil)
 (defvar helm-gtags--query nil)
 
 (defconst helm-gtags--buffer "*helm gtags*")
@@ -246,8 +251,7 @@ Always update if value of this variable is nil."
     (find-file . "Find File: ")))
 
 (defun helm-gtags--read-tagname (type)
-  (let ((tagname (or helm-gtags--default-tagname
-                     (helm-gtags--token-at-point type)))
+  (let ((tagname (helm-gtags--token-at-point type))
         (prompt (assoc-default type helm-gtags--prompt-alist))
         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
     (if (and tagname helm-gtags-use-input-at-cursor)
@@ -420,17 +424,48 @@ Always update if value of this variable is nil."
     (helm-gtags--put-context-stack helm-gtags--tag-location -1 context-stack)
     (helm-gtags--move-to-context context)))
 
-(defun helm-gtags--exec-global-command (args)
-  (helm-gtags--find-tag-directory)
-  (helm-gtags--save-current-context)
-  (let ((buf-coding buffer-file-coding-system))
-    (with-current-buffer (helm-candidate-buffer 'global)
-      (let ((default-directory (helm-gtags--base-directory))
-            (input (car (last args)))
-            (coding-system-for-read buf-coding)
-            (coding-system-for-write buf-coding))
-        (unless (zerop (apply 'process-file "global" nil t nil args))
-          (error (format "%s: not found" input)))))))
+(defun helm-gtags--referer-function (file ref-line)
+  (let ((is-opened (cl-loop with path = (concat default-directory file)
+                            for buf in (buffer-list)
+                            when (string= (buffer-file-name buf) path)
+                            return it))
+        retval)
+    (with-current-buffer (find-file-noselect file)
+      (goto-char (point-min))
+      (forward-line (1- ref-line))
+      (unless (zerop (current-indentation))
+        (setq retval (which-function)))
+      (unless is-opened
+        (kill-buffer (current-buffer)))
+      retval)))
+
+(defun helm-gtags--show-detail ()
+  (goto-char (point-min))
+  (while (not (eobp))
+    (let ((line (helm-current-line-contents)))
+      (let* ((cols (split-string line ":"))
+             (file (cl-first cols))
+             (ref-line (string-to-number (cl-second cols)))
+             (ref-func (helm-gtags--referer-function file ref-line)))
+        (when ref-func
+          (search-forward ":" nil nil 2)
+          (insert " " ref-func "|"))
+        (forward-line 1)))))
+
+(defun helm-gtags--exec-global-command (type input &optional detail)
+  (let ((args (helm-gtags--construct-command type input)))
+    (helm-gtags--find-tag-directory)
+    (helm-gtags--save-current-context)
+    (let ((buf-coding buffer-file-coding-system))
+      (with-current-buffer (helm-candidate-buffer 'global)
+        (let ((default-directory (helm-gtags--base-directory))
+              (input (car (last args)))
+              (coding-system-for-read buf-coding)
+              (coding-system-for-write buf-coding))
+          (unless (zerop (apply 'process-file "global" nil t nil args))
+            (error (format "%s: not found" input)))
+          (when detail
+            (helm-gtags--show-detail)))))))
 
 (defun helm-gtags--construct-command (type &optional in)
   (setq helm-gtags--local-directory nil)
@@ -445,24 +480,19 @@ Always update if value of this variable is nil."
     (reverse (cons input options))))
 
 (defun helm-gtags--tags-init (&optional input)
-  (let ((args (helm-gtags--construct-command 'tag input)))
-    (helm-gtags--exec-global-command args)))
+  (helm-gtags--exec-global-command 'tag input))
 
 (defun helm-gtags--pattern-init (&optional input)
-  (let ((args (helm-gtags--construct-command 'pattern input)))
-    (helm-gtags--exec-global-command args)))
+  (helm-gtags--exec-global-command 'pattern input helm-gtags-display-style))
 
 (defun helm-gtags--rtags-init (&optional input)
-  (let ((args (helm-gtags--construct-command 'rtag input)))
-    (helm-gtags--exec-global-command args)))
+  (helm-gtags--exec-global-command 'rtag input helm-gtags-display-style))
 
 (defun helm-gtags--gsyms-init ()
-  (let ((args (helm-gtags--construct-command 'symbol)))
-    (helm-gtags--exec-global-command args)))
+  (helm-gtags--exec-global-command 'symbol nil helm-gtags-display-style))
 
 (defun helm-gtags--files-init ()
-  (let ((args (helm-gtags--construct-command 'find-file)))
-    (helm-gtags--exec-global-command args)))
+  (helm-gtags--exec-global-command 'find-file nil))
 
 (defun helm-gtags--real-file-name ()
   (let ((buffile (buffer-file-name)))
@@ -688,6 +718,60 @@ Always update if value of this variable is nil."
   (interactive)
   (helm-gtags--common '(helm-source-gtags-select-path) nil))
 
+(defsubst helm-gtags--beginning-of-defun ()
+  (cl-case major-mode
+    ((c-mode c++-mode java-mode) 'c-beginning-of-defun)
+    (php-mode 'php-beginning-of-defun)
+    (otherwise 'beginning-of-defun)))
+
+(defsubst helm-gtags--end-of-defun ()
+  (cl-case major-mode
+    ((c-mode c++-mode java-mode malabar-mode) 'c-beginning-of-defun)
+    (php-mode 'php-beginning-of-defun)
+    (otherwise 'beginning-of-defun)))
+
+(defun helm-gtags--current-funcion-bound ()
+  (save-excursion
+    (let (start)
+      (funcall (helm-gtags--beginning-of-defun))
+      (setq start (line-number-at-pos))
+      (funcall (helm-gtags--end-of-defun))
+      (cons start (line-number-at-pos)))))
+
+(defun helm-gtags--tags-refered-from-this-function ()
+  (let* ((file (helm-gtags--real-file-name))
+         (bound (helm-gtags--current-funcion-bound)))
+    (with-temp-buffer
+      (unless (process-file "global" nil t nil "-f" "-r" file)
+        (error "Failed: global -f -r %s" file))
+      (goto-char (point-min))
+      (let ((start-line (car bound))
+            (end-line (cdr bound))
+            tagnames finish)
+        (while (and (not finish) (not (eobp)))
+          (let* ((cols (split-string (helm-current-line-contents) nil t))
+                 (lineno (string-to-number (cl-second cols))))
+            (if (and (> lineno start-line) (< lineno end-line))
+                (let* ((tag (cl-first cols))
+                       (elm (cl-find tag tagnames :test 'equal)))
+                  (unless elm
+                    (push tag tagnames)))
+              (when (>= lineno end-line)
+                (setq finish t)))
+            (forward-line 1)))
+        (reverse tagnames)))))
+
+;;;###autoload
+(defun helm-gtags-tags-in-this-function ()
+  "Show tagnames which are referenced in this function and jump to it."
+  (interactive)
+  (let ((tags (helm-gtags--tags-refered-from-this-function)))
+    (unless tags
+      (error "There are no tags which are refered from this function."))
+    (let ((name (format "Tags in [%s]" (which-function))))
+      (helm-gtags-find-tag (helm-comp-read "Tagnames: " tags
+                                           :must-match t :name name)))))
+
 (defun helm-gtags--source-select-tag (candidate)
   `((name . "GNU GLOBAL")
     (init . (lambda ()
@@ -851,11 +935,10 @@ Jump to reference point if curosr is on its definition"
   (interactive)
   (let ((line (helm-current-line-contents)))
     (if (string-match helm-gtags--include-regexp line)
-        (let ((helm-gtags-use-input-at-cursor t)
-              (helm-gtags--default-tagname (match-string-no-properties 1 line)))
-          (call-interactively 'helm-gtags-find-files))
+        (let ((helm-gtags-use-input-at-cursor t))
+          (helm-gtags-find-files (match-string-no-properties 1 line)))
       (if (thing-at-point 'symbol)
-          (call-interactively 'helm-gtags-find-tag-from-here)
+          (helm-gtags-find-tag-from-here)
         (call-interactively 'helm-gtags-find-tag)))))
 
 (defun helm-gtags--set-parsed-file ()
