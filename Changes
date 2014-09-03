@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.3.2 2014/09/03 syohex
+  - Add command 'helm-gtags-tags-in-this-function'
+  - Refactoring
+
 Revision 1.3.1 2014/08/30 syohex
   - Refactoring
   - Fix wrong function call
