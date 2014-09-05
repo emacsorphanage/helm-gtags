@@ -250,12 +250,14 @@ Always update if value of this variable is nil."
     (symbol    . "Find Symbol: ")
     (find-file . "Find File: ")))
 
-(defun helm-gtags--read-tagname (type)
+(defun helm-gtags--read-tagname (type &optional default-tagname)
   (let ((tagname (helm-gtags--token-at-point type))
         (prompt (assoc-default type helm-gtags--prompt-alist))
         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
     (if (and tagname helm-gtags-use-input-at-cursor)
         tagname
+      (when (and (not tagname) default-tagname)
+        (setq tagname default-tagname))
       (when tagname
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
       (let ((completion-ignore-case helm-gtags-ignore-case)
@@ -888,7 +890,7 @@ Always update if value of this variable is nil."
 (defun helm-gtags-find-rtag (tag)
   "Jump to referenced point"
   (interactive
-   (list (helm-gtags--read-tagname 'rtag)))
+   (list (helm-gtags--read-tagname 'rtag (which-function))))
   (helm-gtags--common '(helm-source-gtags-rtags) tag))
 
 ;;;###autoload
