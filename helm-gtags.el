@@ -1091,10 +1091,8 @@ Generate new TAG file in selected directory with `C-u C-u'"
   :keymap     helm-gtags-mode-map
   :lighter    helm-gtags-mode-name
   (if helm-gtags-mode
-      (progn
-        (run-hooks 'helm-gtags-mode-hook)
-        (when helm-gtags-auto-update
-          (add-hook 'after-save-hook 'helm-gtags-update-tags nil t)))
+      (when helm-gtags-auto-update
+        (add-hook 'after-save-hook 'helm-gtags-update-tags nil t))
     (when helm-gtags-auto-update
       (remove-hook 'after-save-hook 'helm-gtags-update-tags t))))
 
