@@ -83,6 +83,10 @@ Show tagnames which are referenced in this function and jump to them.
 Update TAG file. Default is update only current file,
 You can update all files with `C-u` prefix.
 
+#### `helm-gtags-create-tags`
+
+Create TAG file.
+
 #### `helm-gtags-parse-file`
 
 Show symbols in current file like `gtags-parse-file`. You can choose

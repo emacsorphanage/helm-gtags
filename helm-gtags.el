@@ -853,6 +853,33 @@ Always update if value of this variable is nil."
 (defsubst helm-gtags--using-other-window-p ()
   (< (prefix-numeric-value current-prefix-arg) 0))
 
+(defun helm-gtags--make-gtags-sentinel (action)
+  (lambda (process _event)
+    (when (eq (process-status process) 'exit)
+      (if (zerop (process-exit-status process))
+          (message "Success: %s TAGS" action)
+        (message "Failed: %s TAGS" action))
+      (kill-buffer (process-buffer process)))))
+
+;;;###autoload
+(defun helm-gtags-create-tags (dir)
+  (interactive
+   (list (read-directory-name "Root Directory: ")))
+  (let ((default-directory dir)
+        (proc-buf (get-buffer-create " *helm-gtags-create*")))
+    (let ((proc (start-process "helm-gtags-create" proc-buf "gtags" "-q")))
+      (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'create)))))
+
+(defun helm-gtags--find-tag-simple ()
+  (or (locate-dominating-file default-directory "GTAGS")
+      (if (not (yes-or-no-p "File GTAGS not found. Run 'gtags'? "))
+          (user-error "Abort")
+        (let* ((tagroot (read-directory-name "Root Directory: "))
+               (default-directory tagroot))
+          (unless (zerop (process-file "gtags" nil nil nil "-q"))
+            (error "Faild: 'gtags -q'"))
+          tagroot))))
+
 (defun helm-gtags--common (srcs tagname)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
@@ -864,12 +891,10 @@ Always update if value of this variable is nil."
       (setq helm-gtags--use-otherwin (helm-gtags--using-other-window-p)))
     (when tagname
       (setq helm-gtags--query tagname))
-    (helm-attrset 'helm-gtags-base-directory dir src)
-    (helm-attrset 'name (format "GNU Global at %s"
-                                (or dir (locate-dominating-file
-                                         default-directory "GTAGS")))
-                  src)
-    (helm :sources srcs :buffer helm-gtags--buffer)))
+    (let ((tagroot (helm-gtags--find-tag-simple)))
+      (helm-attrset 'helm-gtags-base-directory dir src)
+      (helm-attrset 'name (concat "GNU Global at " (or dir tagroot)) src)
+      (helm :sources srcs :buffer helm-gtags--buffer))))
 
 ;;;###autoload
 (defun helm-gtags-find-tag (tag)
@@ -1039,14 +1064,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
               (message "Failed: %s" (mapconcat 'identity cmds " "))
               (kill-buffer proc-buf))
           (set-process-query-on-exit-flag proc nil)
-          (set-process-sentinel
-           proc
-           (lambda (process _state)
-             (when (eq (process-status process) 'exit)
-               (if (zerop (process-exit-status process))
-                   (message "Update TAGS successfully")
-                 (message "Failed to update TAGS"))
-               (kill-buffer proc-buf))))
+          (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'update))
           (setq helm-gtags--last-update-time current-time))))))
 
 ;;;###autoload
@@ -1091,10 +1109,8 @@ Generate new TAG file in selected directory with `C-u C-u'"
   :keymap     helm-gtags-mode-map
   :lighter    helm-gtags-mode-name
   (if helm-gtags-mode
-      (progn
-        (run-hooks 'helm-gtags-mode-hook)
-        (when helm-gtags-auto-update
-          (add-hook 'after-save-hook 'helm-gtags-update-tags nil t)))
+      (when helm-gtags-auto-update
+        (add-hook 'after-save-hook 'helm-gtags-update-tags nil t))
     (when helm-gtags-auto-update
       (remove-hook 'after-save-hook 'helm-gtags-update-tags t))))
 
