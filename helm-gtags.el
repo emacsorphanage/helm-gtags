@@ -853,12 +853,13 @@ Always update if value of this variable is nil."
 (defsubst helm-gtags--using-other-window-p ()
   (< (prefix-numeric-value current-prefix-arg) 0))
 
-(defun helm-gtags--tag-creation-sentinel (process _state)
-  (when (eq (process-status process) 'exit)
-    (if (zerop (process-exit-status process))
-        (message "Create TAGS successfully")
-      (message "Failed to create TAGS"))
-    (kill-buffer (process-buffer process))))
+(defun helm-gtags--make-gtags-sentinel (action)
+  (lambda (process _event)
+    (when (eq (process-status process) 'exit)
+      (if (zerop (process-exit-status process))
+          (message "Success: %s TAGS" action)
+        (message "Failed: %s TAGS" action))
+      (kill-buffer (process-buffer process)))))
 
 ;;;###autoload
 (defun helm-gtags-create-tags (dir)
@@ -867,7 +868,7 @@ Always update if value of this variable is nil."
   (let ((default-directory dir)
         (proc-buf (get-buffer-create " *helm-gtags-create*")))
     (let ((proc (start-process "helm-gtags-create" proc-buf "gtags" "-q")))
-      (set-process-sentinel proc 'helm-gtags--tag-creation-sentinel))))
+      (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'create)))))
 
 (defun helm-gtags--find-tag-simple ()
   (or (locate-dominating-file default-directory "GTAGS")
@@ -1063,7 +1064,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
               (message "Failed: %s" (mapconcat 'identity cmds " "))
               (kill-buffer proc-buf))
           (set-process-query-on-exit-flag proc nil)
-          (set-process-sentinel proc 'helm-gtags--tag-creation-sentinel)
+          (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'update))
           (setq helm-gtags--last-update-time current-time))))))
 
 ;;;###autoload
