@@ -728,9 +728,9 @@ Always update if value of this variable is nil."
 
 (defsubst helm-gtags--end-of-defun ()
   (cl-case major-mode
-    ((c-mode c++-mode java-mode malabar-mode) 'c-beginning-of-defun)
-    (php-mode 'php-beginning-of-defun)
-    (otherwise 'beginning-of-defun)))
+    ((c-mode c++-mode java-mode malabar-mode) 'c-end-of-defun)
+    (php-mode 'php-end-of-defun)
+    (otherwise 'end-of-defun)))
 
 (defun helm-gtags--current-funcion-bound ()
   (save-excursion
@@ -742,14 +742,14 @@ Always update if value of this variable is nil."
 
 (defun helm-gtags--tags-refered-from-this-function ()
   (let* ((file (helm-gtags--real-file-name))
-         (bound (helm-gtags--current-funcion-bound)))
+         (bound (helm-gtags--current-funcion-bound))
+         (start-line (car bound))
+         (end-line (cdr bound)))
     (with-temp-buffer
       (unless (process-file "global" nil t nil "-f" "-r" file)
         (error "Failed: global -f -r %s" file))
       (goto-char (point-min))
-      (let ((start-line (car bound))
-            (end-line (cdr bound))
-            tagnames finish)
+      (let (tagnames finish)
         (while (and (not finish) (not (eobp)))
           (let* ((cols (split-string (helm-current-line-contents) nil t))
                  (lineno (string-to-number (cl-second cols))))
