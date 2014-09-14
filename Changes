@@ -1,5 +1,10 @@
 Revision history for helm-gtags.el
 
+Revision 1.3.5 2014/09/14 syohex
+  - Bug fix for helm-gtags-tags-in-this-function
+  - Add persistent action of helm-gtags-tags-in-this-function
+  - Improve tag creation commands
+
 Revision 1.3.4 2014/09/12 syohex
   - Implement tag creation feature
     - helm-gtags asks user about creating tag if tags is not found.
