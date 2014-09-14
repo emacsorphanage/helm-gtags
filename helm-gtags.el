@@ -876,6 +876,7 @@ Always update if value of this variable is nil."
           (user-error "Abort")
         (let* ((tagroot (read-directory-name "Root Directory: "))
                (default-directory tagroot))
+          (message "gtags is generating tags....")
           (unless (zerop (process-file "gtags" nil nil nil "-q"))
             (error "Faild: 'gtags -q'"))
           tagroot))))
