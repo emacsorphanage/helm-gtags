@@ -763,6 +763,16 @@ Always update if value of this variable is nil."
             (forward-line 1)))
         (reverse tagnames)))))
 
+(defun helm-gtags--tag-in-function-persistent-action (cand)
+  (let* ((bound (helm-gtags--current-funcion-bound))
+         (limit (save-excursion
+                  (goto-char (point-min))
+                  (forward-line (cdr bound))
+                  (goto-char (line-end-position))
+                  (point))))
+    (when (search-forward cand nil limit)
+      (helm-highlight-current-line))))
+
 ;;;###autoload
 (defun helm-gtags-tags-in-this-function ()
   "Show tagnames which are referenced in this function and jump to it."
@@ -770,9 +780,12 @@ Always update if value of this variable is nil."
   (let ((tags (helm-gtags--tags-refered-from-this-function)))
     (unless tags
       (error "There are no tags which are refered from this function."))
-    (let ((name (format "Tags in [%s]" (which-function))))
-      (helm-gtags-find-tag (helm-comp-read "Tagnames: " tags
-                                           :must-match t :name name)))))
+    (let* ((name (format "Tags in [%s]" (which-function)))
+           (tag (helm-comp-read
+                 "Tagnames: " tags
+                 :must-match t :name name
+                 :persistent-action 'helm-gtags--tag-in-function-persistent-action)))
+      (helm-gtags-find-tag tag))))
 
 (defun helm-gtags--source-select-tag (candidate)
   `((name . "GNU GLOBAL")
@@ -876,6 +889,7 @@ Always update if value of this variable is nil."
           (user-error "Abort")
         (let* ((tagroot (read-directory-name "Root Directory: "))
                (default-directory tagroot))
+          (message "gtags is generating tags....")
           (unless (zerop (process-file "gtags" nil nil nil "-q"))
             (error "Faild: 'gtags -q'"))
           tagroot))))
