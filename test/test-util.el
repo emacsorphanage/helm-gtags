@@ -108,3 +108,20 @@
     (should (eq (helm-gtags--how-to-update-tags) 'entire-update)))
   (let ((current-prefix-arg 16))
     (should (eq (helm-gtags--how-to-update-tags) 'generate-other-directory))))
+
+(ert-deftest helm-gtags--extract-file-and-line ()
+  "Test utility `helm-gtags--extract-file-and-line'"
+  (let ((input "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include/Fci.h:44:typedef unsigned int UINT; /* ui */"))
+    (let* ((system-type 'windows-nt)
+           (got (helm-gtags--extract-file-and-line input))
+           (file (car got))
+           (line (cdr got)))
+      (should (string= file "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include/Fci.h"))
+      (should (= line 44)))
+
+    (let* ((system-type 'gnu/linux)
+           (got (helm-gtags--extract-file-and-line "/usr/include/stdio.h:30:#define hoge 1"))
+           (file (car got))
+           (line (cdr got)))
+      (should (string= file "/usr/include/stdio.h"))
+      (should (string line 30)))))
