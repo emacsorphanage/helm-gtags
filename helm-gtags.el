@@ -204,8 +204,16 @@ Always update if value of this variable is nil."
     (symbol    . "-s")
     (find-file . "-Poa")))
 
+(defsubst helm-gtags--windows-p ()
+  (memq system-type '(windows-nt ms-dos)))
+
+;; Work around for GNU global Windows issue
+(defsubst helm-gtags--use-abs-path-p (gtagslibpath)
+  (and (helm-gtags--windows-p) gtagslibpath))
+
 (defun helm-gtags--construct-options (type completion)
   (let ((find-file-p (eq type 'find-file))
+        (gtagslibpath (getenv "GTAGSLIBPATH"))
         options)
     (unless find-file-p
       (push "--result=grep" options))
@@ -213,13 +221,14 @@ Always update if value of this variable is nil."
       (push "-c" options))
     (helm-aif (assoc-default type helm-gtags--search-option-alist)
         (push it options))
-    (when (eq helm-gtags-path-style 'absolute)
+    (when (or (eq helm-gtags-path-style 'absolute)
+              (helm-gtags--use-abs-path-p gtagslibpath))
       (push "-a" options))
     (when helm-gtags-ignore-case
       (push "-i" options))
     (when (and current-prefix-arg (not find-file-p))
       (push "-l" options))
-    (when (getenv "GTAGSLIBPATH")
+    (when gtagslibpath
       (push "-T" options))
     options))
 
@@ -562,9 +571,6 @@ Always update if value of this variable is nil."
   (let ((line (helm-gtags--find-line-number cand))
         (open-func (helm-gtags--select-find-file-func)))
     (helm-gtags--do-open-file open-func helm-gtags--parsed-file line)))
-
-(defsubst helm-gtags--windows-p ()
-  (memq system-type '(windows-nt ms-dos)))
 
 (defsubst helm-gtags--has-drive-letter-p (path)
   (string-match-p "\\`[a-zA-Z]:" path))
