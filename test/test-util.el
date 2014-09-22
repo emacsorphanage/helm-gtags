@@ -95,6 +95,21 @@
          (got (helm-gtags--construct-options 'symbol t)))
     (should (equal got '("-T" "-l" "-i" "-a" "-s" "-c" "--result=grep")))))
 
+(ert-deftest helm-gtags--construct-options-force-abs-option ()
+  "Test utility `helm-gtags--construct-options' for special case of Windows system"
+
+  (let* ((system-type 'windows-nt)
+         (process-environment (list "GTAGSLIBPATH=foo" ))
+         (helm-gtags-path-style 'relative)
+         (got (helm-gtags--construct-options 'tag t)))
+    (should (member "-a" got)))
+
+  (let* ((system-type 'gnu/linux)
+         (process-environment (list "GTAGSLIBPATH=foo" ))
+         (helm-gtags-path-style 'root)
+         (got (helm-gtags--construct-options 'tag t)))
+    (should-not (member "-a" got))))
+
 (ert-deftest helm-gtags--check-browser-installed ()
   "Test utility `helm-gtags--browser-installed-p'"
   (should (ignore-errors (helm-gtags--check-browser-installed "emacs") t))
@@ -108,3 +123,37 @@
     (should (eq (helm-gtags--how-to-update-tags) 'entire-update)))
   (let ((current-prefix-arg 16))
     (should (eq (helm-gtags--how-to-update-tags) 'generate-other-directory))))
+
+(ert-deftest helm-gtags--extract-file-and-line ()
+  "Test utility `helm-gtags--extract-file-and-line'"
+  (let ((input "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include/Fci.h:44:typedef unsigned int UINT; /* ui */"))
+    (let* ((system-type 'windows-nt)
+           (got (helm-gtags--extract-file-and-line input))
+           (file (car got))
+           (line (cdr got)))
+      (should (string= file "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include/Fci.h"))
+      (should (= line 44)))
+
+    (let* ((system-type 'gnu/linux)
+           (got (helm-gtags--extract-file-and-line "/usr/include/stdio.h:30:#define hoge 1"))
+           (file (car got))
+           (line (cdr got)))
+      (should (string= file "/usr/include/stdio.h"))
+      (should (= line 30)))))
+
+(ert-deftest helm-gtags--transformer-regexp ()
+  "Test utility `helm-gtags--transformer-regexp'"
+  (let ((input "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include/Fci.h:44:typedef unsigned int UINT; /* ui */"))
+    (let* ((system-type 'windows-nt)
+           (regexp (helm-gtags--transformer-regexp input)))
+      (should (string-match regexp input))
+      (should (string= (match-string-no-properties 1 input)
+                       "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include/Fci.h"))
+      (should (string= (match-string-no-properties 2 input) "44")))
+
+    (let* ((system-type 'gnu/linux)
+           (input "/usr/include/stdio.h:30:#define hoge 1")
+           (regexp (helm-gtags--transformer-regexp input)))
+      (should (string-match regexp input))
+      (should (string= (match-string-no-properties 1 input) "/usr/include/stdio.h"))
+      (should (string= (match-string-no-properties 2 input) "30")))))

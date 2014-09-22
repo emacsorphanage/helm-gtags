@@ -170,7 +170,9 @@ I recommend you to use `custom-set-variables` for setting this value.
 
 #### `helm-gtags-path-style`(Default `'root`)
 
-File path style, `'root` or `'relative` or `'absolute`
+File path style, `'root` or `'relative` or `'absolute`.
+You can only use `'absolute` if you use Windows and set `GTAGSLIBPATH` environment variable.
+helm-gtags.el forces to use absolute style in such case.
 
 #### `helm-gtags-ignore-case`(Default `nil`)
 

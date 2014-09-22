@@ -204,8 +204,16 @@ Always update if value of this variable is nil."
     (symbol    . "-s")
     (find-file . "-Poa")))
 
+(defsubst helm-gtags--windows-p ()
+  (memq system-type '(windows-nt ms-dos)))
+
+;; Work around for GNU global Windows issue
+(defsubst helm-gtags--use-abs-path-p (gtagslibpath)
+  (and (helm-gtags--windows-p) gtagslibpath))
+
 (defun helm-gtags--construct-options (type completion)
   (let ((find-file-p (eq type 'find-file))
+        (gtagslibpath (getenv "GTAGSLIBPATH"))
         options)
     (unless find-file-p
       (push "--result=grep" options))
@@ -213,13 +221,14 @@ Always update if value of this variable is nil."
       (push "-c" options))
     (helm-aif (assoc-default type helm-gtags--search-option-alist)
         (push it options))
-    (when (eq helm-gtags-path-style 'absolute)
+    (when (or (eq helm-gtags-path-style 'absolute)
+              (helm-gtags--use-abs-path-p gtagslibpath))
       (push "-a" options))
     (when helm-gtags-ignore-case
       (push "-i" options))
     (when (and current-prefix-arg (not find-file-p))
       (push "-l" options))
-    (when (getenv "GTAGSLIBPATH")
+    (when gtagslibpath
       (push "-T" options))
     options))
 
@@ -445,9 +454,9 @@ Always update if value of this variable is nil."
   (goto-char (point-min))
   (while (not (eobp))
     (let ((line (helm-current-line-contents)))
-      (let* ((cols (split-string line ":"))
-             (file (cl-first cols))
-             (ref-line (string-to-number (cl-second cols)))
+      (let* ((file-and-line (helm-gtags--extract-file-and-line line))
+             (file (car file-and-line))
+             (ref-line (cdr file-and-line))
              (ref-func (helm-gtags--referer-function file ref-line)))
         (when ref-func
           (search-forward ":" nil nil 2)
@@ -563,10 +572,22 @@ Always update if value of this variable is nil."
         (open-func (helm-gtags--select-find-file-func)))
     (helm-gtags--do-open-file open-func helm-gtags--parsed-file line)))
 
-(defun helm-gtags--action-openfile (elm)
-  (let* ((elems (split-string elm ":"))
-         (filename (cl-first elems))
-         (line (string-to-number (cl-second elems)))
+(defsubst helm-gtags--has-drive-letter-p (path)
+  (string-match-p "\\`[a-zA-Z]:" path))
+
+(defun helm-gtags--extract-file-and-line (cand)
+  (if (helm-gtags--windows-p)
+      (when (helm-gtags--has-drive-letter-p cand)
+        (when (string-match "\\(\\`[a-zA-Z]:[^:]+\\):\\([^:]+\\)" cand)
+          (cons (match-string-no-properties 1 cand)
+                (string-to-number (match-string-no-properties 2 cand)))))
+    (let ((elems (split-string cand ":")))
+      (cons (cl-first elems) (string-to-number (cl-second elems))))))
+
+(defun helm-gtags--action-openfile (cand)
+  (let* ((file-and-line (helm-gtags--extract-file-and-line cand))
+         (filename (car file-and-line))
+         (line (cdr file-and-line))
          (open-func (helm-gtags--select-find-file-func))
          (default-directory (helm-gtags--base-directory)))
     (helm-gtags--do-open-file open-func filename line)))
@@ -595,9 +616,9 @@ Always update if value of this variable is nil."
            collect (cons (helm-gtags--files-candidate-transformer line) index)))
 
 (defun helm-gtags--persistent-action (cand)
-  (let* ((elems (split-string cand ":"))
-         (filename (cl-first elems))
-         (line (string-to-number (cl-second elems)))
+  (let* ((file-and-line (helm-gtags--extract-file-and-line cand))
+         (filename (car file-and-line))
+         (line (cdr file-and-line))
          (default-directory (helm-gtags--base-directory)))
     (find-file filename)
     (goto-char (point-min))
@@ -653,14 +674,20 @@ Always update if value of this variable is nil."
       (setq last-pos (1+ (match-end 0))))
     candidate))
 
+(defun helm-gtags--transformer-regexp (candidate)
+  (if (and (helm-gtags--windows-p) (helm-gtags--has-drive-letter-p candidate))
+      "\\`\\([a-zA-Z]:[^:]+\\):\\([^:]+\\):\\(.*\\)"
+    "\\`\\([^:]+\\):\\([^:]+\\):\\(.*\\)"))
+
 (defun helm-gtags--candidate-transformer (candidate)
   (if (not helm-gtags-highlight-candidate)
       candidate
-    (when (string-match "\\`\\([^:]+\\):\\([^:]+\\):\\(.*\\)" candidate)
-      (format "%s:%s:%s"
-              (propertize (match-string 1 candidate) 'face 'helm-gtags-file)
-              (propertize (match-string 2 candidate) 'face 'helm-gtags-lineno)
-              (helm-gtags--highlight-candidate (match-string 3 candidate))))))
+    (let ((regexp (helm-gtags--transformer-regexp candidate)))
+      (when (string-match regexp candidate)
+        (format "%s:%s:%s"
+                (propertize (match-string 1 candidate) 'face 'helm-gtags-file)
+                (propertize (match-string 2 candidate) 'face 'helm-gtags-lineno)
+                (helm-gtags--highlight-candidate (match-string 3 candidate)))))))
 
 (defun helm-gtags--parse-file-candidate-transformer (file)
   (let ((removed-file (replace-regexp-in-string "\\`\\S-+ " "" file)))
