@@ -563,9 +563,15 @@ Always update if value of this variable is nil."
         (open-func (helm-gtags--select-find-file-func)))
     (helm-gtags--do-open-file open-func helm-gtags--parsed-file line)))
 
+(defsubst helm-gtags--windows-p ()
+  (memq system-type '(windows-nt ms-dos)))
+
+(defsubst helm-gtags--has-drive-letter-p (path)
+  (string-match-p "\\`[a-zA-Z]:" path))
+
 (defun helm-gtags--extract-file-and-line (cand)
-  (if (memq system-type '(windows-nt ms-dos))
-      (when (string-match-p "\\`[a-zA-Z]:" cand)
+  (if (helm-gtags--windows-p)
+      (when (helm-gtags--has-drive-letter-p cand)
         (when (string-match "\\(\\`[a-zA-Z]:[^:]+\\):\\([^:]+\\)" cand)
           (cons (match-string-no-properties 1 cand)
                 (string-to-number (match-string-no-properties 2 cand)))))
@@ -662,14 +668,20 @@ Always update if value of this variable is nil."
       (setq last-pos (1+ (match-end 0))))
     candidate))
 
+(defun helm-gtags--transformer-regexp (candidate)
+  (if (and (helm-gtags--windows-p) (helm-gtags--has-drive-letter-p candidate))
+      "\\`\\([a-zA-Z]:[^:]+\\):\\([^:]+\\):\\(.*\\)"
+    "\\`\\([^:]+\\):\\([^:]+\\):\\(.*\\)"))
+
 (defun helm-gtags--candidate-transformer (candidate)
   (if (not helm-gtags-highlight-candidate)
       candidate
-    (when (string-match "\\`\\([^:]+\\):\\([^:]+\\):\\(.*\\)" candidate)
-      (format "%s:%s:%s"
-              (propertize (match-string 1 candidate) 'face 'helm-gtags-file)
-              (propertize (match-string 2 candidate) 'face 'helm-gtags-lineno)
-              (helm-gtags--highlight-candidate (match-string 3 candidate))))))
+    (let ((regexp (helm-gtags--transformer-regexp candidate)))
+      (when (string-match regexp candidate)
+        (format "%s:%s:%s"
+                (propertize (match-string 1 candidate) 'face 'helm-gtags-file)
+                (propertize (match-string 2 candidate) 'face 'helm-gtags-lineno)
+                (helm-gtags--highlight-candidate (match-string 3 candidate)))))))
 
 (defun helm-gtags--parse-file-candidate-transformer (file)
   (let ((removed-file (replace-regexp-in-string "\\`\\S-+ " "" file)))

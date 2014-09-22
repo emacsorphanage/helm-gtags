@@ -124,4 +124,21 @@
            (file (car got))
            (line (cdr got)))
       (should (string= file "/usr/include/stdio.h"))
-      (should (string line 30)))))
+      (should (= line 30)))))
+
+(ert-deftest helm-gtags--transformer-regexp ()
+  "Test utility `helm-gtags--transformer-regexp'"
+  (let ((input "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include/Fci.h:44:typedef unsigned int UINT; /* ui */"))
+    (let* ((system-type 'windows-nt)
+           (regexp (helm-gtags--transformer-regexp input)))
+      (should (string-match regexp input))
+      (should (string= (match-string-no-properties 1 input)
+                       "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include/Fci.h"))
+      (should (string= (match-string-no-properties 2 input) "44")))
+
+    (let* ((system-type 'gnu/linux)
+           (input "/usr/include/stdio.h:30:#define hoge 1")
+           (regexp (helm-gtags--transformer-regexp input)))
+      (should (string-match regexp input))
+      (should (string= (match-string-no-properties 1 input) "/usr/include/stdio.h"))
+      (should (string= (match-string-no-properties 2 input) "30")))))
