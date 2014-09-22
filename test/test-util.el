@@ -95,6 +95,21 @@
          (got (helm-gtags--construct-options 'symbol t)))
     (should (equal got '("-T" "-l" "-i" "-a" "-s" "-c" "--result=grep")))))
 
+(ert-deftest helm-gtags--construct-options-force-abs-option ()
+  "Test utility `helm-gtags--construct-options' for special case of Windows system"
+
+  (let* ((system-type 'windows-nt)
+         (process-environment (list "GTAGSLIBPATH=foo" ))
+         (helm-gtags-path-style 'relative)
+         (got (helm-gtags--construct-options 'tag t)))
+    (should (member "-a" got)))
+
+  (let* ((system-type 'gnu/linux)
+         (process-environment (list "GTAGSLIBPATH=foo" ))
+         (helm-gtags-path-style 'root)
+         (got (helm-gtags--construct-options 'tag t)))
+    (should-not (member "-a" got))))
+
 (ert-deftest helm-gtags--check-browser-installed ()
   "Test utility `helm-gtags--browser-installed-p'"
   (should (ignore-errors (helm-gtags--check-browser-installed "emacs") t))
