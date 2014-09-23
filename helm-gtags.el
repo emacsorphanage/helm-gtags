@@ -428,13 +428,6 @@ Always update if value of this variable is nil."
          (hash-value (list file-mtime cache)))
     (puthash file-path hash-value helm-gtags--result-cache)))
 
-(defun helm-gtags--pop-context ()
-  (let* ((context-info (helm-gtags--get-context-info))
-         (context-stack (plist-get context-info :stack))
-         (context (pop context-stack)))
-    (helm-gtags--put-context-stack helm-gtags--tag-location -1 context-stack)
-    (helm-gtags--move-to-context context)))
-
 (defun helm-gtags--referer-function (file ref-line)
   (let ((is-opened (cl-loop with path = (concat default-directory file)
                             for buf in (buffer-list)
@@ -1041,7 +1034,11 @@ You can jump definitions of functions, symbols in this file."
 (defun helm-gtags-pop-stack ()
   "Jump to previous point on the context stack and pop it from stack."
   (interactive)
-  (helm-gtags--pop-context))
+  (let* ((context-info (helm-gtags--get-context-info))
+         (context-stack (plist-get context-info :stack))
+         (context (pop context-stack)))
+    (helm-gtags--put-context-stack helm-gtags--tag-location -1 context-stack)
+    (helm-gtags--move-to-context context)))
 
 ;;;###autoload
 (defun helm-gtags-show-stack ()
