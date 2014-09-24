@@ -428,13 +428,6 @@ Always update if value of this variable is nil."
          (hash-value (list file-mtime cache)))
     (puthash file-path hash-value helm-gtags--result-cache)))
 
-(defun helm-gtags--pop-context ()
-  (let* ((context-info (helm-gtags--get-context-info))
-         (context-stack (plist-get context-info :stack))
-         (context (pop context-stack)))
-    (helm-gtags--put-context-stack helm-gtags--tag-location -1 context-stack)
-    (helm-gtags--move-to-context context)))
-
 (defun helm-gtags--referer-function (file ref-line)
   (let ((is-opened (cl-loop with path = (concat default-directory file)
                             for buf in (buffer-list)
@@ -592,6 +585,10 @@ Always update if value of this variable is nil."
          (default-directory (helm-gtags--base-directory)))
     (helm-gtags--do-open-file open-func filename line)))
 
+(defun helm-gtags--action-openfile-other-window (cand)
+  (let ((helm-gtags--use-otherwin t))
+    (helm-gtags--action-openfile cand)))
+
 (defun helm-gtags--file-content-at-pos (file pos)
   (with-current-buffer (find-file-noselect file)
     (save-excursion
@@ -625,6 +622,12 @@ Always update if value of this variable is nil."
     (forward-line (1- line))
     (helm-highlight-current-line)))
 
+(define-helm-type-attribute 'helm-gtags-find-file
+  '((action
+     ("Open file" . helm-gtags--action-openfile)
+     ("Open file other window" . helm-gtags--action-openfile-other-window))
+    "helm-gtags open file attribute"))
+
 (defvar helm-source-gtags-tags
   `((name . "GNU GLOBAL")
     (init . helm-gtags--tags-init)
@@ -632,7 +635,7 @@ Always update if value of this variable is nil."
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags--persistent-action)
-    (action . helm-gtags--action-openfile)))
+    (type . helm-gtags-find-file)))
 
 (defvar helm-source-gtags-pattern
   `((name . "GNU GLOBAL")
@@ -641,7 +644,7 @@ Always update if value of this variable is nil."
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags--persistent-action)
-    (action . helm-gtags--action-openfile)))
+    (type . helm-gtags-find-file)))
 
 (defvar helm-source-gtags-rtags
   `((name . "GNU GLOBAL")
@@ -650,7 +653,7 @@ Always update if value of this variable is nil."
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags--persistent-action)
-    (action . helm-gtags--action-openfile)))
+    (type . helm-gtags-find-file)))
 
 (defvar helm-source-gtags-gsyms
   `((name . "GNU GLOBAL")
@@ -659,7 +662,7 @@ Always update if value of this variable is nil."
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags--persistent-action)
-    (action . helm-gtags--action-openfile)))
+    (type . helm-gtags-find-file)))
 
 (defun helm-gtags--highlight-candidate (candidate)
   (let ((regexp (concat "\\_<" helm-gtags--last-input "\\_>"))
@@ -712,14 +715,14 @@ Always update if value of this variable is nil."
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (real-to-display . helm-gtags--candidate-transformer)
     (persistent-action . helm-gtags--persistent-action)
-    (action . helm-gtags--action-openfile)))
+    (type . helm-gtags-find-file)))
 
 (defvar helm-source-gtags-parse-file
   `((name . "Parsed File")
     (init . helm-gtags--parse-file-init)
     (candidates-in-buffer)
     (real-to-display . helm-gtags--parse-file-candidate-transformer)
-    (action . helm-gtags--parse-file-action)
+    (type . helm-gtags-find-file)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)))
 
 (defun helm-gtags--show-stack-action (index)
@@ -735,7 +738,7 @@ Always update if value of this variable is nil."
     (volatile)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags--persistent-action)
-    (action . helm-gtags--show-stack-action)))
+    (type . helm-gtags-find-file)))
 
 ;;;###autoload
 (defun helm-gtags-select ()
@@ -821,7 +824,7 @@ Always update if value of this variable is nil."
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags--persistent-action)
-    (action . helm-gtags--action-openfile)))
+    (type . helm-gtags-find-file)))
 
 (defun helm-gtags--source-select-rtag (candidate)
   `((name . "GNU GLOBAL")
@@ -830,7 +833,7 @@ Always update if value of this variable is nil."
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
     (persistent-action . helm-gtags--persistent-action)
-    (action . helm-gtags--action-openfile)))
+    (type . helm-gtags-find-file)))
 
 (defun helm-gtags--select-tag-action (c)
   (helm-run-after-quit
@@ -863,12 +866,7 @@ Always update if value of this variable is nil."
     (init . helm-gtags--source-select-init)
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (action . (("Goto the location" . helm-gtags--select-tag-action)
-               ("Goto the location(other buffer)" .
-                (lambda (c)
-                  (setq helm-gtags--use-otherwin t)
-                  (helm-gtags--select-tag-action c)))
-               ("Move to the referenced point" . helm-gtags--select-rtag-action)))))
+    (type . helm-gtags-find-file)))
 
 (defun helm-gtags--select-path-init ()
   (with-current-buffer (helm-candidate-buffer 'global)
@@ -1036,7 +1034,11 @@ You can jump definitions of functions, symbols in this file."
 (defun helm-gtags-pop-stack ()
   "Jump to previous point on the context stack and pop it from stack."
   (interactive)
-  (helm-gtags--pop-context))
+  (let* ((context-info (helm-gtags--get-context-info))
+         (context-stack (plist-get context-info :stack))
+         (context (pop context-stack)))
+    (helm-gtags--put-context-stack helm-gtags--tag-location -1 context-stack)
+    (helm-gtags--move-to-context context)))
 
 ;;;###autoload
 (defun helm-gtags-show-stack ()
