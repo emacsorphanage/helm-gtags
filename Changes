@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.3.7 2014/09/25 syohex
+  - Fix case when global command generates warnings
+
 Revision 1.3.6 2014/09/24 syohex
   - Fix for Windows system
   - Add action which opens buffer in other window
