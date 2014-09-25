@@ -540,7 +540,7 @@ Always update if value of this variable is nil."
     (push context context-stack)
     (helm-gtags--put-context-stack helm-gtags--tag-location -1 context-stack)))
 
-(defun helm-gtags--select-find-file-func ()
+(defsubst helm-gtags--select-find-file-func ()
   (if helm-gtags--use-otherwin
       'helm-gtags--open-file-other-window
     'helm-gtags--open-file))
