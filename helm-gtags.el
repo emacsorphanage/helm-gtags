@@ -1078,17 +1078,14 @@ You can jump definitions of functions, symbols in this file."
     (single-update (list "global" "--single-update"
                          (expand-file-name (buffer-file-name))))))
 
-(defun helm-gtags--check-from-last-update (current-time)
-  (let ((delta (- current-time helm-gtags--last-update-time)))
-    (> delta helm-gtags-update-interval-second)))
-
 (defun helm-gtags--update-tags-p (proc-buf how-to interactive-p current-time)
   (unless (get-buffer proc-buf)
     (or interactive-p
         (and (eq how-to 'single-update)
              (buffer-file-name)
              (or (not helm-gtags-update-interval-second)
-                 (helm-gtags--check-from-last-update current-time))))))
+                 (>= (- current-time helm-gtags--last-update-time)
+                     helm-gtags-update-interval-second))))))
 
 ;;;###autoload
 (defun helm-gtags-update-tags ()
