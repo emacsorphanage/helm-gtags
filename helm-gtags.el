@@ -1075,7 +1075,7 @@ You can jump definitions of functions, symbols in this file."
   (cl-case how-to
     (entire-update '("global" "-u"))
     (generate-other-directory (list "gtags" (helm-gtags--read-tag-directory)))
-    (single-update (list "global" "-u" "--single-update"
+    (single-update (list "global" "--single-update"
                          (expand-file-name (buffer-file-name))))))
 
 (defun helm-gtags--check-from-last-update (current-time)
