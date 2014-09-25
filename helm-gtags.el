@@ -466,7 +466,7 @@ Always update if value of this variable is nil."
               (input (car (last args)))
               (coding-system-for-read buf-coding)
               (coding-system-for-write buf-coding))
-          (unless (zerop (apply 'process-file "global" nil t nil args))
+          (unless (zerop (apply 'process-file "global" nil '(t nil) nil args))
             (error (format "%s: not found" input)))
           (when detail
             (helm-gtags--show-detail)))))))
