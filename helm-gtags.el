@@ -540,7 +540,7 @@ Always update if value of this variable is nil."
     (push context context-stack)
     (helm-gtags--put-context-stack helm-gtags--tag-location -1 context-stack)))
 
-(defun helm-gtags--select-find-file-func ()
+(defsubst helm-gtags--select-find-file-func ()
   (if helm-gtags--use-otherwin
       'helm-gtags--open-file-other-window
     'helm-gtags--open-file))
@@ -1075,12 +1075,8 @@ You can jump definitions of functions, symbols in this file."
   (cl-case how-to
     (entire-update '("global" "-u"))
     (generate-other-directory (list "gtags" (helm-gtags--read-tag-directory)))
-    (single-update (list "global" "-u" "--single-update"
+    (single-update (list "global" "--single-update"
                          (expand-file-name (buffer-file-name))))))
-
-(defun helm-gtags--check-from-last-update (current-time)
-  (let ((delta (- current-time helm-gtags--last-update-time)))
-    (> delta helm-gtags-update-interval-second)))
 
 (defun helm-gtags--update-tags-p (proc-buf how-to interactive-p current-time)
   (unless (get-buffer proc-buf)
@@ -1088,7 +1084,8 @@ You can jump definitions of functions, symbols in this file."
         (and (eq how-to 'single-update)
              (buffer-file-name)
              (or (not helm-gtags-update-interval-second)
-                 (helm-gtags--check-from-last-update current-time))))))
+                 (>= (- current-time helm-gtags--last-update-time)
+                     helm-gtags-update-interval-second))))))
 
 ;;;###autoload
 (defun helm-gtags-update-tags ()
@@ -1106,7 +1103,6 @@ Generate new TAG file in selected directory with `C-u C-u'"
             (progn
               (message "Failed: %s" (mapconcat 'identity cmds " "))
               (kill-buffer proc-buf))
-          (set-process-query-on-exit-flag proc nil)
           (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'update))
           (setq helm-gtags--last-update-time current-time))))))
 
