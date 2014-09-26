@@ -1103,7 +1103,6 @@ Generate new TAG file in selected directory with `C-u C-u'"
             (progn
               (message "Failed: %s" (mapconcat 'identity cmds " "))
               (kill-buffer proc-buf))
-          (set-process-query-on-exit-flag proc nil)
           (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'update))
           (setq helm-gtags--last-update-time current-time))))))
 
