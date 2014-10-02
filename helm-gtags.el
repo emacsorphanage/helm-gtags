@@ -722,7 +722,7 @@ Always update if value of this variable is nil."
     (init . helm-gtags--parse-file-init)
     (candidates-in-buffer)
     (real-to-display . helm-gtags--parse-file-candidate-transformer)
-    (type . helm-gtags-find-file)
+    (action . helm-gtags--parse-file-action)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)))
 
 (defun helm-gtags--show-stack-action (index)
