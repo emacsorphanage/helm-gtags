@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.3.8 2014/10/02 syohex
+  - Fix helm-gtags-parse-file bug(Reported by MatthiasScholz)
+
 Revision 1.3.7 2014/09/25 syohex
   - Fix case when global command generates warnings
 
