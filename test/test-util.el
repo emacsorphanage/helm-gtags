@@ -134,6 +134,15 @@
       (should (string= file "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include/Fci.h"))
       (should (= line 44)))
 
+    ;; https://github.com/syohex/emacs-helm-gtags/issues/80
+    (let* ((system-type 'windows-nt)
+           (got (helm-gtags--extract-file-and-line "../include/stdio.h:30:#define hoge 1")))
+      (should got)
+      (let ((file (car got))
+            (line (cdr got)))
+       (should (string= file "../include/stdio.h"))
+       (should (= line 30))))
+
     (let* ((system-type 'gnu/linux)
            (got (helm-gtags--extract-file-and-line "/usr/include/stdio.h:30:#define hoge 1"))
            (file (car got))

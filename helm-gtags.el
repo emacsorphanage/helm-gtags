@@ -569,11 +569,10 @@ Always update if value of this variable is nil."
   (string-match-p "\\`[a-zA-Z]:" path))
 
 (defun helm-gtags--extract-file-and-line (cand)
-  (if (helm-gtags--windows-p)
-      (when (helm-gtags--has-drive-letter-p cand)
-        (when (string-match "\\(\\`[a-zA-Z]:[^:]+\\):\\([^:]+\\)" cand)
-          (cons (match-string-no-properties 1 cand)
-                (string-to-number (match-string-no-properties 2 cand)))))
+  (if (and (helm-gtags--windows-p) (helm-gtags--has-drive-letter-p cand))
+      (when (string-match "\\(\\`[a-zA-Z]:[^:]+\\):\\([^:]+\\)" cand)
+        (cons (match-string-no-properties 1 cand)
+              (string-to-number (match-string-no-properties 2 cand))))
     (let ((elems (split-string cand ":")))
       (cons (cl-first elems) (string-to-number (cl-second elems))))))
 
