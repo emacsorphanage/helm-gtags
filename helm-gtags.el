@@ -865,7 +865,12 @@ Always update if value of this variable is nil."
     (init . helm-gtags--source-select-init)
     (candidates-in-buffer)
     (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (type . helm-gtags-find-file)))
+    (action . (("Goto the location" . helm-gtags--select-tag-action)
+               ("Goto the location(other buffer)" .
+                (lambda (c)
+                  (setq helm-gtags--use-otherwin t)
+                  (helm-gtags--select-tag-action c)))
+               ("Move to the referenced point" . helm-gtags--select-rtag-action)))))
 
 (defun helm-gtags--select-path-init ()
   (with-current-buffer (helm-candidate-buffer 'global)
