@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.3.9 2014/10/05 syohex
+  - Fix Windows relative path issue and helm-gtags-select bug(Reported by SiameseCat)
+
 Revision 1.3.8 2014/10/02 syohex
   - Fix helm-gtags-parse-file bug(Reported by MatthiasScholz)
 
