@@ -515,7 +515,7 @@ Always update if value of this variable is nil."
     (setq helm-gtags--last-input token)
     (with-current-buffer (helm-candidate-buffer 'global)
       (let* ((default-directory (helm-gtags--base-directory))
-             (status (process-file "global" nil t nil
+             (status (process-file "global" nil '(t nil) nil
                                    "--result=grep" from-here-opt token)))
         (unless (zerop status)
           (cond ((= status 1)
