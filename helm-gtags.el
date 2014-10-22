@@ -1056,12 +1056,14 @@ You can jump definitions of functions, symbols in this file."
   "Clear current context stack."
   (interactive)
   (let ((tag-location (helm-gtags--find-tag-directory)))
+    (message "Clear '%s' context stack." tag-location)
     (remhash tag-location helm-gtags--context-stack)))
 
 ;;;###autoload
 (defun helm-gtags-clear-all-stacks ()
   "Clear all context stacks."
   (interactive)
+  (message "Clear all context statks.")
   (setq helm-gtags--context-stack (make-hash-table :test 'equal)))
 
 (defun helm-gtags--read-tag-directory ()
