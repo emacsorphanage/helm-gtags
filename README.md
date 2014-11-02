@@ -25,6 +25,17 @@ by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 `helm-gtags.el` does not require `gtags.el`.
 
 
+## Use Ctags with helm-gtags
+
+You can use `helm-gtags` for languages which are supported by `ctags`
+with ctags backend feature of `GNU global`. You can generate `ctags` backend
+tags by following command.
+
+```
+ % gtags --gtagslabel=ctags
+```
+
+
 ## Basic Usage
 
 #### `helm-gtags-mode`
