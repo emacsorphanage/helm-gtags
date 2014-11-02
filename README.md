@@ -1,4 +1,4 @@
-# helm-gtags.el
+# helm-gtags.el [![travis badge][travis-badge]][travis-link] [![melpa badge][melpa-badge]][melpa-link] [![melpa stable badge][melpa-stable-badge]][melpa-stable-link]
 
 ## Introduction
 `helm-gtags.el` is GNU GLOBAL helm interface.
@@ -259,3 +259,10 @@ Face of line number of candidates
      (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
      (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
 ```
+
+[travis-badge]: https://travis-ci.org/syohex/emacs-helm-gtags.png
+[travis-link]: https://travis-ci.org/syohex/emacs-helm-gtags
+[melpa-link]: http://melpa.org/#/helm-gtags
+[melpa-stable-link]: http://melpa.org/#/helm-gtags
+[melpa-badge]: http://melpa.org/packages/helm-gtags-badge.svg
+[melpa-stable-badge]: http://stable.melpa.org/packages/helm-gtags-badge.svg
