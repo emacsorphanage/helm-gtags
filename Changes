@@ -1,5 +1,11 @@
 Revision history for helm-gtags.el
 
+Revision 1.4.1 2014/11/03 syohex
+  - Read gtagslabel type at helm-gtags-create-tags
+  - [Incompatible Change]
+    Change signature of helm-gtags-create-tags
+    There is problem if you use it as function
+
 Revision 1.4.0 2014/10/22 syohex
   - Fix helm-gtags-select when gtags generates some warnings
   - Add verbose message for clear context stack commands
