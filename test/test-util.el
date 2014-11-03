@@ -166,3 +166,8 @@
       (should (string-match regexp input))
       (should (string= (match-string-no-properties 1 input) "/usr/include/stdio.h"))
       (should (string= (match-string-no-properties 2 input) "30")))))
+
+(ert-deftest helm-gtags--label-option ()
+  "Test utility `helm-gtags--label-option'"
+  (let ((option (helm-gtags--label-option "ctags")))
+    (should (string= option "--gtagslabel=ctags"))))
