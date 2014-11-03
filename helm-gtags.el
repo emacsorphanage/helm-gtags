@@ -903,13 +903,22 @@ Always update if value of this variable is nil."
         (message "Failed: %s TAGS" action))
       (kill-buffer (process-buffer process)))))
 
+(defsubst helm-gtags--read-gtagslabel ()
+  (let ((labels '("default" "native" "ctags" "pygments")))
+    (completing-read "GTAGSLABEL(Default: default): " labels nil t nil nil "default")))
+
+(defsubst helm-gtags--label-option (label)
+  (concat "--gtagslabel=" label))
+
 ;;;###autoload
-(defun helm-gtags-create-tags (dir)
+(defun helm-gtags-create-tags (dir label)
   (interactive
-   (list (read-directory-name "Root Directory: ")))
+   (list (read-directory-name "Root Directory: ")
+         (helm-gtags--read-gtagslabel)))
   (let ((default-directory dir)
         (proc-buf (get-buffer-create " *helm-gtags-create*")))
-    (let ((proc (start-process "helm-gtags-create" proc-buf "gtags" "-q")))
+    (let ((proc (start-process "helm-gtags-create" proc-buf
+                               "gtags" "-q" (helm-gtags--label-option label))))
       (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'create)))))
 
 (defun helm-gtags--find-tag-simple ()
@@ -917,9 +926,11 @@ Always update if value of this variable is nil."
       (if (not (yes-or-no-p "File GTAGS not found. Run 'gtags'? "))
           (user-error "Abort")
         (let* ((tagroot (read-directory-name "Root Directory: "))
+               (label (helm-gtags--read-gtagslabel))
                (default-directory tagroot))
           (message "gtags is generating tags....")
-          (unless (zerop (process-file "gtags" nil nil nil "-q"))
+          (unless (zerop (process-file "gtags" nil nil nil
+                                       "-q" (helm-gtags--label-option label)))
             (error "Faild: 'gtags -q'"))
           tagroot))))
 
