@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.4.2 2014/11/11 syohex
+  - Fix for tramp
+
 Revision 1.4.1 2014/11/03 syohex
   - Read gtagslabel type at helm-gtags-create-tags
   - [Incompatible Change]
