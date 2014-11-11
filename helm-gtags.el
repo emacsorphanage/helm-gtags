@@ -917,8 +917,8 @@ Always update if value of this variable is nil."
          (helm-gtags--read-gtagslabel)))
   (let ((default-directory dir)
         (proc-buf (get-buffer-create " *helm-gtags-create*")))
-    (let ((proc (start-process "helm-gtags-create" proc-buf
-                               "gtags" "-q" (helm-gtags--label-option label))))
+    (let ((proc (start-file-process "helm-gtags-create" proc-buf
+                                    "gtags" "-q" (helm-gtags--label-option label))))
       (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'create)))))
 
 (defun helm-gtags--find-tag-simple ()
@@ -1115,7 +1115,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
         (current-time (float-time (current-time))))
     (when (helm-gtags--update-tags-p proc-buf how-to interactive-p current-time)
       (let* ((cmds (helm-gtags--update-tags-command how-to))
-             (proc (apply 'start-process "helm-gtags-update-tag" proc-buf cmds)))
+             (proc (apply 'start-file-process "helm-gtags-update-tag" proc-buf cmds)))
         (if (not proc)
             (progn
               (message "Failed: %s" (mapconcat 'identity cmds " "))
