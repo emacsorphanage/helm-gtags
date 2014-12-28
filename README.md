@@ -233,6 +233,10 @@ Maximum number of helm candidates in `helm-gtags.el`.
 Please set small number if you feel slow for large source tree
 such as Linux kernel.
 
+#### `helm-gtags-fuzzy-match`(Default `nil`)
+
+Enable fuzzy match.
+You should set this value before loading `helm-gtags.el`.
 
 ## Faces
 
