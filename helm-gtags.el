@@ -133,6 +133,11 @@ Always update if value of this variable is nil."
                  (const :tag "Normal style" nil))
   :group 'helm-gtags)
 
+(defcustom helm-gtags-fuzzy-match nil
+  "Enable fuzzy match"
+  :type 'boolean
+  :group 'helm-gtags)
+
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
   "Face for line numbers in the error list."
@@ -621,47 +626,46 @@ Always update if value of this variable is nil."
     (forward-line (1- line))
     (helm-highlight-current-line)))
 
-(define-helm-type-attribute 'helm-gtags-find-file
-  '((action
-     ("Open file" . helm-gtags--action-openfile)
-     ("Open file other window" . helm-gtags--action-openfile-other-window))
+(defvar helm-gtags--find-file-action
+  '(("Open file" . helm-gtags--action-openfile)
+    ("Open file other window" . helm-gtags--action-openfile-other-window)
     "helm-gtags open file attribute"))
 
 (defvar helm-source-gtags-tags
-  `((name . "GNU GLOBAL")
-    (init . helm-gtags--tags-init)
-    (candidates-in-buffer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (real-to-display . helm-gtags--candidate-transformer)
-    (persistent-action . helm-gtags--persistent-action)
-    (type . helm-gtags-find-file)))
+  (helm-build-in-buffer-source "Jump to definitions"
+    :init 'helm-gtags--tags-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display 'helm-gtags--candidate-transformer
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action helm-gtags--find-file-action))
 
 (defvar helm-source-gtags-pattern
-  `((name . "GNU GLOBAL")
-    (init . helm-gtags--pattern-init)
-    (candidates-in-buffer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (real-to-display . helm-gtags--candidate-transformer)
-    (persistent-action . helm-gtags--persistent-action)
-    (type . helm-gtags-find-file)))
+  (helm-build-in-buffer-source "Find pattern"
+    :init 'helm-gtags--pattern-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display 'helm-gtags--candidate-transformer
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action helm-gtags--find-file-action))
 
 (defvar helm-source-gtags-rtags
-  `((name . "GNU GLOBAL")
-    (init . helm-gtags--rtags-init)
-    (candidates-in-buffer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (real-to-display . helm-gtags--candidate-transformer)
-    (persistent-action . helm-gtags--persistent-action)
-    (type . helm-gtags-find-file)))
+  (helm-build-in-buffer-source "Jump to references"
+    :init 'helm-gtags--rtags-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display 'helm-gtags--candidate-transformer
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action helm-gtags--find-file-action))
 
 (defvar helm-source-gtags-gsyms
-  `((name . "GNU GLOBAL")
-    (init . helm-gtags--gsyms-init)
-    (candidates-in-buffer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (real-to-display . helm-gtags--candidate-transformer)
-    (persistent-action . helm-gtags--persistent-action)
-    (type . helm-gtags-find-file)))
+  (helm-build-in-buffer-source "Jump to symbols"
+    :init 'helm-gtags--gsyms-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display 'helm-gtags--candidate-transformer
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action helm-gtags--find-file-action))
 
 (defun helm-gtags--highlight-candidate (candidate)
   (let ((regexp (concat "\\_<" helm-gtags--last-input "\\_>"))
@@ -700,29 +704,30 @@ Always update if value of this variable is nil."
               (match-string-no-properties 3 removed-file)))))
 
 (defvar helm-source-gtags-files
-  `((name . "GNU GLOBAL")
-    (init . helm-gtags--files-init)
-    (candidates-in-buffer)
-    (real-to-display . helm-gtags--files-candidate-transformer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (type . file)))
+  (helm-build-in-buffer-source "Find files"
+    :init 'helm-gtags--files-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display 'helm-gtags--files-candidate-transformer
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action (helm-actions-from-type-file)))
 
 (defvar helm-source-gtags-find-tag-from-here
-  `((name . "GNU GLOBAL")
-    (init . helm-gtags--find-tag-from-here-init)
-    (candidates-in-buffer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (real-to-display . helm-gtags--candidate-transformer)
-    (persistent-action . helm-gtags--persistent-action)
-    (type . helm-gtags-find-file)))
+  (helm-build-in-buffer-source "Find tag from here"
+    :init 'helm-gtags--find-tag-from-here-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display 'helm-gtags--candidate-transformer
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action helm-gtags--find-file-action))
 
 (defvar helm-source-gtags-parse-file
-  `((name . "Parsed File")
-    (init . helm-gtags--parse-file-init)
-    (candidates-in-buffer)
-    (real-to-display . helm-gtags--parse-file-candidate-transformer)
-    (action . helm-gtags--parse-file-action)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)))
+  (helm-build-in-buffer-source "Parse file"
+    :init 'helm-gtags--parse-file-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display 'helm-gtags--parse-file-candidate-transformer
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action 'helm-gtags--parse-file-action))
 
 (defun helm-gtags--show-stack-action (index)
   (let* ((context-info (helm-gtags--get-context-info))
@@ -732,12 +737,13 @@ Always update if value of this variable is nil."
     (helm-gtags--move-to-context (nth index context-stack))))
 
 (defvar helm-source-gtags-show-stack
-  `((name . "Show Context Stack")
-    (candidates . helm-gtags--show-stack-init)
-    (volatile)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (persistent-action . helm-gtags--persistent-action)
-    (type . helm-gtags-find-file)))
+  (helm-build-sync-source "Show Context Stack"
+    :candidates 'helm-gtags--show-stack-init
+    :volatile t
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action 'helm-gtags--show-stack-action))
 
 ;;;###autoload
 (defun helm-gtags-select ()
@@ -861,16 +867,17 @@ Always update if value of this variable is nil."
       (helm-gtags--select-cache-init-common '("-c") "GTAGS"))))
 
 (defvar helm-source-gtags-select
-  `((name . "GNU GLOBAL SELECT")
-    (init . helm-gtags--source-select-init)
-    (candidates-in-buffer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (action . (("Goto the location" . helm-gtags--select-tag-action)
-               ("Goto the location(other buffer)" .
-                (lambda (c)
-                  (setq helm-gtags--use-otherwin t)
-                  (helm-gtags--select-tag-action c)))
-               ("Move to the referenced point" . helm-gtags--select-rtag-action)))))
+  (helm-build-in-buffer-source "Find tag from here"
+    :init 'helm-gtags--source-select-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action '(("Goto the location" . helm-gtags--select-tag-action)
+              ("Goto the location(other buffer)" .
+               (lambda (c)
+                 (setq helm-gtags--use-otherwin t)
+                 (helm-gtags--select-tag-action c)))
+              ("Move to the referenced point" . helm-gtags--select-rtag-action))))
 
 (defun helm-gtags--select-path-init ()
   (with-current-buffer (helm-candidate-buffer 'global)
@@ -879,12 +886,13 @@ Always update if value of this variable is nil."
       (helm-gtags--select-cache-init-common '("-Poa") "GPATH"))))
 
 (defvar helm-source-gtags-select-path
-  `((name . "GNU GLOBAL PATH")
-    (init . helm-gtags--select-path-init)
-    (candidates-in-buffer)
-    (real-to-display . helm-gtags--files-candidate-transformer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (type . file)))
+  (helm-build-in-buffer-source "Select path"
+    :init 'helm-gtags--select-path-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display 'helm-gtags--files-candidate-transformer
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action (helm-actions-from-type-file)))
 
 (defun helm-gtags--searched-directory ()
   (cl-case (prefix-numeric-value current-prefix-arg)
