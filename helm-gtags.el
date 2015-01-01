@@ -509,7 +509,7 @@ Always update if value of this variable is nil."
       (error "This buffer is not related to file."))
     (if (file-remote-p buffile)
         (tramp-file-name-localname (tramp-dissect-file-name buffile))
-      buffile)))
+      (file-truename buffile))))
 
 (defun helm-gtags--find-tag-from-here-init ()
   (helm-gtags--find-tag-directory)
