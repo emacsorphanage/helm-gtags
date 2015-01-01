@@ -102,11 +102,6 @@ Always update if value of this variable is nil."
                  (boolean :tag "Update every time" nil))
   :group 'helm-gtags)
 
-(defcustom helm-gtags-maximum-candidates 9999
-  "Maximum number of helm candidates"
-  :type 'integer
-  :group 'helm-gtags)
-
 (defcustom helm-gtags-highlight-candidate t
   "Highlight candidate or not"
   :type 'boolean
@@ -136,6 +131,11 @@ Always update if value of this variable is nil."
 (defcustom helm-gtags-fuzzy-match nil
   "Enable fuzzy match"
   :type 'boolean
+  :group 'helm-gtags)
+
+(defcustom helm-gtags-maximum-candidates (if helm-gtags-fuzzy-match 100 9999)
+  "Maximum number of helm candidates"
+  :type 'integer
   :group 'helm-gtags)
 
 (defface helm-gtags-file
