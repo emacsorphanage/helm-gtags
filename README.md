@@ -227,16 +227,20 @@ Max size(bytes) to cache for each select result
 
 If this variable is non-nil, pulse at point after jumping
 
-#### `helm-gtags-maximum-candidates`(Default `9999`)
+#### `helm-gtags-fuzzy-match`(Default `nil`)
+
+Enable fuzzy match.
+You should set this value before loading `helm-gtags.el`.
+
+#### `helm-gtags-maximum-candidates`
 
 Maximum number of helm candidates in `helm-gtags.el`.
 Please set small number if you feel slow for large source tree
 such as Linux kernel.
 
-#### `helm-gtags-fuzzy-match`(Default `nil`)
-
-Enable fuzzy match.
-You should set this value before loading `helm-gtags.el`.
+Default value is
+- 9999(Disable fuzzy match)
+- 100(Enable fuzzy match)
 
 ## Faces
 
