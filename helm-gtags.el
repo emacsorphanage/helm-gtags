@@ -823,32 +823,30 @@ Always update if value of this variable is nil."
       (helm-gtags-find-tag tag))))
 
 (defun helm-gtags--source-select-tag (candidate)
-  `((name . "GNU GLOBAL")
-    (init . (lambda ()
-              (helm-gtags--tags-init ,candidate)))
-    (candidates-in-buffer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (persistent-action . helm-gtags--persistent-action)
-    (type . helm-gtags-find-file)))
+  (helm-build-in-buffer-source "Select Tag"
+    :init (lambda () (helm-gtags--tags-init candidate))
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action helm-gtags--find-file-action))
 
 (defun helm-gtags--source-select-rtag (candidate)
-  `((name . "GNU GLOBAL")
-    (init . (lambda ()
-              (helm-gtags--rtags-init ,candidate)))
-    (candidates-in-buffer)
-    (candidate-number-limit . ,helm-gtags-maximum-candidates)
-    (persistent-action . helm-gtags--persistent-action)
-    (type . helm-gtags-find-file)))
+  (helm-build-in-buffer-source "Select Rtag"
+    :init (lambda () (helm-gtags--rtags-init candidate))
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :persistent-action 'helm-gtags--persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action helm-gtags--find-file-action))
 
 (defun helm-gtags--select-tag-action (c)
   (helm-run-after-quit
-   `(lambda ()
-      (helm-gtags--common (list (helm-gtags--source-select-tag ,c)) nil))))
+   (lambda ()
+     (helm-gtags--common (list (helm-gtags--source-select-tag c)) nil))))
 
 (defun helm-gtags--select-rtag-action (c)
   (helm-run-after-quit
-   `(lambda ()
-      (helm-gtags--common (list (helm-gtags--source-select-rtag ,c)) nil))))
+   (lambda ()
+     (helm-gtags--common (list (helm-gtags--source-select-rtag c)) nil))))
 
 (defun helm-gtags--select-cache-init-common (args tagfile)
   (let ((cache (helm-gtags--get-result-cache tagfile)))
