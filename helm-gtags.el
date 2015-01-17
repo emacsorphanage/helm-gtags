@@ -906,8 +906,7 @@ Always update if value of this variable is nil."
     (when (eq (process-status process) 'exit)
       (if (zerop (process-exit-status process))
           (message "Success: %s TAGS" action)
-        (message "Failed: %s TAGS" action))
-      (kill-buffer (process-buffer process)))))
+        (message "Failed: %s TAGS(%d)" action (process-exit-status process))))))
 
 (defsubst helm-gtags--read-gtagslabel ()
   (let ((labels '("default" "native" "ctags" "pygments")))
@@ -1098,17 +1097,15 @@ You can jump definitions of functions, symbols in this file."
   (cl-case how-to
     (entire-update '("global" "-u"))
     (generate-other-directory (list "gtags" (helm-gtags--read-tag-directory)))
-    (single-update (list "global" "--single-update"
-                         (expand-file-name (buffer-file-name))))))
+    (single-update (list "global" "--single-update" (helm-gtags--real-file-name)))))
 
-(defun helm-gtags--update-tags-p (proc-buf how-to interactive-p current-time)
-  (unless (get-buffer proc-buf)
-    (or interactive-p
-        (and (eq how-to 'single-update)
-             (buffer-file-name)
-             (or (not helm-gtags-update-interval-second)
-                 (>= (- current-time helm-gtags--last-update-time)
-                     helm-gtags-update-interval-second))))))
+(defun helm-gtags--update-tags-p (how-to interactive-p current-time)
+  (or interactive-p
+      (and (eq how-to 'single-update)
+           (buffer-file-name)
+           (or (not helm-gtags-update-interval-second)
+               (>= (- current-time helm-gtags--last-update-time)
+                   helm-gtags-update-interval-second)))))
 
 ;;;###autoload
 (defun helm-gtags-update-tags ()
@@ -1117,15 +1114,12 @@ Generate new TAG file in selected directory with `C-u C-u'"
   (interactive)
   (let ((how-to (helm-gtags--how-to-update-tags))
         (interactive-p (called-interactively-p 'interactive))
-        (proc-buf " *helm-gtags-update-tag*")
         (current-time (float-time (current-time))))
-    (when (helm-gtags--update-tags-p proc-buf how-to interactive-p current-time)
+    (when (helm-gtags--update-tags-p how-to interactive-p current-time)
       (let* ((cmds (helm-gtags--update-tags-command how-to))
-             (proc (apply 'start-file-process "helm-gtags-update-tag" proc-buf cmds)))
+             (proc (apply 'start-file-process "helm-gtags-update-tag" nil cmds)))
         (if (not proc)
-            (progn
-              (message "Failed: %s" (mapconcat 'identity cmds " "))
-              (kill-buffer proc-buf))
+            (message "Failed: %s" (mapconcat 'identity cmds " "))
           (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'update))
           (setq helm-gtags--last-update-time current-time))))))
 
