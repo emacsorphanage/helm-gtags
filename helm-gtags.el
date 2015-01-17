@@ -1097,17 +1097,7 @@ You can jump definitions of functions, symbols in this file."
   (cl-case how-to
     (entire-update '("global" "-u"))
     (generate-other-directory (list "gtags" (helm-gtags--read-tag-directory)))
-    (single-update (list "global" "--single-update"
-                         (expand-file-name (buffer-file-name))))))
-
-(defun helm-gtags--update-tags-p (proc-buf how-to interactive-p current-time)
-  (unless (get-buffer proc-buf)
-    (or interactive-p
-        (and (eq how-to 'single-update)
-             (buffer-file-name)
-             (or (not helm-gtags-update-interval-second)
-                 (>= (- current-time helm-gtags--last-update-time)
-                     helm-gtags-update-interval-second))))))
+    (single-update (list "global" "--single-update" (helm-gtags--real-file-name)))))
 
 (defun helm-gtags--update-tags-p (how-to interactive-p current-time)
   (or interactive-p
