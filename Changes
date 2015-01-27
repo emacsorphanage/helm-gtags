@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.4.6 2015/01/28 syohex
+  - Fix choosing action issue
+
 Revision 1.4.5 2015/01/21 syohex
   - Fix tramp issue of helm-gtags-update-tags(#96)
 
