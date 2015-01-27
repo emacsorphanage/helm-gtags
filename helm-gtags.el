@@ -628,8 +628,7 @@ Always update if value of this variable is nil."
 
 (defvar helm-gtags--find-file-action
   '(("Open file" . helm-gtags--action-openfile)
-    ("Open file other window" . helm-gtags--action-openfile-other-window)
-    "helm-gtags open file attribute"))
+    ("Open file other window" . helm-gtags--action-openfile-other-window)))
 
 (defvar helm-source-gtags-tags
   (helm-build-in-buffer-source "Jump to definitions"
