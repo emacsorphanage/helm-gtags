@@ -122,8 +122,8 @@ Always update if value of this variable is nil."
   :type 'boolean
   :group 'helm-gtags)
 
-(defcustom helm-gtags-preselect-rtag t
-  "If non-nil, preselect current reference in rtag."
+(defcustom helm-gtags-preselect nil
+  "If non-nil, preselect current file and line."
   :type 'boolean
   :group 'helm-gtags)
 
