@@ -122,6 +122,11 @@ Always update if value of this variable is nil."
   :type 'boolean
   :group 'helm-gtags)
 
+(defcustom helm-gtags-preselect-rtag t
+  "If non-nil, preselect current reference in rtag."
+  :type 'boolean
+  :group 'helm-gtags)
+
 (defcustom helm-gtags-display-style nil
   "Style of display result."
   :type '(choice (const :tag "Show in detail" detail)
@@ -938,11 +943,13 @@ Always update if value of this variable is nil."
             (error "Faild: 'gtags -q'"))
           tagroot))))
 
-(defun helm-gtags--common (srcs tagname)
+(defun helm-gtags--common (srcs tagname &optional preselect)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
         (dir (helm-gtags--searched-directory))
-        (src (car srcs)))
+        (src (car srcs))
+        (presel (if (and preselect helm-gtags-preselect-rtag)
+                    (regexp-quote preselect) nil)))
     (when (symbolp src)
       (setq src (symbol-value src)))
     (unless helm-gtags--use-otherwin
@@ -952,7 +959,26 @@ Always update if value of this variable is nil."
     (let ((tagroot (helm-gtags--find-tag-simple)))
       (helm-attrset 'helm-gtags-base-directory dir src)
       (helm-attrset 'name (concat "GNU Global at " (or dir tagroot)) src)
-      (helm :sources srcs :buffer helm-gtags--buffer))))
+      (helm :sources srcs
+            :buffer helm-gtags--buffer
+            :preselect presel
+      ))))
+
+(defun helm-gtags--current-file-and-line ()
+  (concat
+   (cond
+    ((eq helm-gtags-path-style 'absolute)
+     (buffer-file-name (current-buffer)))
+    ((eq helm-gtags-path-style 'root)
+          (file-relative-name
+      (buffer-file-name (current-buffer))
+      (helm-gtags--find-tag-directory)))
+    (t ;; relative
+     (file-relative-name
+      (buffer-file-name (current-buffer))
+      (helm-gtags--base-directory))))
+   ":"
+   (number-to-string (line-number-at-pos))))
 
 ;;;###autoload
 (defun helm-gtags-find-tag (tag)
@@ -974,7 +1000,9 @@ Always update if value of this variable is nil."
   "Jump to referenced point"
   (interactive
    (list (helm-gtags--read-tagname 'rtag (which-function))))
-  (helm-gtags--common '(helm-source-gtags-rtags) tag))
+  (helm-gtags--common '(helm-source-gtags-rtags)
+                      tag
+                      (helm-gtags--current-file-and-line)))
 
 ;;;###autoload
 (defun helm-gtags-find-symbol (tag)
