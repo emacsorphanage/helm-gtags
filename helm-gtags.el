@@ -943,13 +943,23 @@ Always update if value of this variable is nil."
             (error "Faild: 'gtags -q'"))
           tagroot))))
 
-(defun helm-gtags--common (srcs tagname &optional preselect)
+(defun helm-gtags--current-file-and-line ()
+  (let* ((buffile (buffer-file-name))
+         (path (cl-case helm-gtags-path-style
+                 (absolute buffile)
+                 (root
+                  (file-relative-name buffile (helm-gtags--find-tag-directory)))
+                 (relative
+                  (file-relative-name buffile (helm-gtags--base-directory))))))
+    (format "%s:%d" path (line-number-at-pos))))
+
+(defun helm-gtags--common (srcs tagname)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
         (dir (helm-gtags--searched-directory))
         (src (car srcs))
-        (presel (if (and preselect helm-gtags-preselect-rtag)
-                    (regexp-quote preselect) nil)))
+        (preselect-regexp (when helm-gtags-preselect
+                            (regexp-quote (helm-gtags--current-file-and-line)))))
     (when (symbolp src)
       (setq src (symbol-value src)))
     (unless helm-gtags--use-otherwin
@@ -959,26 +969,8 @@ Always update if value of this variable is nil."
     (let ((tagroot (helm-gtags--find-tag-simple)))
       (helm-attrset 'helm-gtags-base-directory dir src)
       (helm-attrset 'name (concat "GNU Global at " (or dir tagroot)) src)
-      (helm :sources srcs
-            :buffer helm-gtags--buffer
-            :preselect presel
-      ))))
-
-(defun helm-gtags--current-file-and-line ()
-  (concat
-   (cond
-    ((eq helm-gtags-path-style 'absolute)
-     (buffer-file-name (current-buffer)))
-    ((eq helm-gtags-path-style 'root)
-          (file-relative-name
-      (buffer-file-name (current-buffer))
-      (helm-gtags--find-tag-directory)))
-    (t ;; relative
-     (file-relative-name
-      (buffer-file-name (current-buffer))
-      (helm-gtags--base-directory))))
-   ":"
-   (number-to-string (line-number-at-pos))))
+      (helm :sources srcs :buffer helm-gtags--buffer
+            :preselect preselect-regexp))))
 
 ;;;###autoload
 (defun helm-gtags-find-tag (tag)
@@ -1000,9 +992,7 @@ Always update if value of this variable is nil."
   "Jump to referenced point"
   (interactive
    (list (helm-gtags--read-tagname 'rtag (which-function))))
-  (helm-gtags--common '(helm-source-gtags-rtags)
-                      tag
-                      (helm-gtags--current-file-and-line)))
+  (helm-gtags--common '(helm-source-gtags-rtags) tag))
 
 ;;;###autoload
 (defun helm-gtags-find-symbol (tag)
