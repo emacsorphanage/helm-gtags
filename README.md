@@ -242,6 +242,10 @@ Default value is
 - 9999(Disable fuzzy match)
 - 100(Enable fuzzy match)
 
+#### `helm-gtags-preselect`
+
+If this variable is non-nil, preselect current file and line.
+
 ## Faces
 
 #### `helm-gtags-file`
