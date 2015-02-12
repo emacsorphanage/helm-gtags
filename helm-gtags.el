@@ -54,6 +54,9 @@
 (require 'which-func)
 (require 'pulse)
 
+(declare-function cygwin-convert-file-name-from-windows "cygw32.c")
+(declare-function cygwin-convert-file-name-to-windows "cygw32.c")
+
 (defgroup helm-gtags nil
   "GNU GLOBAL for helm"
   :group 'helm)
@@ -295,7 +298,12 @@ Always update if value of this variable is nil."
     (unless (zerop (process-file "global" nil t nil "-p"))
       (error "GTAGS not found"))
     (goto-char (point-min))
-    (file-name-as-directory (helm-current-line-contents))))
+    (when (looking-at "^\\([^\r\n]+\\)")
+      (let ((tag-path (match-string-no-properties 1)))
+        (file-name-as-directory
+         (if (eq system-type 'cygwin)
+             (cygwin-convert-file-name-from-windows tag-path)
+           tag-path))))))
 
 (defun helm-gtags--find-tag-directory ()
   (setq helm-gtags--real-tag-location nil)
@@ -521,7 +529,11 @@ Always update if value of this variable is nil."
   (helm-gtags--save-current-context)
   (let* ((token (helm-gtags--token-at-point 'from-here))
          (filename (helm-gtags--real-file-name))
-         (from-here-opt (format "--from-here=%d:%s" (line-number-at-pos) filename)))
+         (from-here-opt (format "--from-here=%d:%s"
+                                (line-number-at-pos)
+                                (if (eq system-type 'cygwin)
+                                    (cygwin-convert-file-name-to-windows filename)
+                                  filename))))
     (setq helm-gtags--last-input token)
     (with-current-buffer (helm-candidate-buffer 'global)
       (let* ((default-directory (helm-gtags--base-directory))
@@ -529,9 +541,9 @@ Always update if value of this variable is nil."
                                    "--result=grep" from-here-opt token)))
         (unless (zerop status)
           (cond ((= status 1)
-                 (error "%s%s" (buffer-string) filename))
+                 (error "Error: %s%s" (buffer-string) filename))
                 ((= status 3)
-                 (error "%s" (buffer-string)))
+                 (error "Error: %s" (buffer-string)))
                 (t (error "%s: not found" token))))))))
 
 (defun helm-gtags--parse-file-init ()
