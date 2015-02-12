@@ -1044,6 +1044,13 @@ Jump to reference point if curosr is on its definition"
           (helm-gtags-find-tag-from-here)
         (call-interactively 'helm-gtags-find-tag)))))
 
+(defun helm-gtags--preselect-regexp-for-parse-file ()
+  (if helm-gtags-set-preselect
+      (concat "^[^[:space:]]+[[:space:]]+"
+              (number-to-string (line-number-at-pos))
+              "[[:space:]]+")
+    nil))
+
 (defun helm-gtags--set-parsed-file ()
   (let* ((this-file (file-name-nondirectory (buffer-file-name)))
          (file (if current-prefix-arg
@@ -1065,7 +1072,10 @@ You can jump definitions of functions, symbols in this file."
                         (file-relative-name helm-gtags--parsed-file
                                             helm-gtags--tag-location))
                 helm-source-gtags-parse-file)
-  (helm :sources '(helm-source-gtags-parse-file) :buffer helm-gtags--buffer))
+  (let ((presel (when helm-gtags-preselect
+                  (helm-gtags--preselect-regexp-for-parse-file))))
+    (helm :sources '(helm-source-gtags-parse-file)
+          :buffer helm-gtags--buffer :preselect presel)))
 
 ;;;###autoload
 (defun helm-gtags-pop-stack ()
