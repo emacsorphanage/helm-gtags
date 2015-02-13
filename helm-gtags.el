@@ -501,6 +501,48 @@ Always update if value of this variable is nil."
     (setq helm-gtags--last-input input)
     (reverse (cons input options))))
 
+(defun helm-gtgs--exec-global-command-local (type input)
+  (with-temp-buffer
+    (let ((args (reverse (cons input (helm-gtags--construct-options type nil)))))
+      (progn
+        (push "-a" args)
+        (apply 'process-file "global" nil '(t nil) nil args)
+        (buffer-substring-no-properties (point-min) (point-max))))))
+
+(defun helm-gtags--which-function-only-func-name ()
+  (if (string-match "lisp-mode$" (symbol-name major-mode))
+      (which-function)
+    (save-excursion
+      (progn
+        (beginning-of-defun)
+        (when (re-search-forward "(" nil t)
+          (forward-char -1)
+          (let ((end (point)))
+            (skip-chars-backward "_A-Za-z0-9")
+            (buffer-substring-no-properties (point) end)))))))
+
+(defun helm-gtags--tag-included-in-bound (bound tag-line)
+  (ignore-errors
+    (let* ((tag-elms (split-string tag-line ":"))
+           (tag-file-name (car tag-elms))
+           (line-num (string-to-int (car (cdr tag-elms)))))
+      (when (and (string= tag-file-name (buffer-file-name))
+               (and (<= line-num (cdr bound))
+               (>= line-num (car bound))))
+          line-num))))
+
+(defun helm-gtags--current-function-beginning-line ()
+  (let* ((bound (helm-gtags--current-funcion-bound))
+         (func (helm-gtags--which-function-only-func-name))
+         (found-tags (helm-gtgs--exec-global-command-local 'tag func))
+         (matched-tag
+          (delete nil
+                  (cl-loop for tag-line in (split-string found-tags "\n")
+                           collect
+                           (helm-gtags--tag-included-in-bound
+                            bound tag-line)))))
+    (or (car matched-tag) 0)))
+
 (defun helm-gtags--tags-init (&optional input)
   (helm-gtags--exec-global-command 'tag input))
 
@@ -1079,7 +1121,7 @@ You can jump definitions of functions, symbols in this file."
                 helm-source-gtags-parse-file)
   (let ((presel (when helm-gtags-preselect
                   (format "^\\S-+\\s-+%d\\s-+"
-                          (line-number-at-pos)))))
+                          (helm-gtags--current-function-beginning-line)))))
     (helm :sources '(helm-source-gtags-parse-file)
           :buffer helm-gtags--buffer :preselect presel)))
 
