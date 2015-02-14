@@ -501,6 +501,63 @@ Always update if value of this variable is nil."
     (setq helm-gtags--last-input input)
     (reverse (cons input options))))
 
+(defun helm-gtags--exec-global-command-local (type input &optional additional-args)
+  (with-temp-buffer
+    (let* ((args (reverse (cons input (helm-gtags--construct-options type nil))))
+           (args (if (eq (type-of additional-args) 'cons)
+                     (append additional-args args) args)))
+      (apply 'process-file "global" nil '(t nil) nil args)
+      (buffer-substring-no-properties (point-min) (point-max)))))
+
+(defun helm-gtags--which-function-only-func-name ()
+  (if (string-match "lisp-mode$" (symbol-name major-mode))
+      (which-function)
+    (save-excursion
+      (beginning-of-defun)
+      (when (search-forward "(" nil t)
+        (forward-char -1)
+        (let ((end (point)))
+          (skip-chars-backward "_A-Za-z0-9")
+          (buffer-substring-no-properties (point) end))))))
+
+(defun helm-gtags--previous-tag-from-here ()
+  (let ((tags (helm-gtags--exec-global-command-local
+               nil (buffer-file-name) (list "-f" "-a"))))
+    (cl-loop for tag-line in (split-string tags "\n") with x = nil
+             do (let* ((tag-elms (split-string tag-line ":"))
+                       (line-num-elm (cadr tag-elms))
+                       (line-num (if line-num-elm
+                                     (string-to-number line-num-elm)
+                                   1.0e+INF)))
+                  (if (<= line-num (line-number-at-pos))
+                      (push line-num x)
+                    (when (> (length x) 0) (cl-return (car x))))))))
+
+(defun helm-gtags--tag-included-in-bound (bound tag-line)
+  (ignore-errors
+    (let* ((tag-elms (split-string tag-line ":"))
+           (tag-file-name (car tag-elms))
+           (line-num (string-to-number (cadr tag-elms))))
+      (when (and (string= tag-file-name (buffer-file-name))
+               (and (<= line-num (cdr bound))
+               (>= line-num (car bound))))
+        line-num))))
+
+(defun helm-gtags--tag-line-number-in-bound (func)
+  (let* ((bound (helm-gtags--current-funcion-bound))
+         (tags (helm-gtags--exec-global-command-local 'tag func (list "-a"))))
+    (cl-loop for tag-line in (split-string tags "\n")
+             do (let ((line-num (helm-gtags--tag-included-in-bound
+                                 bound tag-line)))
+                  (when line-num (cl-return line-num))))))
+
+(defun helm-gtags--current-function-beginning-line ()
+  (let ((func (helm-gtags--which-function-only-func-name)))
+    (or (or (when (not (or (string= func "") (eq func nil)))
+                     (helm-gtags--tag-line-number-in-bound func))
+                            (helm-gtags--previous-tag-from-here))
+        0)))
+
 (defun helm-gtags--tags-init (&optional input)
   (helm-gtags--exec-global-command 'tag input))
 
@@ -1079,7 +1136,7 @@ You can jump definitions of functions, symbols in this file."
                 helm-source-gtags-parse-file)
   (let ((presel (when helm-gtags-preselect
                   (format "^\\S-+\\s-+%d\\s-+"
-                          (line-number-at-pos)))))
+                          (helm-gtags--current-function-beginning-line)))))
     (helm :sources '(helm-source-gtags-parse-file)
           :buffer helm-gtags--buffer :preselect presel)))
 
