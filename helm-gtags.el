@@ -1063,6 +1063,24 @@ Jump to reference point if curosr is on its definition"
                  this-file)))
     (setq helm-gtags--parsed-file (expand-file-name file))))
 
+(defun helm-gtags--find-preselect-line ()
+  (let ((defun-bound (bounds-of-thing-at-point 'defun)))
+    (if (not defun-bound)
+        (line-number-at-pos)
+      (let ((defun-begin-line (line-number-at-pos (car defun-bound)))
+            (filename (helm-gtags--real-file-name)))
+        (with-temp-buffer
+          (unless (zerop (process-file "global" nil t nil "-f" filename))
+            (error "Failed: global -f"))
+          (goto-char (point-min))
+          (let (start-line)
+            (while (and (not start-line)
+                        (re-search-forward "^\\S-+\\s-+\\([1-9][0-9]*\\)" nil t))
+              (let ((line (string-to-number (match-string-no-properties 1))))
+                (when (>= line defun-begin-line)
+                  (setq start-line line))))
+            (or start-line (line-number-at-pos))))))))
+
 ;;;###autoload
 (defun helm-gtags-parse-file ()
   "Parse current file with gnu global. This is similar to `imenu'.
@@ -1078,8 +1096,7 @@ You can jump definitions of functions, symbols in this file."
                                             helm-gtags--tag-location))
                 helm-source-gtags-parse-file)
   (let ((presel (when helm-gtags-preselect
-                  (format "^\\S-+\\s-+%d\\s-+"
-                          (line-number-at-pos)))))
+                  (format "^\\S-+\\s-+%d\\s-+" (helm-gtags--find-preselect-line)))))
     (helm :sources '(helm-source-gtags-parse-file)
           :buffer helm-gtags--buffer :preselect presel)))
 
