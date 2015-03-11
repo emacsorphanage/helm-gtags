@@ -283,7 +283,7 @@ Face of line number of candidates
      (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
 ```
 
-[travis-badge]: https://travis-ci.org/syohex/emacs-helm-gtags.png
+[travis-badge]: https://travis-ci.org/syohex/emacs-helm-gtags.svg
 [travis-link]: https://travis-ci.org/syohex/emacs-helm-gtags
 [melpa-link]: http://melpa.org/#/helm-gtags
 [melpa-stable-link]: http://melpa.org/#/helm-gtags
