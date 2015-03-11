@@ -286,6 +286,6 @@ Face of line number of candidates
 [travis-badge]: https://travis-ci.org/syohex/emacs-helm-gtags.svg
 [travis-link]: https://travis-ci.org/syohex/emacs-helm-gtags
 [melpa-link]: http://melpa.org/#/helm-gtags
-[melpa-stable-link]: http://melpa.org/#/helm-gtags
+[melpa-stable-link]: http://stable.melpa.org/#/helm-gtags
 [melpa-badge]: http://melpa.org/packages/helm-gtags-badge.svg
 [melpa-stable-badge]: http://stable.melpa.org/packages/helm-gtags-badge.svg
