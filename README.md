@@ -18,11 +18,20 @@ by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 
 
 ## Requirements
+
 * Emacs 24 or higher.
 * helm 1.5.6 or higher
 * GNU Global 6.2.3 or higher
 
 `helm-gtags.el` does not require `gtags.el`.
+
+## Installation
+
+`helm-gtags` is available on [MELPA](http://melpa.org/) and [MELPA stable](http://stable.melpa.org/)
+
+You can install `helm-gtags` with the following command.
+
+<kbd>M-x package-install [RET] helm-gtags [RET]</kbd>
 
 
 ## Use Ctags with helm-gtags
