@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.4.7 2015/04/18 syohex
+  - Add preselect feature
+  - Avoid exception in helm-gtags-find-tag-from-here
+
 Revision 1.4.6 2015/01/28 syohex
   - Fix choosing action issue
 
