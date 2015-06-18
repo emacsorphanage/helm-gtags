@@ -1057,7 +1057,7 @@ Jump to reference point if curosr is on its definition"
     (if (string-match helm-gtags--include-regexp line)
         (let ((helm-gtags-use-input-at-cursor t))
           (helm-gtags-find-files (match-string-no-properties 1 line)))
-      (if (thing-at-point 'symbol)
+      (if (and (buffer-file-name) (thing-at-point 'symbol))
           (helm-gtags-find-tag-from-here)
         (call-interactively 'helm-gtags-find-tag)))))
 
