@@ -105,7 +105,14 @@ You can update all files with `C-u` prefix.
 
 #### `helm-gtags-create-tags`
 
-Create TAG file.
+Create TAG file. Please choose `default` as `GTAGSLABEL` if you don't enable
+`--with-exuberant-ctags` and plugin parser options. If you use homebrew on MacOSX,
+you can enable those features by following command.
+
+```
+# You should uninstall global at first if you already install global
+% brew install global --with-exuberant-ctags --with-pygments
+```
 
 #### `helm-gtags-parse-file`
 
