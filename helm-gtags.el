@@ -54,6 +54,7 @@
 (require 'which-func)
 (require 'pulse)
 
+(declare-function helm-comp-read "helm-mode")
 (declare-function cygwin-convert-file-name-from-windows "cygw32.c")
 (declare-function cygwin-convert-file-name-to-windows "cygw32.c")
 
@@ -476,6 +477,13 @@ Always update if value of this variable is nil."
           (insert " " ref-func "|"))
         (forward-line 1)))))
 
+(defun helm-gtags--print-path-in-gtagslibpath (args)
+  (let ((libpath (getenv "GTAGSLIBPATH")))
+    (when libpath
+      (dolist (path (parse-colon-path libpath))
+        (let ((default-directory (file-name-as-directory path)))
+          (apply 'process-file "global" nil t nil "-Poa" args))))))
+
 (defun helm-gtags--exec-global-command (type input &optional detail)
   (let ((args (helm-gtags--construct-command type input)))
     (helm-gtags--find-tag-directory)
@@ -488,6 +496,9 @@ Always update if value of this variable is nil."
               (coding-system-for-write buf-coding))
           (unless (zerop (apply 'process-file "global" nil '(t nil) nil args))
             (error (format "%s: not found" input)))
+          ;; --path options does not support searching under GTAGSLIBPATH
+          (when (eq type 'find-file)
+            (helm-gtags--print-path-in-gtagslibpath args))
           (when detail
             (helm-gtags--show-detail)))))))
 
