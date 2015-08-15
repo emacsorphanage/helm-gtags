@@ -1,5 +1,10 @@
 Revision history for helm-gtags.el
 
+Revision 1.4.8 2015/08/15 syohex
+  - Improve helm-gtags-dwim for searching under GTAGSLIBPATH
+  - Fix helm-gtags-dwim for buffer which is not visited file(#116)
+  - Set default-directory to GTAGSROOT if it is set(#114)
+
 Revision 1.4.7 2015/04/18 syohex
   - Add preselect feature
   - Avoid exception in helm-gtags-find-tag-from-here
