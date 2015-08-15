@@ -54,6 +54,7 @@
 (require 'which-func)
 (require 'pulse)
 
+(declare-function helm-comp-read "helm-mode")
 (declare-function cygwin-convert-file-name-from-windows "cygw32.c")
 (declare-function cygwin-convert-file-name-to-windows "cygw32.c")
 
