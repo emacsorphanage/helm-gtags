@@ -869,15 +869,14 @@ Always update if value of this variable is nil."
     :fuzzy-match helm-gtags-fuzzy-match
     :action helm-gtags--find-file-action))
 
+(defsubst helm-gtags--action-by-timer (src)
+  (run-with-timer 0.1 nil (lambda () (helm-gtags--common (list src) nil))))
+
 (defun helm-gtags--select-tag-action (c)
-  (helm-run-after-quit
-   (lambda ()
-     (helm-gtags--common (list (helm-gtags--source-select-tag c)) nil))))
+  (helm-gtags--action-by-timer (helm-gtags--source-select-tag c)))
 
 (defun helm-gtags--select-rtag-action (c)
-  (helm-run-after-quit
-   (lambda ()
-     (helm-gtags--common (list (helm-gtags--source-select-rtag c)) nil))))
+  (helm-gtags--action-by-timer (helm-gtags--source-select-rtag c)))
 
 (defun helm-gtags--select-cache-init-common (args tagfile)
   (let ((cache (helm-gtags--get-result-cache tagfile)))
