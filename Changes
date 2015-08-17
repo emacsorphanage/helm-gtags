@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.4.9 2015/08/17 syohex
+  - Apply workaround to helm-gtags-select
+    - helm-run-after-quit is not work with latest helm
+
 Revision 1.4.8 2015/08/15 syohex
   - Improve helm-gtags-dwim for searching under GTAGSLIBPATH
   - Fix helm-gtags-dwim for buffer which is not visited file(#116)
