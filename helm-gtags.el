@@ -147,6 +147,11 @@ Always update if value of this variable is nil."
   :type 'integer
   :group 'helm-gtags)
 
+(defcustom helm-gtags-direct-helm-completing nil
+  "Use helm mode directly."
+  :type 'boolean
+  :group 'helm-gtags)
+
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
   "Face for line numbers in the error list."
@@ -285,8 +290,13 @@ Always update if value of this variable is nil."
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
       (let ((completion-ignore-case helm-gtags-ignore-case)
             (completing-read-function 'completing-read-default))
-        (completing-read prompt comp-func nil nil nil
-                         'helm-gtags--completing-history tagname)))))
+        (if helm-gtags-direct-helm-completing
+            (helm-comp-read prompt comp-func
+                            :history 'helm-gtags--completing-history
+                            :exec-when-only-one t
+                            :default tagname)
+          (completing-read prompt comp-func nil nil nil
+                           'helm-gtags--completing-history tagname))))))
 
 (defun helm-gtags--path-libpath-p (tagroot)
   (helm-aif (getenv "GTAGSLIBPATH")
