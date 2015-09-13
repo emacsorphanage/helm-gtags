@@ -248,6 +248,10 @@ If this variable is non-nil, pulse at point after jumping
 Enable fuzzy match.
 You should set this value before loading `helm-gtags.el`.
 
+#### `helm-gtags-direct-helm-completing`(Default `nil`)
+
+Use helm completion instead of normal Emacs completion if this value is non-nil.
+
 #### `helm-gtags-maximum-candidates`
 
 Maximum number of helm candidates in `helm-gtags.el`.
