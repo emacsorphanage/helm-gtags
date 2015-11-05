@@ -180,6 +180,7 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--real-tag-location nil)
 (defvar helm-gtags--last-input nil)
 (defvar helm-gtags--query nil)
+(defvar helm-gtags--last-default-directory nil)
 
 (defconst helm-gtags--buffer "*helm gtags*")
 
@@ -328,7 +329,8 @@ Always update if value of this variable is nil."
       (setq helm-gtags--tag-location tagroot))))
 
 (defun helm-gtags--base-directory ()
-  (let ((dir (or helm-gtags--local-directory
+  (let ((dir (or helm-gtags--last-default-directory
+                 helm-gtags--local-directory
                  (cl-case helm-gtags-path-style
                    (root (or helm-gtags--real-tag-location
                              helm-gtags--tag-location))
@@ -664,6 +666,7 @@ Always update if value of this variable is nil."
          (filename (car file-and-line))
          (line (cdr file-and-line))
          (default-directory (helm-gtags--base-directory)))
+    (setq helm-gtags--last-default-directory default-directory)
     (find-file filename)
     (goto-char (point-min))
     (forward-line (1- line))
@@ -992,7 +995,11 @@ Always update if value of this variable is nil."
                   (file-relative-name buffile (helm-gtags--base-directory))))))
     (format "%s:%d" path (line-number-at-pos))))
 
+(defsubst helm-gtags--clear-variables ()
+  (setq helm-gtags--last-default-directory nil))
+
 (defun helm-gtags--common (srcs tagname)
+  (helm-gtags--clear-variables)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
         (dir (helm-gtags--searched-directory))
