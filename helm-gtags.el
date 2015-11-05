@@ -59,7 +59,7 @@
 (declare-function cygwin-convert-file-name-to-windows "cygw32.c")
 
 (defgroup helm-gtags nil
-  "GNU GLOBAL for helm"
+  "GNU GLOBAL for helm."
   :group 'helm)
 
 (defcustom helm-gtags-path-style 'root
