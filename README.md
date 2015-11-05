@@ -3,14 +3,6 @@
 ## Introduction
 `helm-gtags.el` is GNU GLOBAL helm interface.
 
-**helm-gtags.el** is not compatible **anything-gtags.el**.
-But `helm-gtags.el` is designed for faster search than `anything-gtags.el`.
-
-`anything-gtags.el` is slow in large source tree such as Linux kernel,
-FreeBSD, Android etc. Because `anything-gtags.el` creates candidates
-by processing output of `gtags.el`. `helm-gtags.el` creates candidates
-by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
-
 
 ## Screenshot
 
@@ -25,9 +17,14 @@ by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 
 `helm-gtags.el` does not require `gtags.el`.
 
+#### Ubuntu/Debian users
+
+Please do not use Ubuntu/Debian GNU gtags package. It's too old.
+
+
 ## Installation
 
-`helm-gtags` is available on [MELPA](http://melpa.org/) and [MELPA stable](http://stable.melpa.org/)
+`helm-gtags` is available on [MELPA](https://melpa.org/) and [MELPA stable](https://stable.melpa.org/)
 
 You can install `helm-gtags` with the following command.
 
@@ -275,6 +272,17 @@ Face of file name of candidates
 #### `helm-gtags-lineno`
 
 Face of line number of candidates
+
+
+## anything-gtags.el
+
+**helm-gtags.el** is not compatible **anything-gtags.el**.
+But `helm-gtags.el` is designed for faster search than `anything-gtags.el`.
+
+`anything-gtags.el` is slow in large source tree such as Linux kernel,
+FreeBSD, Android etc. Because `anything-gtags.el` creates candidates
+by processing output of `gtags.el`. `helm-gtags.el` creates candidates
+by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
 
 
 ## Sample Configuration
