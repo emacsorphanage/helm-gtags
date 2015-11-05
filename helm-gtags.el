@@ -290,7 +290,7 @@ Always update if value of this variable is nil."
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
       (let ((completion-ignore-case helm-gtags-ignore-case)
             (completing-read-function 'completing-read-default))
-        (if helm-gtags-direct-helm-completing
+        (if (and helm-gtags-direct-helm-completing (member type '(tag rtag symbol find-file)))
             (helm-comp-read prompt comp-func
                             :history 'helm-gtags--completing-history
                             :exec-when-only-one t
