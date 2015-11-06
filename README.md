@@ -12,7 +12,7 @@
 ## Requirements
 
 * Emacs 24 or higher.
-* helm 1.5.6 or higher
+* helm 1.7.7 or higher
 * GNU Global 6.2.3 or higher
 
 `helm-gtags.el` does not require `gtags.el`.
