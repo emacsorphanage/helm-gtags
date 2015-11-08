@@ -1,5 +1,10 @@
 Revision history for helm-gtags.el
 
+Revision 1.5.0 2015/11/08 syohex
+  - Add parameter whether always uses helm completion
+  - Fix persistent action when using relative path style(#126)
+  - Update minimum helm version
+
 Revision 1.4.9 2015/08/17 syohex
   - Apply workaround to helm-gtags-select
     - helm-run-after-quit is not work with latest helm
