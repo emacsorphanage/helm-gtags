@@ -227,6 +227,13 @@ Always update if value of this variable is nil."
 (defsubst helm-gtags--windows-p ()
   (memq system-type '(windows-nt ms-dos)))
 
+(defun helm-gtags--remove-carrige-returns ()
+  (when (helm-gtags--windows-p)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\xd" nil t)
+        (replace-match "")))))
+
 ;; Work around for GNU global Windows issue
 (defsubst helm-gtags--use-abs-path-p (gtagslibpath)
   (and (helm-gtags--windows-p) gtagslibpath))
@@ -511,6 +518,7 @@ Always update if value of this variable is nil."
           ;; --path options does not support searching under GTAGSLIBPATH
           (when (eq type 'find-file)
             (helm-gtags--print-path-in-gtagslibpath args))
+          (helm-gtags--remove-carrige-returns)
           (when detail
             (helm-gtags--show-detail)))))))
 
@@ -566,6 +574,7 @@ Always update if value of this variable is nil."
         (let* ((default-directory (helm-gtags--base-directory))
                (status (process-file "global" nil '(t nil) nil
                                      "--result=grep" from-here-opt token)))
+          (helm-gtags--remove-carrige-returns)
           (unless (zerop status)
             (cond ((= status 1)
                    (error "Error: %s%s" (buffer-string) filename))
@@ -577,7 +586,8 @@ Always update if value of this variable is nil."
   (with-current-buffer (helm-candidate-buffer 'global)
     (unless (zerop (process-file "global" nil t nil
                                  "--result=cscope" "-f" helm-gtags--parsed-file))
-      (error "Failed: 'global --result=cscope -f %s" helm-gtags--parsed-file))))
+      (error "Failed: 'global --result=cscope -f %s" helm-gtags--parsed-file))
+    (helm-gtags--remove-carrige-returns)))
 
 (defun helm-gtags--push-context (context)
   (let* ((context-info (helm-gtags--get-or-create-context-info))
@@ -907,7 +917,9 @@ Always update if value of this variable is nil."
 (defun helm-gtags--source-select-init ()
   (with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
-        (process-file "global" nil t nil "-c")
+        (progn
+          (process-file "global" nil t nil "-c")
+          (helm-gtags--remove-carrige-returns))
       (helm-gtags--select-cache-init-common '("-c") "GTAGS"))))
 
 (defvar helm-source-gtags-select
@@ -926,7 +938,9 @@ Always update if value of this variable is nil."
 (defun helm-gtags--select-path-init ()
   (with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
-        (process-file "global" nil t nil "-Poa")
+        (progn
+          (process-file "global" nil t nil "-Poa")
+          (helm-gtags--remove-carrige-returns))
       (helm-gtags--select-cache-init-common '("-Poa") "GPATH"))))
 
 (defvar helm-source-gtags-select-path
