@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.5.1 2015/12/05 syohex
+  - Fix carriage return issue on Windows(#137)
+
 Revision 1.5.0 2015/11/08 syohex
   - Add parameter whether always uses helm completion
   - Fix persistent action when using relative path style(#126)
