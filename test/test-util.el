@@ -1,6 +1,6 @@
 ;;; test-util.el --- Test utilities of helm-gtags
 
-;; Copyright (C) 2014 by Syohei YOSHIDA
+;; Copyright (C) 2016 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 
