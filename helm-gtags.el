@@ -5,7 +5,7 @@
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
 ;; Version: 1.5.1
-;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -66,106 +66,86 @@
   "Style of file path"
   :type '(choice (const :tag "Root of the current project" root)
                  (const :tag "Relative from the current directory" relative)
-                 (const :tag "Absolute Path" absolute))
-  :group 'helm-gtags)
+                 (const :tag "Absolute Path" absolute)))
 
 (defcustom helm-gtags-ignore-case nil
   "Ignore case in each search."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-read-only nil
   "Gtags read only mode."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-auto-update nil
   "*If non-nil, tag files are updated whenever a file is saved."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-pulse-at-cursor t
   "If non-nil, pulse at point after jumping"
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-cache-select-result nil
   "*If non-nil, results of helm-gtags-select and helm-gtags-select-path are cached."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-cache-max-result-size (* 10 1024 1024) ;10M
   "Max size(bytes) to cache for each select result."
-  :type 'integer
-  :group 'helm-gtags)
+  :type 'integer)
 
 (defcustom helm-gtags-update-interval-second 60
   "Tags are updated in `after-save-hook' if this seconds is passed from last update.
 Always update if value of this variable is nil."
   :type '(choice (integer :tag "Update interval seconds")
-                 (boolean :tag "Update every time" nil))
-  :group 'helm-gtags)
+                 (boolean :tag "Update every time" nil)))
 
 (defcustom helm-gtags-highlight-candidate t
   "Highlight candidate or not"
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-use-input-at-cursor nil
   "Use input at cursor"
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-prefix-key "\C-c"
   "If non-nil, it is used for the prefix key of gtags-xxx command."
-  :type 'string
-  :group 'helm-gtags)
+  :type 'string)
 
 (defcustom helm-gtags-suggested-key-mapping nil
   "If non-nil, suggested key mapping is enabled."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-preselect nil
   "If non-nil, preselect current file and line."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-display-style nil
   "Style of display result."
   :type '(choice (const :tag "Show in detail" detail)
-                 (const :tag "Normal style" nil))
-  :group 'helm-gtags)
+                 (const :tag "Normal style" nil)))
 
 (defcustom helm-gtags-fuzzy-match nil
   "Enable fuzzy match"
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-maximum-candidates (if helm-gtags-fuzzy-match 100 9999)
   "Maximum number of helm candidates"
-  :type 'integer
-  :group 'helm-gtags)
+  :type 'integer)
 
 (defcustom helm-gtags-direct-helm-completing nil
   "Use helm mode directly."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
-  "Face for line numbers in the error list."
-  :group 'helm-gtags)
+  "Face for line numbers in the error list.")
 
 (defface helm-gtags-lineno
   '((t :inherit font-lock-doc-face))
-  "Face for line numbers in the error list."
-  :group 'helm-gtags)
+  "Face for line numbers in the error list.")
 
 (defface helm-gtags-match
   '((t :inherit helm-match))
-  "Face for word matched against tagname"
-  :group 'helm-gtags)
+  "Face for word matched against tagname")
 
 (defvar helm-gtags--tag-location nil)
 (defvar helm-gtags--last-update-time 0)
@@ -264,7 +244,7 @@ Always update if value of this variable is nil."
          (args (reverse (cons string options)))
          candidates)
     (with-temp-buffer
-      (apply 'process-file "global" nil t nil args)
+      (apply #'process-file "global" nil t nil args)
       (goto-char (point-min))
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (push (match-string-no-properties 1) candidates)))
@@ -501,7 +481,7 @@ Always update if value of this variable is nil."
     (when libpath
       (dolist (path (parse-colon-path libpath))
         (let ((default-directory (file-name-as-directory path)))
-          (apply 'process-file "global" nil t nil "-Poa" args))))))
+          (apply #'process-file "global" nil t nil "-Poa" args))))))
 
 (defun helm-gtags--exec-global-command (type input &optional detail)
   (let ((args (helm-gtags--construct-command type input)))
@@ -513,7 +493,7 @@ Always update if value of this variable is nil."
               (input (car (last args)))
               (coding-system-for-read buf-coding)
               (coding-system-for-write buf-coding))
-          (unless (zerop (apply 'process-file "global" nil '(t nil) nil args))
+          (unless (zerop (apply #'process-file "global" nil '(t nil) nil args))
             (error (format "%s: not found" input)))
           ;; --path options does not support searching under GTAGSLIBPATH
           (when (eq type 'find-file)
@@ -601,8 +581,8 @@ Always update if value of this variable is nil."
 
 (defsubst helm-gtags--select-find-file-func ()
   (if helm-gtags--use-otherwin
-      'helm-gtags--open-file-other-window
-    'helm-gtags--open-file))
+      #'helm-gtags--open-file-other-window
+    #'helm-gtags--open-file))
 
 (defun helm-gtags--do-open-file (open-func file line)
   (funcall open-func file helm-gtags-read-only)
@@ -824,13 +804,13 @@ Always update if value of this variable is nil."
   (cl-case major-mode
     ((c-mode c++-mode java-mode) 'c-beginning-of-defun)
     (php-mode 'php-beginning-of-defun)
-    (otherwise 'beginning-of-defun)))
+    (otherwise #'beginning-of-defun)))
 
 (defsubst helm-gtags--end-of-defun ()
   (cl-case major-mode
     ((c-mode c++-mode java-mode malabar-mode) 'c-end-of-defun)
     (php-mode 'php-end-of-defun)
-    (otherwise 'end-of-defun)))
+    (otherwise #'end-of-defun)))
 
 (defun helm-gtags--current-funcion-bound ()
   (save-excursion
@@ -916,7 +896,7 @@ Always update if value of this variable is nil."
   (let ((cache (helm-gtags--get-result-cache tagfile)))
     (if cache
         (insert cache)
-      (apply 'process-file "global" nil t nil args)
+      (apply #'process-file "global" nil t nil args)
       (let* ((cache (buffer-string))
              (cache-size (length cache)))
         (when (<= cache-size helm-gtags-cache-max-result-size)
@@ -1227,7 +1207,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
         (current-time (float-time (current-time))))
     (when (helm-gtags--update-tags-p how-to interactive-p current-time)
       (let* ((cmds (helm-gtags--update-tags-command how-to))
-             (proc (apply 'start-file-process "helm-gtags-update-tag" nil cmds)))
+             (proc (apply #'start-file-process "helm-gtags-update-tag" nil cmds)))
         (if (not proc)
             (message "Failed: %s" (mapconcat 'identity cmds " "))
           (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'update))
@@ -1261,7 +1241,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
         (when browser
           (setq args (append (list "-b" browser) args)))
         ;; `gozilla' commend never returns error status if command is failed.
-        (apply 'process-file "gozilla" nil nil nil args)))))
+        (apply #'process-file "gozilla" nil nil nil args)))))
 
 (defvar helm-gtags-mode-name " HelmGtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
@@ -1269,7 +1249,6 @@ Generate new TAG file in selected directory with `C-u C-u'"
 ;;;###autoload
 (define-minor-mode helm-gtags-mode ()
   "Enable helm-gtags"
-  :group      'helm-gtags
   :init-value nil
   :global     nil
   :keymap     helm-gtags-mode-map
