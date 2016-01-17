@@ -66,106 +66,86 @@
   "Style of file path"
   :type '(choice (const :tag "Root of the current project" root)
                  (const :tag "Relative from the current directory" relative)
-                 (const :tag "Absolute Path" absolute))
-  :group 'helm-gtags)
+                 (const :tag "Absolute Path" absolute)))
 
 (defcustom helm-gtags-ignore-case nil
   "Ignore case in each search."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-read-only nil
   "Gtags read only mode."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-auto-update nil
   "*If non-nil, tag files are updated whenever a file is saved."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-pulse-at-cursor t
   "If non-nil, pulse at point after jumping"
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-cache-select-result nil
   "*If non-nil, results of helm-gtags-select and helm-gtags-select-path are cached."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-cache-max-result-size (* 10 1024 1024) ;10M
   "Max size(bytes) to cache for each select result."
-  :type 'integer
-  :group 'helm-gtags)
+  :type 'integer)
 
 (defcustom helm-gtags-update-interval-second 60
   "Tags are updated in `after-save-hook' if this seconds is passed from last update.
 Always update if value of this variable is nil."
   :type '(choice (integer :tag "Update interval seconds")
-                 (boolean :tag "Update every time" nil))
-  :group 'helm-gtags)
+                 (boolean :tag "Update every time" nil)))
 
 (defcustom helm-gtags-highlight-candidate t
   "Highlight candidate or not"
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-use-input-at-cursor nil
   "Use input at cursor"
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-prefix-key "\C-c"
   "If non-nil, it is used for the prefix key of gtags-xxx command."
-  :type 'string
-  :group 'helm-gtags)
+  :type 'string)
 
 (defcustom helm-gtags-suggested-key-mapping nil
   "If non-nil, suggested key mapping is enabled."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-preselect nil
   "If non-nil, preselect current file and line."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-display-style nil
   "Style of display result."
   :type '(choice (const :tag "Show in detail" detail)
-                 (const :tag "Normal style" nil))
-  :group 'helm-gtags)
+                 (const :tag "Normal style" nil)))
 
 (defcustom helm-gtags-fuzzy-match nil
   "Enable fuzzy match"
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defcustom helm-gtags-maximum-candidates (if helm-gtags-fuzzy-match 100 9999)
   "Maximum number of helm candidates"
-  :type 'integer
-  :group 'helm-gtags)
+  :type 'integer)
 
 (defcustom helm-gtags-direct-helm-completing nil
   "Use helm mode directly."
-  :type 'boolean
-  :group 'helm-gtags)
+  :type 'boolean)
 
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
-  "Face for line numbers in the error list."
-  :group 'helm-gtags)
+  "Face for line numbers in the error list.")
 
 (defface helm-gtags-lineno
   '((t :inherit font-lock-doc-face))
-  "Face for line numbers in the error list."
-  :group 'helm-gtags)
+  "Face for line numbers in the error list.")
 
 (defface helm-gtags-match
   '((t :inherit helm-match))
-  "Face for word matched against tagname"
-  :group 'helm-gtags)
+  "Face for word matched against tagname")
 
 (defvar helm-gtags--tag-location nil)
 (defvar helm-gtags--last-update-time 0)
@@ -1269,7 +1249,6 @@ Generate new TAG file in selected directory with `C-u C-u'"
 ;;;###autoload
 (define-minor-mode helm-gtags-mode ()
   "Enable helm-gtags"
-  :group      'helm-gtags
   :init-value nil
   :global     nil
   :keymap     helm-gtags-mode-map
