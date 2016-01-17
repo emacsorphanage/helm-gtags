@@ -657,8 +657,10 @@ Always update if value of this variable is nil."
               (helm-current-line-contents)))))
 
 (defun helm-gtags--files-candidate-transformer (file)
-  (let ((removed-regexp (concat "\\`" helm-gtags--tag-location)))
-    (replace-regexp-in-string removed-regexp "" file)))
+  (if (eq helm-gtags-path-style 'absolute)
+      file
+    (let ((removed-regexp (concat "\\`" helm-gtags--tag-location)))
+      (replace-regexp-in-string removed-regexp "" file))))
 
 (defun helm-gtags--show-stack-init ()
   (cl-loop with context-stack = (plist-get (helm-gtags--get-context-info) :stack)
@@ -682,6 +684,11 @@ Always update if value of this variable is nil."
     (goto-char (point-min))
     (forward-line (1- line))
     (helm-highlight-current-line)))
+
+(defun helm-gtags--file-persistent-action (cand)
+  (let ((default-directory (with-helm-current-buffer
+                             default-directory)))
+    (helm-ff-kill-or-find-buffer-fname cand)))
 
 (defvar helm-gtags--find-file-action
   (helm-make-actions
@@ -938,19 +945,21 @@ Always update if value of this variable is nil."
              "Move to the referenced point" #'helm-gtags--select-rtag-action)))
 
 (defun helm-gtags--select-path-init ()
+  (helm-gtags--find-tag-directory)
   (with-current-buffer (helm-candidate-buffer 'global)
-    (if (not helm-gtags-cache-select-result)
-        (progn
-          (process-file "global" nil t nil "-Poa")
-          (helm-gtags--remove-carrige-returns))
-      (helm-gtags--select-cache-init-common '("-Poa") "GPATH"))))
+    (let ((options (if (eq helm-gtags-path-style 'relative) "-Po" "-Poa")))
+      (if (not helm-gtags-cache-select-result)
+          (progn
+            (process-file "global" nil t nil options)
+            (helm-gtags--remove-carrige-returns))
+        (helm-gtags--select-cache-init-common options "GPATH")))))
 
 (defvar helm-source-gtags-select-path
   (helm-build-in-buffer-source "Select path"
     :init 'helm-gtags--select-path-init
     :candidate-number-limit helm-gtags-maximum-candidates
     :real-to-display 'helm-gtags--files-candidate-transformer
-    :persistent-action 'helm-gtags--persistent-action
+    :persistent-action #'helm-gtags--file-persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
     :action (helm-actions-from-type-file)))
 
