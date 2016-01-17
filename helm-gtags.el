@@ -244,7 +244,7 @@ Always update if value of this variable is nil."
          (args (reverse (cons string options)))
          candidates)
     (with-temp-buffer
-      (apply 'process-file "global" nil t nil args)
+      (apply #'process-file "global" nil t nil args)
       (goto-char (point-min))
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (push (match-string-no-properties 1) candidates)))
@@ -481,7 +481,7 @@ Always update if value of this variable is nil."
     (when libpath
       (dolist (path (parse-colon-path libpath))
         (let ((default-directory (file-name-as-directory path)))
-          (apply 'process-file "global" nil t nil "-Poa" args))))))
+          (apply #'process-file "global" nil t nil "-Poa" args))))))
 
 (defun helm-gtags--exec-global-command (type input &optional detail)
   (let ((args (helm-gtags--construct-command type input)))
@@ -493,7 +493,7 @@ Always update if value of this variable is nil."
               (input (car (last args)))
               (coding-system-for-read buf-coding)
               (coding-system-for-write buf-coding))
-          (unless (zerop (apply 'process-file "global" nil '(t nil) nil args))
+          (unless (zerop (apply #'process-file "global" nil '(t nil) nil args))
             (error (format "%s: not found" input)))
           ;; --path options does not support searching under GTAGSLIBPATH
           (when (eq type 'find-file)
@@ -581,8 +581,8 @@ Always update if value of this variable is nil."
 
 (defsubst helm-gtags--select-find-file-func ()
   (if helm-gtags--use-otherwin
-      'helm-gtags--open-file-other-window
-    'helm-gtags--open-file))
+      #'helm-gtags--open-file-other-window
+    #'helm-gtags--open-file))
 
 (defun helm-gtags--do-open-file (open-func file line)
   (funcall open-func file helm-gtags-read-only)
@@ -804,13 +804,13 @@ Always update if value of this variable is nil."
   (cl-case major-mode
     ((c-mode c++-mode java-mode) 'c-beginning-of-defun)
     (php-mode 'php-beginning-of-defun)
-    (otherwise 'beginning-of-defun)))
+    (otherwise #'beginning-of-defun)))
 
 (defsubst helm-gtags--end-of-defun ()
   (cl-case major-mode
     ((c-mode c++-mode java-mode malabar-mode) 'c-end-of-defun)
     (php-mode 'php-end-of-defun)
-    (otherwise 'end-of-defun)))
+    (otherwise #'end-of-defun)))
 
 (defun helm-gtags--current-funcion-bound ()
   (save-excursion
@@ -896,7 +896,7 @@ Always update if value of this variable is nil."
   (let ((cache (helm-gtags--get-result-cache tagfile)))
     (if cache
         (insert cache)
-      (apply 'process-file "global" nil t nil args)
+      (apply #'process-file "global" nil t nil args)
       (let* ((cache (buffer-string))
              (cache-size (length cache)))
         (when (<= cache-size helm-gtags-cache-max-result-size)
@@ -1207,7 +1207,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
         (current-time (float-time (current-time))))
     (when (helm-gtags--update-tags-p how-to interactive-p current-time)
       (let* ((cmds (helm-gtags--update-tags-command how-to))
-             (proc (apply 'start-file-process "helm-gtags-update-tag" nil cmds)))
+             (proc (apply #'start-file-process "helm-gtags-update-tag" nil cmds)))
         (if (not proc)
             (message "Failed: %s" (mapconcat 'identity cmds " "))
           (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'update))
@@ -1241,7 +1241,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
         (when browser
           (setq args (append (list "-b" browser) args)))
         ;; `gozilla' commend never returns error status if command is failed.
-        (apply 'process-file "gozilla" nil nil nil args)))))
+        (apply #'process-file "gozilla" nil nil nil args)))))
 
 (defvar helm-gtags-mode-name " HelmGtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
