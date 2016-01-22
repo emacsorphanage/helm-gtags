@@ -914,7 +914,7 @@ Always update if value of this variable is nil."
   (helm-build-in-buffer-source "Find tag from here"
     :init 'helm-gtags--source-select-init
     :candidate-number-limit helm-gtags-maximum-candidates
-    :persistent-action 'helm-gtags--persistent-action
+    :persistent-action #'ignore
     :fuzzy-match helm-gtags-fuzzy-match
     :action (helm-make-actions
              "Goto the location" #'helm-gtags--select-tag-action
