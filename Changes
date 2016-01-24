@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.5.3 2016/01/24 syohex
+  - Fix wrong persistent action of helm-gtags-select
+
 Revision 1.5.2 2016/01/18 syohex
   - Fix path style issue of search path command(#139, #140)
   - Refactoring code for newer helm
