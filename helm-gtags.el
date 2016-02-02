@@ -1020,7 +1020,7 @@ Always update if value of this variable is nil."
       (setq helm-gtags--query tagname))
     (let ((tagroot (helm-gtags--find-tag-simple)))
       (helm-attrset 'helm-gtags-base-directory dir src)
-      (helm-attrset 'name (concat "GNU Global at " (or dir tagroot)) src)
+      (helm-attrset 'name (format "%s in %s" tagname (or dir tagroot)) src)
       (helm :sources srcs :buffer helm-gtags--buffer
             :preselect preselect-regexp))))
 
