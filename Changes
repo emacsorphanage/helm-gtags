@@ -1,5 +1,8 @@
 Revision history for helm-gtags.el
 
+Revision 1.5.4 2016/02/02 syohex
+  - Display searched tag in helm header(#144)
+
 Revision 1.5.3 2016/01/24 syohex
   - Fix wrong persistent action of helm-gtags-select
 
