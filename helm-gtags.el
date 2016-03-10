@@ -932,7 +932,7 @@ Always update if value of this variable is nil."
           (progn
             (process-file "global" nil t nil options)
             (helm-gtags--remove-carrige-returns))
-        (helm-gtags--select-cache-init-common options "GPATH")))))
+        (helm-gtags--select-cache-init-common (list options) "GPATH")))))
 
 (defvar helm-source-gtags-select-path
   (helm-build-in-buffer-source "Select path"
