@@ -1,5 +1,9 @@
 Revision history for helm-gtags.el
 
+Revision 1.5.5 2016/03/13 syohex
+  - Fix select-path command with using cache(#147 Thanks lbsx)
+  - Better helm header.
+
 Revision 1.5.4 2016/02/02 syohex
   - Display searched tag in helm header(#144)
 
