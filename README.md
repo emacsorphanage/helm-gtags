@@ -162,14 +162,17 @@ buffer if other helm commands are called.
 `helm-gtags-suggested-key-mapping` to non-nil. Its prefix key is `C-c`
 as default. You can change prefix by setting `helm-gtags-prefix-key`.
 
-These value must be set before loading `helm-gtags.el`.
+You have to set them before loading `helm-gtags.el`.
 I recommend you to use `custom-set-variables` for setting this value.
 
 ```lisp
 (custom-set-variables
- '(helm-gtags-prefix-key "C-t")
+ '(helm-gtags-prefix-key "\C-t")
  '(helm-gtags-suggested-key-mapping t))
 ```
+
+If you use `invalid modifier string`(like `C-,`) as prefix key, please don't
+escape Control prefix.(OK: `C-,`, NG: `\C-,`).
 
 ### Default Key Mapping
 
