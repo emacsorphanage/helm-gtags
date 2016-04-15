@@ -665,11 +665,6 @@ Always update if value of this variable is nil."
     (forward-line (1- line))
     (helm-highlight-current-line)))
 
-(defun helm-gtags--file-persistent-action (cand)
-  (let ((default-directory (with-helm-current-buffer
-                             default-directory)))
-    (helm-ff-kill-or-find-buffer-fname cand)))
-
 (defvar helm-gtags--find-file-action
   (helm-make-actions
    "Open file" #'helm-gtags--action-openfile
@@ -934,6 +929,34 @@ Always update if value of this variable is nil."
             (helm-gtags--remove-carrige-returns))
         (helm-gtags--select-cache-init-common (list options) "GPATH")))))
 
+(defun helm-gtags--file-name (name)
+  (let ((remote (file-remote-p default-directory)))
+    (if (not remote)
+        name
+      (cl-case helm-gtags-path-style
+        (relative name)
+        (otherwise (concat remote name))))))
+
+(defun helm-gtags--find-file-common (open-fn cand)
+  (let ((default-directory (helm-gtags--base-directory)))
+    (funcall open-fn (helm-gtags--file-name cand))))
+
+(defun helm-gtags--find-file (cand)
+  (helm-gtags--find-file-common #'find-file cand))
+
+(defun helm-gtags--find-file-other-window (cand)
+  (helm-gtags--find-file-common #'find-file-other-window cand))
+
+(defvar helm-gtags--file-util-action
+  (helm-make-actions
+   "Open file" #'helm-gtags--find-file
+   "Open file other window" #'helm-gtags--find-file-other-window))
+
+(defun helm-gtags--file-persistent-action (cand)
+  (let ((default-directory (with-helm-current-buffer
+                             default-directory)))
+    (helm-ff-kill-or-find-buffer-fname (helm-gtags--file-name cand))))
+
 (defvar helm-source-gtags-select-path
   (helm-build-in-buffer-source "Select path"
     :init 'helm-gtags--select-path-init
@@ -941,7 +964,7 @@ Always update if value of this variable is nil."
     :real-to-display 'helm-gtags--files-candidate-transformer
     :persistent-action #'helm-gtags--file-persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action (helm-actions-from-type-file)))
+    :action helm-gtags--file-util-action))
 
 (defun helm-gtags--searched-directory ()
   (cl-case (prefix-numeric-value current-prefix-arg)
