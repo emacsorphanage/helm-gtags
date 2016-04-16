@@ -742,15 +742,6 @@ Always update if value of this variable is nil."
               (match-string-no-properties 2 removed-file)
               (match-string-no-properties 3 removed-file)))))
 
-(defvar helm-source-gtags-files
-  (helm-build-in-buffer-source "Find files"
-    :init 'helm-gtags--files-init
-    :candidate-number-limit helm-gtags-maximum-candidates
-    :real-to-display 'helm-gtags--files-candidate-transformer
-    :persistent-action 'helm-gtags--persistent-action
-    :fuzzy-match helm-gtags-fuzzy-match
-    :action (helm-actions-from-type-file)))
-
 (defvar helm-source-gtags-find-tag-from-here
   (helm-build-in-buffer-source "Find tag from here"
     :init 'helm-gtags--find-tag-from-here-init
@@ -1086,6 +1077,15 @@ Always update if value of this variable is nil."
 
 (defun helm-gtags--find-file-after-hook ()
   (helm-gtags--push-context helm-gtags--saved-context))
+
+(defvar helm-source-gtags-files
+  (helm-build-in-buffer-source "Find files"
+    :init #'helm-gtags--files-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display #'helm-gtags--files-candidate-transformer
+    :persistent-action #'helm-gtags--file-persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action helm-gtags--file-util-action))
 
 ;;;###autoload
 (defun helm-gtags-find-files (file)
