@@ -974,7 +974,7 @@ Always update if value of this variable is nil."
         (message "Failed: %s TAGS(%d)" action (process-exit-status process))))))
 
 (defsubst helm-gtags--read-gtagslabel ()
-  (let ((labels '("default" "native" "ctags" "pygments")))
+  (let ((labels '("default" "native" "ctags" "new-ctags" "pygments")))
     (completing-read "GTAGSLABEL(Default: default): " labels nil t nil nil "default")))
 
 (defsubst helm-gtags--label-option (label)
