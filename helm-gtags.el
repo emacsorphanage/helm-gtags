@@ -72,6 +72,10 @@
   "Ignore case in each search."
   :type 'boolean)
 
+(defcustom helm-gtags-cygwin-use-global-w32-port t
+  "Use the GNU global win32 port in Cygwin."
+  :type 'boolean)
+
 (defcustom helm-gtags-read-only nil
   "Gtags read only mode."
   :type 'boolean)
@@ -302,7 +306,7 @@ Always update if value of this variable is nil."
       (when (looking-at "^\\([^\r\n]+\\)")
         (let ((tag-path (match-string-no-properties 1)))
           (file-name-as-directory
-           (if (eq system-type 'cygwin)
+           (if (helm-gtags--convert-cygwin-windows-file-name-p)
                (cygwin-convert-file-name-from-windows tag-path)
              tag-path)))))))
 
@@ -363,6 +367,9 @@ Always update if value of this variable is nil."
 (defun helm-gtags--get-or-create-context-info ()
   (or (gethash helm-gtags--tag-location helm-gtags--context-stack)
       (helm-gtags--new-context-info -1 nil)))
+
+(defun helm-gtags--convert-cygwin-windows-file-name-p ()
+  (and (eq system-type 'cygwin) helm-gtags-cygwin-use-global-w32-port))
 
 ;;;###autoload
 (defun helm-gtags-clear-all-cache ()
@@ -546,7 +553,7 @@ Always update if value of this variable is nil."
     (let* ((filename (helm-gtags--real-file-name))
            (from-here-opt (format "--from-here=%d:%s"
                                   (line-number-at-pos)
-                                  (if (eq system-type 'cygwin)
+                                  (if (helm-gtags--convert-cygwin-windows-file-name-p)
                                       (cygwin-convert-file-name-to-windows filename)
                                     filename))))
       (setq helm-gtags--last-input token)
