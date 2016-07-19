@@ -296,6 +296,9 @@ Always update if value of this variable is nil."
                for libpath = (file-name-as-directory (expand-file-name path))
                thereis (string= tagroot libpath))))
 
+(defsubst helm-gtags--convert-cygwin-windows-file-name-p ()
+  (and (eq system-type 'cygwin) helm-gtags-cygwin-use-global-w32-port))
+
 (defun helm-gtags--tag-directory ()
   (with-temp-buffer
     (helm-aif (getenv "GTAGSROOT")
@@ -367,9 +370,6 @@ Always update if value of this variable is nil."
 (defun helm-gtags--get-or-create-context-info ()
   (or (gethash helm-gtags--tag-location helm-gtags--context-stack)
       (helm-gtags--new-context-info -1 nil)))
-
-(defun helm-gtags--convert-cygwin-windows-file-name-p ()
-  (and (eq system-type 'cygwin) helm-gtags-cygwin-use-global-w32-port))
 
 ;;;###autoload
 (defun helm-gtags-clear-all-cache ()
