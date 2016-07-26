@@ -1007,9 +1007,9 @@ Always update if value of this variable is nil."
                (label (helm-gtags--read-gtagslabel))
                (default-directory tagroot))
           (message "gtags is generating tags....")
-          (unless (zerop (process-file "gtags" nil nil nil
-                                       "-q" (helm-gtags--label-option label)))
-            (error "Faild: 'gtags -q'"))
+          (let ((label-opt (helm-gtags--label-option label)))
+            (unless (zerop (process-file "gtags" nil nil nil "-q" label-opt))
+              (error "Failed: 'gtags -q %s'" label-opt)))
           tagroot))))
 
 (defun helm-gtags--current-file-and-line ()
