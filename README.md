@@ -33,12 +33,16 @@ You can install `helm-gtags` with the following command.
 
 ## Use Ctags with helm-gtags
 
-You can use `helm-gtags` for languages which are supported by `ctags`
+You can use `helm-gtags` for languages which are supported by `ctags`(Both [exuberant ctags](http://ctags.sourceforge.net/) and [universal ctags](https://ctags.io/))
 with ctags backend feature of `GNU global`. You can generate `ctags` backend
 tags by following command.
 
 ```
- % gtags --gtagslabel=ctags
+# exuberant ctags
+% gtags --gtagslabel=ctags
+
+# universal ctags
+% gtags --gtagslabel=new-ctags
 ```
 
 
@@ -103,12 +107,12 @@ You can update all files with `C-u` prefix.
 #### `helm-gtags-create-tags`
 
 Create TAG file. Please choose `default` as `GTAGSLABEL` if you don't enable
-`--with-exuberant-ctags` and plugin parser options. If you use homebrew on MacOSX,
+`--with-ctags` and plugin parser options. If you use homebrew on MacOSX,
 you can enable those features by following command.
 
 ```
 # You should uninstall global at first if you already install global
-% brew install global --with-exuberant-ctags --with-pygments
+% brew install global --with-ctags --with-pygments
 ```
 
 #### `helm-gtags-parse-file`
