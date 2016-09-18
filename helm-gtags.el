@@ -5,7 +5,7 @@
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
 ;; Version: 1.5.6
-;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
+;; Package-Requires: ((emacs "24.4") (helm "2.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@
 (require 'helm-files)
 (require 'which-func)
 (require 'pulse)
+(require 'subr-x)
 
 (declare-function helm-comp-read "helm-mode")
 (declare-function cygwin-convert-file-name-from-windows "cygw32.c")
@@ -516,7 +517,7 @@ Always update if value of this variable is nil."
       (setq helm-gtags--local-directory dir)))
   (let ((input (or in helm-gtags--query))
         (options (helm-gtags--construct-options type nil)))
-    (when (string= input "")
+    (when (string-empty-p input)
       (error "Input is empty!!"))
     (setq helm-gtags--last-input input)
     (reverse (cons input options))))
@@ -1240,7 +1241,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
       (let* ((cmds (helm-gtags--update-tags-command how-to))
              (proc (apply #'start-file-process "helm-gtags-update-tag" nil cmds)))
         (if (not proc)
-            (message "Failed: %s" (mapconcat 'identity cmds " "))
+            (message "Failed: %s" (string-join cmds " "))
           (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'update))
           (setq helm-gtags--last-update-time current-time))))))
 
