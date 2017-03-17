@@ -142,15 +142,19 @@ Always update if value of this variable is nil."
 
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
-  "Face for line numbers in the error list.")
+  "Face used for file name.")
 
 (defface helm-gtags-lineno
   '((t :inherit font-lock-doc-face))
-  "Face for line numbers in the error list.")
+  "Face used for line number.")
 
 (defface helm-gtags-match
   '((t :inherit helm-match))
-  "Face for word matched against tagname")
+  "Face used to highlight a tag matched in a selected line.")
+
+(defface helm-gtags-tag
+  '((t :inherit font-lock-string-face))
+  "Face used for tag.")
 
 (defvar helm-gtags--tag-location nil)
 (defvar helm-gtags--last-update-time 0)
@@ -745,10 +749,11 @@ Always update if value of this variable is nil."
 (defun helm-gtags--parse-file-candidate-transformer (file)
   (let ((removed-file (replace-regexp-in-string "\\`\\S-+ " "" file)))
     (when (string-match "\\`\\(\\S-+\\) \\(\\S-+\\) \\(.+\\)\\'" removed-file)
-      (format "%-25s %-5s %s"
-              (match-string-no-properties 1 removed-file)
-              (match-string-no-properties 2 removed-file)
-              (match-string-no-properties 3 removed-file)))))
+      (setq helm-gtags--last-input (match-string 1 removed-file))
+      (format "%s:%s:%s"
+              (propertize (match-string 1 removed-file) 'face 'helm-gtags-tag)
+              (propertize (match-string 2 removed-file) 'face 'helm-gtags-lineno)
+              (helm-gtags--highlight-candidate (match-string 3 removed-file))))))
 
 (defvar helm-source-gtags-find-tag-from-here
   (helm-build-in-buffer-source "Find tag from here"

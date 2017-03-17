@@ -279,11 +279,19 @@ and GNU global, please set `nil` to this variable.
 
 #### `helm-gtags-file`
 
-Face of file name of candidates
+Face used for file name.
 
 #### `helm-gtags-lineno`
 
-Face of line number of candidates
+Face used for line number.
+
+#### `helm-gtags-match`
+
+Face used for tag highlight.
+
+#### `helm-gtags-tag`
+
+Face used for tag.
 
 
 ## anything-gtags.el
