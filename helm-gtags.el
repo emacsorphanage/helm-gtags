@@ -86,7 +86,7 @@
   :type 'boolean)
 
 (defcustom helm-gtags-pulse-at-cursor t
-  "If non-nil, pulse at point after jumping"
+  "If non-nil, pulse at point after jumping."
   :type 'boolean)
 
 (defcustom helm-gtags-cache-select-result nil
@@ -94,7 +94,7 @@
   :type 'boolean)
 
 (defcustom helm-gtags-cache-max-result-size (* 10 1024 1024) ;10M
-  "Max size(bytes) to cache for each select result."
+  "Max size (bytes) to cache for each select result."
   :type 'integer)
 
 (defcustom helm-gtags-update-interval-second 60
@@ -104,11 +104,11 @@ Always update if value of this variable is nil."
                  (boolean :tag "Update every time" nil)))
 
 (defcustom helm-gtags-highlight-candidate t
-  "Highlight candidate or not"
+  "Highlight candidate or not."
   :type 'boolean)
 
 (defcustom helm-gtags-use-input-at-cursor nil
-  "Use input at cursor"
+  "Use input at cursor."
   :type 'boolean)
 
 (defcustom helm-gtags-prefix-key "\C-c"
@@ -129,15 +129,19 @@ Always update if value of this variable is nil."
                  (const :tag "Normal style" nil)))
 
 (defcustom helm-gtags-fuzzy-match nil
-  "Enable fuzzy match"
+  "Enable fuzzy match."
   :type 'boolean)
 
 (defcustom helm-gtags-maximum-candidates (if helm-gtags-fuzzy-match 100 9999)
-  "Maximum number of helm candidates"
+  "Maximum number of helm candidates."
   :type 'integer)
 
 (defcustom helm-gtags-direct-helm-completing nil
   "Use helm mode directly."
+  :type 'boolean)
+
+(defcustom helm-gtags-truncate-lines nil
+  "Truncate lines in helm-gtags buffer if non-nil."
   :type 'boolean)
 
 (defface helm-gtags-file
@@ -1050,7 +1054,7 @@ Always update if value of this variable is nil."
       (when tagname
         (helm-attrset 'name (format "%s in %s" tagname (or dir tagroot)) src))
       (helm :sources srcs :buffer helm-gtags--buffer
-            :preselect preselect-regexp))))
+            :preselect preselect-regexp :truncate-lines helm-gtags-truncate-lines))))
 
 ;;;###autoload
 (defun helm-gtags-delete-tags ()
@@ -1202,7 +1206,8 @@ You can jump definitions of functions, symbols in this file."
   (let ((presel (when helm-gtags-preselect
                   (format "^\\S-+\\s-+%d\\s-+" (helm-gtags--find-preselect-line)))))
     (helm :sources '(helm-source-gtags-parse-file)
-          :buffer helm-gtags--buffer :preselect presel)))
+          :buffer helm-gtags--buffer :preselect presel
+          :truncate-lines helm-gtags-truncate-lines)))
 
 ;;;###autoload
 (defun helm-gtags-pop-stack ()

@@ -256,6 +256,10 @@ You should set this value before loading `helm-gtags.el`.
 
 Use helm completion instead of normal Emacs completion if this value is non-nil.
 
+#### `helm-gtags-truncate-lines`(Default `nil`)
+
+Truncate lines in helm-gtags buffer if non-nil.
+
 #### `helm-gtags-maximum-candidates`
 
 Maximum number of helm candidates in `helm-gtags.el`.
