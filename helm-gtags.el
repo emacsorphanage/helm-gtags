@@ -184,6 +184,51 @@ Always update if value of this variable is nil."
 (helm-declare-obsolete-variable
  'helm-c-gtags-read-only 'helm-gtags-read-only "0.8")
 
+;; helm-gtags-process-environment
+(defvar-local helm-gtags-process-environment '()
+  "Like `process-environment' but has higher precedence.
+It can be used to set GTAGSLIBPATH in local buffer for helm-gtags.")
+
+(defmacro helm-gtags--with-process-environmennt (&rest body)
+  "Eval body with `helm-gtags-process-environment'."
+  (declare (indent 0) (debug t))
+  `(let ((process-environment
+          (if (getenv "helm-gtags-process-environmennt-expanded")
+              process-environment
+            (append (let ((process-environment (copy-sequence process-environment)))
+                      (mapcar #'substitute-env-vars helm-gtags-process-environment))
+                    process-environment))))
+     (setenv "helm-gtags-process-environmennt-expanded" "1")
+     ,@body))
+
+(defun helm-gtags--getenv (name)
+  "run `getenv' within `helm-gtags--with-process-environmennt'."
+  (helm-gtags--with-process-environmennt
+    (getenv name)))
+
+(defmacro helm-gtags--with-temp-buffer (&rest body)
+  "run `with-temp-buffer' within `helm-gtags--with-process-environmennt'."
+  (declare (indent 0) (debug t))
+  `(let ((helm-gtags-process-environment-value helm-gtags-process-environment))
+     (with-temp-buffer
+       (setq-local helm-gtags-process-environment helm-gtags-process-environment-value)
+       (helm-gtags--with-process-environmennt
+         ,@body))))
+
+(defmacro helm-gtags--with-current-buffer (buffer-or-name &rest body)
+  "run `with-current-buffer' within `helm-gtags--with-process-environmennt'."
+  (declare (indent 0) (debug t))
+  `(let ((helm-gtags-process-environment-value helm-gtags-process-environment))
+     (with-current-buffer ,buffer-or-name
+       (setq-local helm-gtags-process-environment helm-gtags-process-environment-value)
+       (helm-gtags--with-process-environmennt
+         ,@body))))
+
+(defun helm-gtags--process-file (&rest body)
+  "run `process-file' within  `helm-gtags--with-process-environmennt'."
+  (helm-gtags--with-process-environmennt
+    (apply #'process-file body)))
+
 ;; completsion function for completing-read.
 (defun helm-gtags--completing-gtags (string predicate code)
   (helm-gtags--complete 'tag string predicate code))
@@ -225,7 +270,7 @@ Always update if value of this variable is nil."
 
 (defun helm-gtags--construct-options (type completion)
   (let ((find-file-p (eq type 'find-file))
-        (gtagslibpath (getenv "GTAGSLIBPATH"))
+        (gtagslibpath (helm-gtags--getenv "GTAGSLIBPATH"))
         options)
     (unless find-file-p
       (push "--result=grep" options))
@@ -248,8 +293,8 @@ Always update if value of this variable is nil."
   (let* ((options (helm-gtags--construct-options type t))
          (args (reverse (cons string options)))
          candidates)
-    (with-temp-buffer
-      (apply #'process-file "global" nil t nil args)
+    (helm-gtags--with-temp-buffer
+      (apply #'helm-gtags--process-file "global" nil t nil args)
       (goto-char (point-min))
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (push (match-string-no-properties 1) candidates)))
@@ -292,19 +337,21 @@ Always update if value of this variable is nil."
                            'helm-gtags--completing-history tagname))))))
 
 (defun helm-gtags--path-libpath-p (tagroot)
-  (helm-aif (getenv "GTAGSLIBPATH")
+  (helm-aif (helm-gtags--getenv "GTAGSLIBPATH")
       (cl-loop for path in (parse-colon-path it)
-               for libpath = (file-name-as-directory (expand-file-name path))
+               for libpath = (if (stringp path)
+                                 (file-name-as-directory (expand-file-name path))
+                               nil)
                thereis (string= tagroot libpath))))
 
 (defsubst helm-gtags--convert-cygwin-windows-file-name-p ()
   (and (eq system-type 'cygwin) helm-gtags-cygwin-use-global-w32-port))
 
 (defun helm-gtags--tag-directory ()
-  (with-temp-buffer
-    (helm-aif (getenv "GTAGSROOT")
+  (helm-gtags--with-temp-buffer
+    (helm-aif (helm-gtags--getenv "GTAGSROOT")
         it
-      (unless (zerop (process-file "global" nil t nil "-p"))
+      (unless (zerop (helm-gtags--process-file "global" nil t nil "-p"))
         (error "GTAGS not found"))
       (goto-char (point-min))
       (when (looking-at "^\\([^\r\n]+\\)")
@@ -462,7 +509,7 @@ Always update if value of this variable is nil."
                             when (string= (buffer-file-name buf) path)
                             return it))
         retval)
-    (with-current-buffer (find-file-noselect file)
+    (helm-gtags--with-current-buffer (find-file-noselect file)
       (goto-char (point-min))
       (forward-line (1- ref-line))
       (unless (zerop (current-indentation))
@@ -485,23 +532,25 @@ Always update if value of this variable is nil."
         (forward-line 1)))))
 
 (defun helm-gtags--print-path-in-gtagslibpath (args)
-  (let ((libpath (getenv "GTAGSLIBPATH")))
+  (let ((libpath (helm-gtags--getenv "GTAGSLIBPATH")))
     (when libpath
       (dolist (path (parse-colon-path libpath))
-        (let ((default-directory (file-name-as-directory path)))
-          (apply #'process-file "global" nil t nil "-Poa" args))))))
+        (let ((default-directory (if (stringp path)
+                                     (file-name-as-directory path)
+                                   nil)))
+          (apply #'helm-gtags--process-file "global" nil t nil "-Poa" args))))))
 
 (defun helm-gtags--exec-global-command (type input &optional detail)
   (let ((args (helm-gtags--construct-command type input)))
     (helm-gtags--find-tag-directory)
     (helm-gtags--save-current-context)
     (let ((buf-coding buffer-file-coding-system))
-      (with-current-buffer (helm-candidate-buffer 'global)
+      (helm-gtags--with-current-buffer (helm-candidate-buffer 'global)
         (let ((default-directory (helm-gtags--base-directory))
               (input (car (last args)))
               (coding-system-for-read buf-coding)
               (coding-system-for-write buf-coding))
-          (unless (zerop (apply #'process-file "global" nil '(t nil) nil args))
+          (unless (zerop (apply #'helm-gtags--process-file "global" nil '(t nil) nil args))
             (error (format "%s: not found" input)))
           ;; --path options does not support searching under GTAGSLIBPATH
           (when (eq type 'find-file)
@@ -558,9 +607,9 @@ Always update if value of this variable is nil."
                                       (cygwin-convert-file-name-to-windows filename)
                                     filename))))
       (setq helm-gtags--last-input token)
-      (with-current-buffer (helm-candidate-buffer 'global)
+      (helm-gtags--with-current-buffer (helm-candidate-buffer 'global)
         (let* ((default-directory (helm-gtags--base-directory))
-               (status (process-file "global" nil '(t nil) nil
+               (status (helm-gtags--process-file "global" nil '(t nil) nil
                                      "--result=grep" from-here-opt token)))
           (helm-gtags--remove-carrige-returns)
           (unless (zerop status)
@@ -571,8 +620,8 @@ Always update if value of this variable is nil."
                   (t (error "%s: not found" token)))))))))
 
 (defun helm-gtags--parse-file-init ()
-  (with-current-buffer (helm-candidate-buffer 'global)
-    (unless (zerop (process-file "global" nil t nil
+  (helm-gtags--with-current-buffer (helm-candidate-buffer 'global)
+    (unless (zerop (helm-gtags--process-file "global" nil t nil
                                  "--result=cscope" "-f" helm-gtags--parsed-file))
       (error "Failed: 'global --result=cscope -f %s" helm-gtags--parsed-file))
     (helm-gtags--remove-carrige-returns)))
@@ -636,7 +685,7 @@ Always update if value of this variable is nil."
     (helm-gtags--action-openfile cand)))
 
 (defun helm-gtags--file-content-at-pos (file pos)
-  (with-current-buffer (find-file-noselect file)
+  (helm-gtags--with-current-buffer (find-file-noselect file)
     (save-excursion
       (goto-char pos)
       (format "%s:%d:%s:%s"
@@ -819,8 +868,8 @@ Always update if value of this variable is nil."
          (bound (helm-gtags--current-funcion-bound))
          (start-line (car bound))
          (end-line (cdr bound)))
-    (with-temp-buffer
-      (unless (process-file "global" nil t nil "-f" "-r" file)
+    (helm-gtags--with-temp-buffer
+      (unless (helm-gtags--process-file "global" nil t nil "-f" "-r" file)
         (error "Failed: global -f -r %s" file))
       (goto-char (point-min))
       (let (tagnames finish)
@@ -890,17 +939,17 @@ Always update if value of this variable is nil."
   (let ((cache (helm-gtags--get-result-cache tagfile)))
     (if cache
         (insert cache)
-      (apply #'process-file "global" nil t nil args)
+      (apply #'helm-gtags--process-file "global" nil t nil args)
       (let* ((cache (buffer-string))
              (cache-size (length cache)))
         (when (<= cache-size helm-gtags-cache-max-result-size)
           (helm-gtags--put-result-cache tagfile cache))))))
 
 (defun helm-gtags--source-select-init ()
-  (with-current-buffer (helm-candidate-buffer 'global)
+  (helm-gtags--with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
         (progn
-          (process-file "global" nil t nil "-c")
+          (helm-gtags--process-file "global" nil t nil "-c")
           (helm-gtags--remove-carrige-returns))
       (helm-gtags--select-cache-init-common '("-c") "GTAGS"))))
 
@@ -920,11 +969,11 @@ Always update if value of this variable is nil."
 
 (defun helm-gtags--select-path-init ()
   (helm-gtags--find-tag-directory)
-  (with-current-buffer (helm-candidate-buffer 'global)
+  (helm-gtags--with-current-buffer (helm-candidate-buffer 'global)
     (let ((options (if (eq helm-gtags-path-style 'relative) "-Po" "-Poa")))
       (if (not helm-gtags-cache-select-result)
           (progn
-            (process-file "global" nil t nil options)
+            (helm-gtags--process-file "global" nil t nil options)
             (helm-gtags--remove-carrige-returns))
         (helm-gtags--select-cache-init-common (list options) "GPATH")))))
 
@@ -1000,7 +1049,7 @@ Always update if value of this variable is nil."
       (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'create)))))
 
 (defun helm-gtags--find-tag-simple ()
-  (or (getenv "GTAGSROOT")
+  (or (helm-gtags--getenv "GTAGSROOT")
       (locate-dominating-file default-directory "GTAGS")
       (if (not (yes-or-no-p "File GTAGS not found. Run 'gtags'? "))
           (user-error "Abort")
@@ -1009,7 +1058,7 @@ Always update if value of this variable is nil."
                (default-directory tagroot))
           (message "gtags is generating tags....")
           (let ((label-opt (helm-gtags--label-option label)))
-            (unless (zerop (process-file "gtags" nil nil nil "-q" label-opt))
+            (unless (zerop (helm-gtags--process-file "gtags" nil nil nil "-q" label-opt))
               (error "Failed: 'gtags -q %s'" label-opt)))
           tagroot))))
 
@@ -1168,8 +1217,8 @@ Jump to reference point if curosr is on its definition"
         (line-number-at-pos)
       (let ((defun-begin-line (line-number-at-pos (car defun-bound)))
             (filename (helm-gtags--real-file-name)))
-        (with-temp-buffer
-          (unless (zerop (process-file "global" nil t nil "-f" filename))
+        (helm-gtags--with-temp-buffer
+          (unless (zerop (helm-gtags--process-file "global" nil t nil "-f" filename))
             (error "Failed: global -f"))
           (goto-char (point-min))
           (let (start-line)
@@ -1300,7 +1349,7 @@ Generate new TAG file in selected directory with `C-u C-u'"
         (when browser
           (setq args (append (list "-b" browser) args)))
         ;; `gozilla' commend never returns error status if command is failed.
-        (apply #'process-file "gozilla" nil nil nil args)))))
+        (apply #'helm-gtags--process-file "gozilla" nil nil nil args)))))
 
 (defvar helm-gtags-mode-name " HelmGtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
