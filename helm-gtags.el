@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; `helm-gtags.el' is a `helm' interface of GNU Global.
+;; `helm-gtags.el' is a `helm' interface of GNU GLOBAL.
 ;; `helm-gtags.el' is not compatible `anything-gtags.el', but `helm-gtags.el'
 ;; is designed for fast search.
 
@@ -74,7 +74,7 @@
   :type 'boolean)
 
 (defcustom helm-gtags-cygwin-use-global-w32-port t
-  "Use the GNU global win32 port in Cygwin."
+  "Use the GNU GLOBAL win32 port in Cygwin."
   :type 'boolean)
 
 (defcustom helm-gtags-read-only nil
@@ -86,7 +86,7 @@
   :type 'boolean)
 
 (defcustom helm-gtags-pulse-at-cursor t
-  "If non-nil, pulse at point after jumping"
+  "If non-nil, pulse at point after jumping."
   :type 'boolean)
 
 (defcustom helm-gtags-cache-select-result nil
@@ -94,7 +94,7 @@
   :type 'boolean)
 
 (defcustom helm-gtags-cache-max-result-size (* 10 1024 1024) ;10M
-  "Max size(bytes) to cache for each select result."
+  "Max size (bytes) to cache for each select result."
   :type 'integer)
 
 (defcustom helm-gtags-update-interval-second 60
@@ -104,11 +104,11 @@ Always update if value of this variable is nil."
                  (boolean :tag "Update every time" nil)))
 
 (defcustom helm-gtags-highlight-candidate t
-  "Highlight candidate or not"
+  "Highlight candidate or not."
   :type 'boolean)
 
 (defcustom helm-gtags-use-input-at-cursor nil
-  "Use input at cursor"
+  "Use input at cursor."
   :type 'boolean)
 
 (defcustom helm-gtags-prefix-key "\C-c"
@@ -129,28 +129,36 @@ Always update if value of this variable is nil."
                  (const :tag "Normal style" nil)))
 
 (defcustom helm-gtags-fuzzy-match nil
-  "Enable fuzzy match"
+  "Enable fuzzy match."
   :type 'boolean)
 
 (defcustom helm-gtags-maximum-candidates (if helm-gtags-fuzzy-match 100 9999)
-  "Maximum number of helm candidates"
+  "Maximum number of helm candidates."
   :type 'integer)
 
 (defcustom helm-gtags-direct-helm-completing nil
   "Use helm mode directly."
   :type 'boolean)
 
+(defcustom helm-gtags-truncate-lines nil
+  "Truncate lines in helm-gtags buffer if non-nil."
+  :type 'boolean)
+
 (defface helm-gtags-file
   '((t :inherit font-lock-keyword-face))
-  "Face for line numbers in the error list.")
+  "Face used for file name.")
 
 (defface helm-gtags-lineno
   '((t :inherit font-lock-doc-face))
-  "Face for line numbers in the error list.")
+  "Face used for line number.")
 
 (defface helm-gtags-match
   '((t :inherit helm-match))
-  "Face for word matched against tagname")
+  "Face used to highlight a tag matched in a selected line.")
+
+(defface helm-gtags-tag
+  '((t :inherit font-lock-string-face))
+  "Face used for tag.")
 
 (defvar helm-gtags--tag-location nil)
 (defvar helm-gtags--last-update-time 0)
@@ -219,7 +227,7 @@ Always update if value of this variable is nil."
       (while (re-search-forward "\xd" nil t)
         (replace-match "")))))
 
-;; Work around for GNU global Windows issue
+;; Work around for GNU GLOBAL Windows issue
 (defsubst helm-gtags--use-abs-path-p (gtagslibpath)
   (and (helm-gtags--windows-p) gtagslibpath))
 
@@ -281,15 +289,12 @@ Always update if value of this variable is nil."
         (setq tagname default-tagname))
       (when tagname
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
-      (let ((completion-ignore-case helm-gtags-ignore-case)
-            (completing-read-function 'completing-read-default))
-        (if (and helm-gtags-direct-helm-completing (memq type '(tag rtag symbol find-file)))
-            (helm-comp-read prompt comp-func
-                            :history 'helm-gtags--completing-history
-                            :exec-when-only-one t
-                            :default tagname)
-          (completing-read prompt comp-func nil nil nil
-                           'helm-gtags--completing-history tagname))))))
+      (let ((completion-ignore-case helm-gtags-ignore-case))
+        (if (or (not helm-gtags-direct-helm-completing) (memq type '(pattern)))
+            (let ((completing-read-function 'completing-read-default))
+              (completing-read prompt comp-func nil nil nil
+                               'helm-gtags--completing-history tagname))
+          (completing-read prompt comp-func nil nil nil nil tagname))))))
 
 (defun helm-gtags--path-libpath-p (tagroot)
   (helm-aif (getenv "GTAGSLIBPATH")
@@ -745,10 +750,11 @@ Always update if value of this variable is nil."
 (defun helm-gtags--parse-file-candidate-transformer (file)
   (let ((removed-file (replace-regexp-in-string "\\`\\S-+ " "" file)))
     (when (string-match "\\`\\(\\S-+\\) \\(\\S-+\\) \\(.+\\)\\'" removed-file)
-      (format "%-25s %-5s %s"
-              (match-string-no-properties 1 removed-file)
-              (match-string-no-properties 2 removed-file)
-              (match-string-no-properties 3 removed-file)))))
+      (setq helm-gtags--last-input (match-string 1 removed-file))
+      (format "%s:%s:%s"
+              (propertize (match-string 1 removed-file) 'face 'helm-gtags-tag)
+              (propertize (match-string 2 removed-file) 'face 'helm-gtags-lineno)
+              (helm-gtags--highlight-candidate (match-string 3 removed-file))))))
 
 (defvar helm-source-gtags-find-tag-from-here
   (helm-build-in-buffer-source "Find tag from here"
@@ -1045,7 +1051,7 @@ Always update if value of this variable is nil."
       (when tagname
         (helm-attrset 'name (format "%s in %s" tagname (or dir tagroot)) src))
       (helm :sources srcs :buffer helm-gtags--buffer
-            :preselect preselect-regexp))))
+            :preselect preselect-regexp :truncate-lines helm-gtags-truncate-lines))))
 
 ;;;###autoload
 (defun helm-gtags-delete-tags ()
@@ -1068,7 +1074,7 @@ Always update if value of this variable is nil."
       (unwind-protect
           (progn
             (fit-window-to-buffer win)
-            (when (yes-or-no-p "Remove GNU Global tag files? ")
+            (when (yes-or-no-p "Remove GNU GLOBAL tag files? ")
               (with-demoted-errors (mapc #'delete-file files))
               ))
         (when (window-live-p win)
@@ -1124,7 +1130,7 @@ Always update if value of this variable is nil."
 
 ;;;###autoload
 (defun helm-gtags-find-files (file)
-  "Find file from tagged with gnu global."
+  "Find file from tagged with GNU GLOBAL."
   (interactive
    (list (helm-gtags--read-tagname 'find-file)))
   (add-hook 'helm-after-action-hook 'helm-gtags--find-file-after-hook)
@@ -1182,7 +1188,7 @@ Jump to reference point if curosr is on its definition"
 
 ;;;###autoload
 (defun helm-gtags-parse-file ()
-  "Parse current file with gnu global. This is similar to `imenu'.
+  "Parse current file with GNU GLOBAL. This is similar to `imenu'.
 You can jump definitions of functions, symbols in this file."
   (interactive)
   (helm-gtags--find-tag-directory)
@@ -1197,7 +1203,8 @@ You can jump definitions of functions, symbols in this file."
   (let ((presel (when helm-gtags-preselect
                   (format "^\\S-+\\s-+%d\\s-+" (helm-gtags--find-preselect-line)))))
     (helm :sources '(helm-source-gtags-parse-file)
-          :buffer helm-gtags--buffer :preselect presel)))
+          :buffer helm-gtags--buffer :preselect presel
+          :truncate-lines helm-gtags-truncate-lines)))
 
 ;;;###autoload
 (defun helm-gtags-pop-stack ()
