@@ -11,15 +11,11 @@
 
 ## Requirements
 
-* Emacs 24 or higher.
+* Emacs 24 or higher
 * helm 1.7.7 or higher
-* GNU Global 6.2.3 or higher
+* GNU GLOBAL 6.2.3 or higher
 
 `helm-gtags.el` does not require `gtags.el`.
-
-#### Ubuntu/Debian users
-
-Please do not use Ubuntu/Debian GNU gtags package. It's too old.
 
 
 ## Installation
@@ -33,9 +29,7 @@ You can install `helm-gtags` with the following command.
 
 ## Use Ctags with helm-gtags
 
-You can use `helm-gtags` for languages which are supported by `ctags`(Both [exuberant ctags](http://ctags.sourceforge.net/) and [universal ctags](https://ctags.io/))
-with ctags backend feature of `GNU global`. You can generate `ctags` backend
-tags by following command.
+You can use `helm-gtags` for languages which are supported by `ctags` (both [exuberant ctags](http://ctags.sourceforge.net/) and [universal ctags](https://ctags.io/)) with ctags backend feature of `GNU GLOBAL`. You can generate `ctags` backend tags by following command.
 
 ```
 # exuberant ctags
@@ -276,8 +270,7 @@ If this variable is non-nil, preselect current file and line.
 
 #### `helm-gtags-cygwin-use-global-w32-port`
 
-This variable is only for Cygwin users. If you use both Cygwin version Emacs
-and GNU global, please set `nil` to this variable.
+This variable is only for Cygwin users. If you use both Cygwin version Emacs and GNU GLOBAL, please set `nil` to this variable.
 
 ## Faces
 
