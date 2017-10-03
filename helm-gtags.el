@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; `helm-gtags.el' is a `helm' interface of GNU Global.
+;; `helm-gtags.el' is a `helm' interface of GNU GLOBAL.
 ;; `helm-gtags.el' is not compatible `anything-gtags.el', but `helm-gtags.el'
 ;; is designed for fast search.
 
@@ -74,7 +74,7 @@
   :type 'boolean)
 
 (defcustom helm-gtags-cygwin-use-global-w32-port t
-  "Use the GNU global win32 port in Cygwin."
+  "Use the GNU GLOBAL win32 port in Cygwin."
   :type 'boolean)
 
 (defcustom helm-gtags-read-only nil
@@ -227,7 +227,7 @@ Always update if value of this variable is nil."
       (while (re-search-forward "\xd" nil t)
         (replace-match "")))))
 
-;; Work around for GNU global Windows issue
+;; Work around for GNU GLOBAL Windows issue
 (defsubst helm-gtags--use-abs-path-p (gtagslibpath)
   (and (helm-gtags--windows-p) gtagslibpath))
 
@@ -1074,7 +1074,7 @@ Always update if value of this variable is nil."
       (unwind-protect
           (progn
             (fit-window-to-buffer win)
-            (when (yes-or-no-p "Remove GNU Global tag files? ")
+            (when (yes-or-no-p "Remove GNU GLOBAL tag files? ")
               (with-demoted-errors (mapc #'delete-file files))
               ))
         (when (window-live-p win)
@@ -1130,7 +1130,7 @@ Always update if value of this variable is nil."
 
 ;;;###autoload
 (defun helm-gtags-find-files (file)
-  "Find file from tagged with gnu global."
+  "Find file from tagged with GNU GLOBAL."
   (interactive
    (list (helm-gtags--read-tagname 'find-file)))
   (add-hook 'helm-after-action-hook 'helm-gtags--find-file-after-hook)
@@ -1188,7 +1188,7 @@ Jump to reference point if curosr is on its definition"
 
 ;;;###autoload
 (defun helm-gtags-parse-file ()
-  "Parse current file with gnu global. This is similar to `imenu'.
+  "Parse current file with GNU GLOBAL. This is similar to `imenu'.
 You can jump definitions of functions, symbols in this file."
   (interactive)
   (helm-gtags--find-tag-directory)
