@@ -289,15 +289,12 @@ Always update if value of this variable is nil."
         (setq tagname default-tagname))
       (when tagname
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
-      (let ((completion-ignore-case helm-gtags-ignore-case)
-            (completing-read-function 'completing-read-default))
-        (if (and helm-gtags-direct-helm-completing (memq type '(tag rtag symbol find-file)))
-            (helm-comp-read prompt comp-func
-                            :history 'helm-gtags--completing-history
-                            :exec-when-only-one t
-                            :default tagname)
-          (completing-read prompt comp-func nil nil nil
-                           'helm-gtags--completing-history tagname))))))
+      (let ((completion-ignore-case helm-gtags-ignore-case))
+        (if (or (not helm-gtags-direct-helm-completing) (memq type '(pattern)))
+            (let ((completing-read-function 'completing-read-default))
+              (completing-read prompt comp-func nil nil nil
+                               'helm-gtags--completing-history tagname))
+          (completing-read prompt comp-func nil nil nil nil tagname))))))
 
 (defun helm-gtags--path-libpath-p (tagroot)
   (helm-aif (getenv "GTAGSLIBPATH")
