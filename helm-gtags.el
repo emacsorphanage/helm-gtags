@@ -1200,6 +1200,12 @@ You can jump definitions of functions, symbols in this file."
           :buffer helm-gtags--buffer :preselect presel)))
 
 ;;;###autoload
+(defun helm-gtags-push-stack ()
+  "Push current location to the stack."
+  (interactive)
+  (helm-gtags--push-context (helm-gtags--current-context)))
+
+;;;###autoload
 (defun helm-gtags-pop-stack ()
   "Jump to previous point on the context stack and pop it from stack."
   (interactive)
