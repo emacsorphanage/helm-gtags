@@ -136,6 +136,10 @@ Always update if value of this variable is nil."
   "Maximum number of helm candidates"
   :type 'integer)
 
+(defcustom helm-gtags-symbol-at-point-function 'helm-gtags--symbol-at-point
+  "Function to use to get the symbol at point."
+  :type 'symbol)
+
 (defcustom helm-gtags-direct-helm-completing nil
   "Use helm mode directly."
   :type 'boolean)
@@ -257,9 +261,12 @@ Always update if value of this variable is nil."
         (try-completion string candidates predicate)
       (all-completions string candidates predicate))))
 
+(defun helm-gtags--symbol-at-point ()
+  (thing-at-point 'symbol))
+
 (defun helm-gtags--token-at-point (type)
   (if (not (eq type 'find-file))
-      (thing-at-point 'symbol)
+      (funcall helm-gtags-symbol-at-point-function)
     (let ((line (helm-current-line-contents)))
       (when (string-match helm-gtags--include-regexp line)
         (match-string-no-properties 1 line)))))
@@ -1151,7 +1158,7 @@ Jump to reference point if curosr is on its definition"
     (if (string-match helm-gtags--include-regexp line)
         (let ((helm-gtags-use-input-at-cursor t))
           (helm-gtags-find-files (match-string-no-properties 1 line)))
-      (if (and (buffer-file-name) (thing-at-point 'symbol))
+      (if (and (buffer-file-name) (funcall helm-gtags-symbol-at-point-function))
           (helm-gtags-find-tag-from-here)
         (call-interactively 'helm-gtags-find-tag)))))
 
