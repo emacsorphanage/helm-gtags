@@ -125,6 +125,10 @@ any files with `C-u` prefix.
 Move to previous point on the stack.
 helm-gtags pushes current point to stack before executing each jump functions.
 
+#### `helm-gtags-push-stack`
+
+Push current location to the stack.
+
 #### `helm-gtags-next-history`
 
 Move to next history on context stack.
