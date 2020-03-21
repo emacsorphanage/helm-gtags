@@ -1163,22 +1163,22 @@ Jump to reference point if curosr is on its definition"
     (setq helm-gtags--parsed-file (expand-file-name file))))
 
 (defun helm-gtags--find-preselect-line ()
-  (let ((defun-bound (bounds-of-thing-at-point 'defun)))
-    (if (not defun-bound)
-        (line-number-at-pos)
-      (let ((defun-begin-line (line-number-at-pos (car defun-bound)))
-            (filename (helm-gtags--real-file-name)))
-        (with-temp-buffer
-          (unless (zerop (process-file "global" nil t nil "-f" filename))
-            (error "Failed: global -f"))
-          (goto-char (point-min))
-          (let (start-line)
-            (while (and (not start-line)
-                        (re-search-forward "^\\S-+\\s-+\\([1-9][0-9]*\\)" nil t))
-              (let ((line (string-to-number (match-string-no-properties 1))))
-                (when (>= line defun-begin-line)
-                  (setq start-line line))))
-            (or start-line (line-number-at-pos))))))))
+  (let* ((defun-bound (bounds-of-thing-at-point 'defun))
+         (defun-begin-line (line-number-at-pos
+                            (when defun-bound (car defun-bound))))
+          (filename (helm-gtags--real-file-name)))
+    (with-temp-buffer
+      (unless (zerop (process-file "global" nil t nil "-f" filename))
+        (error "Failed: global -f"))
+      (goto-char (point-min))
+      (let ((start-line)
+            (line))
+        (while (and (not start-line)
+                    (re-search-forward "^\\S-+\\s-+\\([1-9][0-9]*\\)" nil t))
+          (setq line (string-to-number (match-string-no-properties 1)))
+          (when (>= line defun-begin-line)
+              (setq start-line line)))
+        (or (or start-line line) 0)))))
 
 ;;;###autoload
 (defun helm-gtags-parse-file ()
