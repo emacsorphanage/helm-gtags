@@ -184,10 +184,12 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--query nil)
 (defvar helm-gtags--last-default-directory nil)
 
-(defconst helm-gtags--buffer "*helm gtags*")
+(defconst helm-gtags--buffer "*helm gtags*"
+  "Not documented.")
 
 (defconst helm-gtags--include-regexp
-  "\\`\\s-*#\\(?:include\\|import\\)\\s-*[\"<]\\(?:[./]*\\)?\\(.*?\\)[\">]")
+  "\\`\\s-*#\\(?:include\\|import\\)\\s-*[\"<]\\(?:[./]*\\)?\\(.*?\\)[\">]"
+  "Not documented.")
 
 (defmacro helm-declare-obsolete-variable (old new version)
   `(progn
@@ -218,18 +220,22 @@ Always update if value of this variable is nil."
     (pattern   . helm-gtags--completing-pattern)
     (rtag      . helm-gtags--completing-grtags)
     (symbol    . helm-gtags--completing-gsyms)
-    (find-file . helm-gtags--completing-files)))
+    (find-file . helm-gtags--completing-files))
+  "Not documented.")
 
 (defconst helm-gtags--search-option-alist
   '((pattern   . "-g")
     (rtag      . "-r")
     (symbol    . "-s")
-    (find-file . "-Poa")))
+    (find-file . "-Poa"))
+  "Not documented.")
 
 (defsubst helm-gtags--windows-p ()
+  "Not documented."
   (memq system-type '(windows-nt ms-dos)))
 
 (defun helm-gtags--remove-carrige-returns ()
+  "Not documented."
   (when (helm-gtags--windows-p)
     (save-excursion
       (goto-char (point-min))
@@ -238,9 +244,11 @@ Always update if value of this variable is nil."
 
 ;; Work around for GNU global Windows issue
 (defsubst helm-gtags--use-abs-path-p (gtagslibpath)
+  "Not documented."
   (and (helm-gtags--windows-p) gtagslibpath))
 
 (defun helm-gtags--construct-options (type completion)
+  "Not documented."
   (let ((find-file-p (eq type 'find-file))
         (gtagslibpath (getenv "GTAGSLIBPATH"))
         options)
@@ -262,6 +270,7 @@ Always update if value of this variable is nil."
     options))
 
 (defun helm-gtags--complete (type string predicate code)
+  "Not documented."
   (let* ((options (helm-gtags--construct-options type t))
          (args (reverse (cons string options)))
          candidates)
@@ -275,6 +284,7 @@ Always update if value of this variable is nil."
       (all-completions string candidates predicate))))
 
 (defun helm-gtags--token-at-point (type)
+  "Not documented."
   (if (not (eq type 'find-file))
       (thing-at-point 'symbol)
     (let ((line (helm-current-line-contents)))
@@ -286,9 +296,11 @@ Always update if value of this variable is nil."
     (pattern   . "Find Pattern: ")
     (rtag      . "Find Reference: ")
     (symbol    . "Find Symbol: ")
-    (find-file . "Find File: ")))
+    (find-file . "Find File: "))
+  "Not documented.")
 
 (defun helm-gtags--read-tagname (type &optional default-tagname)
+  "Not documented."
   (let ((tagname (helm-gtags--token-at-point type))
         (prompt (assoc-default type helm-gtags--prompt-alist))
         (comp-func (assoc-default type helm-gtags-comp-func-alist)))
@@ -309,15 +321,18 @@ Always update if value of this variable is nil."
                            'helm-gtags--completing-history tagname))))))
 
 (defun helm-gtags--path-libpath-p (tagroot)
+  "Not documented."
   (helm-aif (getenv "GTAGSLIBPATH")
       (cl-loop for path in (parse-colon-path it)
                for libpath = (file-name-as-directory (expand-file-name path))
                thereis (string= tagroot libpath))))
 
 (defsubst helm-gtags--convert-cygwin-windows-file-name-p ()
+  "Not documented."
   (and (eq system-type 'cygwin) helm-gtags-cygwin-use-global-w32-port))
 
 (defun helm-gtags--tag-directory ()
+  "Not documented."
   (with-temp-buffer
     (helm-aif (getenv "GTAGSROOT")
         it
@@ -332,6 +347,7 @@ Always update if value of this variable is nil."
              tag-path)))))))
 
 (defun helm-gtags--find-tag-directory ()
+  "Not documented."
   (setq helm-gtags--real-tag-location nil)
   (let ((tagroot (helm-gtags--tag-directory)))
     (if (and (helm-gtags--path-libpath-p tagroot) helm-gtags--tag-location)
@@ -341,6 +357,7 @@ Always update if value of this variable is nil."
       (setq helm-gtags--tag-location tagroot))))
 
 (defun helm-gtags--base-directory ()
+  "Not documented."
   (let ((dir (or helm-gtags--last-default-directory
                  helm-gtags--local-directory
                  (cl-case helm-gtags-path-style
@@ -353,31 +370,38 @@ Always update if value of this variable is nil."
       dir)))
 
 (defsubst helm-gtags--new-context-info (index stack)
+  "Not documented."
   (list :index index :stack stack))
 
 (defun helm-gtags--put-context-stack (tag-location index stack)
+  "Not documented."
   (puthash tag-location (helm-gtags--new-context-info index stack)
            helm-gtags--context-stack))
 
 (defsubst helm-gtags--current-context ()
+  "Not documented."
   (let ((file (buffer-file-name (current-buffer))))
     (list :file file :position (point) :readonly buffer-file-read-only)))
 
 (defsubst helm-gtags--save-current-context ()
+  "Not documented."
   (setq helm-gtags--saved-context (helm-gtags--current-context)))
 
 (defun helm-gtags--open-file (file readonly)
+  "Not documented."
   (if readonly
       (find-file-read-only file)
     (find-file file)))
 
 (defun helm-gtags--open-file-other-window (file readonly)
+  "Not documented."
   (setq helm-gtags--use-otherwin nil)
   (if readonly
       (find-file-read-only-other-window file)
     (find-file-other-window file)))
 
 (defun helm-gtags--get-context-info ()
+  "Not documented."
   (let* ((tag-location (helm-gtags--find-tag-directory))
          (context-info (gethash tag-location helm-gtags--context-stack))
          (context-stack (plist-get context-info :stack)))
@@ -386,16 +410,19 @@ Always update if value of this variable is nil."
       context-info)))
 
 (defun helm-gtags--get-or-create-context-info ()
+  "Not documented."
   (or (gethash helm-gtags--tag-location helm-gtags--context-stack)
       (helm-gtags--new-context-info -1 nil)))
 
 ;;;###autoload
 (defun helm-gtags-clear-all-cache ()
+  "Not documented."
   (interactive)
   (clrhash helm-gtags--result-cache))
 
 ;;;###autoload
 (defun helm-gtags-clear-cache ()
+  "Not documented."
   (interactive)
   (helm-gtags--find-tag-directory)
   (let* ((tag-location (or helm-gtags--real-tag-location
@@ -406,6 +433,7 @@ Always update if value of this variable is nil."
     (remhash gpath-path helm-gtags--result-cache)))
 
 (defun helm-gtags--move-to-context (context)
+  "Not documented."
   (let ((file (plist-get context :file))
         (curpoint (plist-get context :position))
         (readonly (plist-get context :readonly)))
@@ -453,6 +481,7 @@ Always update if value of this variable is nil."
                                    current-index context-stack)))
 
 (defun helm-gtags--get-result-cache (file)
+  "Not documented."
   (helm-gtags--find-tag-directory)
   (let* ((file-path (concat (or helm-gtags--real-tag-location
                                 helm-gtags--tag-location)
@@ -465,6 +494,7 @@ Always update if value of this variable is nil."
       nil)))
 
 (defun helm-gtags--put-result-cache (file cache)
+  "Not documented."
   (helm-gtags--find-tag-directory)
   (let* ((file-path (concat (or helm-gtags--real-tag-location
                                 helm-gtags--tag-location)
@@ -474,6 +504,7 @@ Always update if value of this variable is nil."
     (puthash file-path hash-value helm-gtags--result-cache)))
 
 (defun helm-gtags--referer-function (file ref-line)
+  "Not documented."
   (let ((is-opened (cl-loop with path = (concat default-directory file)
                             for buf in (buffer-list)
                             when (string= (buffer-file-name buf) path)
@@ -489,6 +520,7 @@ Always update if value of this variable is nil."
       retval)))
 
 (defun helm-gtags--show-detail ()
+  "Not documented."
   (goto-char (point-min))
   (while (not (eobp))
     (let ((line (helm-current-line-contents)))
@@ -502,6 +534,7 @@ Always update if value of this variable is nil."
         (forward-line 1)))))
 
 (defun helm-gtags--print-path-in-gtagslibpath (args)
+  "Not documented."
   (let ((libpath (getenv "GTAGSLIBPATH")))
     (when libpath
       (dolist (path (parse-colon-path libpath))
@@ -509,6 +542,7 @@ Always update if value of this variable is nil."
           (apply #'process-file "global" nil t nil "-Poa" args))))))
 
 (defun helm-gtags--exec-global-command (type input &optional detail)
+  "Not documented."
   (let ((args (helm-gtags--construct-command type input)))
     (helm-gtags--find-tag-directory)
     (helm-gtags--save-current-context)
@@ -528,6 +562,7 @@ Always update if value of this variable is nil."
             (helm-gtags--show-detail)))))))
 
 (defun helm-gtags--construct-command (type &optional in)
+  "Not documented."
   (setq helm-gtags--local-directory nil)
   (let ((dir (helm-attr 'helm-gtags-base-directory (helm-get-current-source))))
     (when (and dir (not (eq type 'find-file)))
@@ -540,21 +575,27 @@ Always update if value of this variable is nil."
     (reverse (cons input options))))
 
 (defun helm-gtags--tags-init (&optional input)
+  "Not documented."
   (helm-gtags--exec-global-command 'tag input))
 
 (defun helm-gtags--pattern-init (&optional input)
+  "Not documented."
   (helm-gtags--exec-global-command 'pattern input helm-gtags-display-style))
 
 (defun helm-gtags--rtags-init (&optional input)
+  "Not documented."
   (helm-gtags--exec-global-command 'rtag input helm-gtags-display-style))
 
 (defun helm-gtags--gsyms-init ()
+  "Not documented."
   (helm-gtags--exec-global-command 'symbol nil helm-gtags-display-style))
 
 (defun helm-gtags--files-init ()
+  "Not documented."
   (helm-gtags--exec-global-command 'find-file nil))
 
 (defun helm-gtags--real-file-name ()
+  "Not documented."
   (let ((buffile (buffer-file-name)))
     (unless buffile
       (error "This buffer is not related to file."))
@@ -563,6 +604,7 @@ Always update if value of this variable is nil."
       (file-truename buffile))))
 
 (defun helm-gtags--find-tag-from-here-init ()
+  "Not documented."
   (helm-gtags--find-tag-directory)
   (helm-gtags--save-current-context)
   (let ((token (helm-gtags--token-at-point 'from-here)))
@@ -588,6 +630,7 @@ Always update if value of this variable is nil."
                   (t (error "%s: not found" token)))))))))
 
 (defun helm-gtags--parse-file-init ()
+  "Not documented."
   (with-current-buffer (helm-candidate-buffer 'global)
     (unless (zerop (process-file "global" nil t nil
                                  "--result=cscope" "-f" helm-gtags--parsed-file))
@@ -595,6 +638,7 @@ Always update if value of this variable is nil."
     (helm-gtags--remove-carrige-returns)))
 
 (defun helm-gtags--push-context (context)
+  "Not documented."
   (let* ((context-info (helm-gtags--get-or-create-context-info))
          (current-index (plist-get context-info :index))
          (context-stack (plist-get context-info :stack)))
@@ -605,11 +649,13 @@ Always update if value of this variable is nil."
     (helm-gtags--put-context-stack helm-gtags--tag-location -1 context-stack)))
 
 (defsubst helm-gtags--select-find-file-func ()
+  "Not documented."
   (if helm-gtags--use-otherwin
       #'helm-gtags--open-file-other-window
     #'helm-gtags--open-file))
 
 (defun helm-gtags--do-open-file (open-func file line)
+  "Not documented."
   (funcall open-func file helm-gtags-read-only)
   (goto-char (point-min))
   (forward-line (1- line))
@@ -620,19 +666,23 @@ Always update if value of this variable is nil."
     (pulse-momentary-highlight-one-line (point))))
 
 (defun helm-gtags--find-line-number (cand)
+  "Not documented."
   (if (string-match "\\s-+\\([1-9][0-9]+\\)\\s-+" cand)
       (string-to-number (match-string-no-properties 1 cand))
     (error "Can't find line number in %s" cand)))
 
 (defun helm-gtags--parse-file-action (cand)
+  "Not documented."
   (let ((line (helm-gtags--find-line-number cand))
         (open-func (helm-gtags--select-find-file-func)))
     (helm-gtags--do-open-file open-func helm-gtags--parsed-file line)))
 
 (defsubst helm-gtags--has-drive-letter-p (path)
+  "Not documented."
   (string-match-p "\\`[a-zA-Z]:" path))
 
 (defun helm-gtags--extract-file-and-line (cand)
+  "Not documented."
   (if (and (helm-gtags--windows-p) (helm-gtags--has-drive-letter-p cand))
       (when (string-match "\\(\\`[a-zA-Z]:[^:]+\\):\\([^:]+\\)" cand)
         (cons (match-string-no-properties 1 cand)
@@ -641,6 +691,7 @@ Always update if value of this variable is nil."
       (cons (cl-first elems) (string-to-number (cl-second elems))))))
 
 (defun helm-gtags--action-openfile (cand)
+  "Not documented."
   (let* ((file-and-line (helm-gtags--extract-file-and-line cand))
          (filename (car file-and-line))
          (line (cdr file-and-line))
@@ -649,10 +700,12 @@ Always update if value of this variable is nil."
     (helm-gtags--do-open-file open-func filename line)))
 
 (defun helm-gtags--action-openfile-other-window (cand)
+  "Not documented."
   (let ((helm-gtags--use-otherwin t))
     (helm-gtags--action-openfile cand)))
 
 (defun helm-gtags--file-content-at-pos (file pos)
+  "Not documented."
   (with-current-buffer (find-file-noselect file)
     (save-excursion
       (goto-char pos)
@@ -662,12 +715,14 @@ Always update if value of this variable is nil."
               (helm-current-line-contents)))))
 
 (defun helm-gtags--files-candidate-transformer (file)
+  "Not documented."
   (if (eq helm-gtags-path-style 'absolute)
       file
     (let ((removed-regexp (concat "\\`" helm-gtags--tag-location)))
       (replace-regexp-in-string removed-regexp "" file))))
 
 (defun helm-gtags--show-stack-init ()
+  "Not documented."
   (cl-loop with context-stack = (plist-get (helm-gtags--get-context-info) :stack)
            with stack-length = (length context-stack)
            for context in (reverse context-stack)
@@ -679,6 +734,7 @@ Always update if value of this variable is nil."
            collect (cons cand (propertize cand 'index index))))
 
 (defun helm-gtags--persistent-action (cand)
+  "Not documented."
   (let* ((file-and-line (helm-gtags--extract-file-and-line cand))
          (filename (car file-and-line))
          (line (cdr file-and-line))
@@ -693,7 +749,8 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--find-file-action
   (helm-make-actions
    "Open file" #'helm-gtags--action-openfile
-   "Open file other window" #'helm-gtags--action-openfile-other-window))
+   "Open file other window" #'helm-gtags--action-openfile-other-window)
+  "Not documented.")
 
 (defvar helm-source-gtags-tags
   (helm-build-in-buffer-source "Jump to definitions"
@@ -702,7 +759,8 @@ Always update if value of this variable is nil."
     :real-to-display 'helm-gtags--candidate-transformer
     :persistent-action 'helm-gtags--persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action helm-gtags--find-file-action))
+    :action helm-gtags--find-file-action)
+  "Not documented.")
 
 (defvar helm-source-gtags-pattern
   (helm-build-in-buffer-source "Find pattern"
@@ -711,7 +769,8 @@ Always update if value of this variable is nil."
     :real-to-display 'helm-gtags--candidate-transformer
     :persistent-action 'helm-gtags--persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action helm-gtags--find-file-action))
+    :action helm-gtags--find-file-action)
+  "Not documented.")
 
 (defvar helm-source-gtags-rtags
   (helm-build-in-buffer-source "Jump to references"
@@ -720,7 +779,8 @@ Always update if value of this variable is nil."
     :real-to-display 'helm-gtags--candidate-transformer
     :persistent-action 'helm-gtags--persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action helm-gtags--find-file-action))
+    :action helm-gtags--find-file-action)
+  "Not documented.")
 
 (defvar helm-source-gtags-gsyms
   (helm-build-in-buffer-source "Jump to symbols"
@@ -729,9 +789,11 @@ Always update if value of this variable is nil."
     :real-to-display 'helm-gtags--candidate-transformer
     :persistent-action 'helm-gtags--persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action helm-gtags--find-file-action))
+    :action helm-gtags--find-file-action)
+  "Not documented.")
 
 (defun helm-gtags--highlight-candidate (candidate)
+  "Not documented."
   (let ((regexp (concat "\\_<" helm-gtags--last-input "\\_>"))
         (limit (1- (length candidate)))
         (last-pos 0)
@@ -745,11 +807,13 @@ Always update if value of this variable is nil."
     candidate))
 
 (defun helm-gtags--transformer-regexp (candidate)
+  "Not documented."
   (if (and (helm-gtags--windows-p) (helm-gtags--has-drive-letter-p candidate))
       "\\`\\([a-zA-Z]:[^:]+\\):\\([^:]+\\):\\(.*\\)"
     "\\`\\([^:]+\\):\\([^:]+\\):\\(.*\\)"))
 
 (defun helm-gtags--candidate-transformer (candidate)
+  "Not documented."
   (if (not helm-gtags-highlight-candidate)
       candidate
     (let ((regexp (helm-gtags--transformer-regexp candidate)))
@@ -760,6 +824,7 @@ Always update if value of this variable is nil."
                 (helm-gtags--highlight-candidate (match-string 3 candidate)))))))
 
 (defun helm-gtags--parse-file-candidate-transformer (file)
+  "Not documented."
   (let ((removed-file (replace-regexp-in-string "\\`\\S-+ " "" file)))
     (when (string-match "\\`\\(\\S-+\\) \\(\\S-+\\) \\(.+\\)\\'" removed-file)
       (format "%-25s %-5s %s"
@@ -774,7 +839,8 @@ Always update if value of this variable is nil."
     :real-to-display 'helm-gtags--candidate-transformer
     :persistent-action 'helm-gtags--persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action helm-gtags--find-file-action))
+    :action helm-gtags--find-file-action)
+  "Not documented.")
 
 (defvar helm-source-gtags-parse-file
   (helm-build-in-buffer-source "Parse file"
@@ -782,9 +848,11 @@ Always update if value of this variable is nil."
     :candidate-number-limit helm-gtags-maximum-candidates
     :real-to-display 'helm-gtags--parse-file-candidate-transformer
     :fuzzy-match helm-gtags-fuzzy-match
-    :action 'helm-gtags--parse-file-action))
+    :action 'helm-gtags--parse-file-action)
+  "Not documented.")
 
 (defun helm-gtags--show-stack-action (cand)
+  "Not documented."
   (let* ((index (get-text-property 0 'index cand))
          (context-info (helm-gtags--get-context-info))
          (context-stack (plist-get context-info :stack)))
@@ -799,31 +867,37 @@ Always update if value of this variable is nil."
     :candidate-number-limit helm-gtags-maximum-candidates
     :persistent-action 'helm-gtags--persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action 'helm-gtags--show-stack-action))
+    :action 'helm-gtags--show-stack-action)
+  "Not documented.")
 
 ;;;###autoload
 (defun helm-gtags-select ()
+  "Not documented."
   (interactive)
   (helm-gtags--common '(helm-source-gtags-select) nil))
 
 ;;;###autoload
 (defun helm-gtags-select-path ()
+  "Not documented."
   (interactive)
   (helm-gtags--common '(helm-source-gtags-select-path) nil))
 
 (defsubst helm-gtags--beginning-of-defun ()
+  "Not documented."
   (cl-case major-mode
     ((c-mode c++-mode java-mode) 'c-beginning-of-defun)
     (php-mode 'php-beginning-of-defun)
     (otherwise #'beginning-of-defun)))
 
 (defsubst helm-gtags--end-of-defun ()
+  "Not documented."
   (cl-case major-mode
     ((c-mode c++-mode java-mode malabar-mode) 'c-end-of-defun)
     (php-mode 'php-end-of-defun)
     (otherwise #'end-of-defun)))
 
 (defun helm-gtags--current-funcion-bound ()
+  "Not documented."
   (save-excursion
     (let (start)
       (funcall (helm-gtags--beginning-of-defun))
@@ -832,6 +906,7 @@ Always update if value of this variable is nil."
       (cons start (line-number-at-pos)))))
 
 (defun helm-gtags--tags-refered-from-this-function ()
+  "Not documented."
   (let* ((file (helm-gtags--real-file-name))
          (bound (helm-gtags--current-funcion-bound))
          (start-line (car bound))
@@ -855,6 +930,7 @@ Always update if value of this variable is nil."
         (reverse tagnames)))))
 
 (defun helm-gtags--tag-in-function-persistent-action (cand)
+  "Not documented."
   (let* ((bound (helm-gtags--current-funcion-bound))
          (limit (save-excursion
                   (goto-char (point-min))
@@ -879,6 +955,7 @@ Always update if value of this variable is nil."
       (helm-gtags-find-tag tag))))
 
 (defun helm-gtags--source-select-tag (candidate)
+  "Not documented."
   (helm-build-in-buffer-source "Select Tag"
     :init (lambda () (helm-gtags--tags-init candidate))
     :candidate-number-limit helm-gtags-maximum-candidates
@@ -887,6 +964,7 @@ Always update if value of this variable is nil."
     :action helm-gtags--find-file-action))
 
 (defun helm-gtags--source-select-rtag (candidate)
+  "Not documented."
   (helm-build-in-buffer-source "Select Rtag"
     :init (lambda () (helm-gtags--rtags-init candidate))
     :candidate-number-limit helm-gtags-maximum-candidates
@@ -895,15 +973,19 @@ Always update if value of this variable is nil."
     :action helm-gtags--find-file-action))
 
 (defsubst helm-gtags--action-by-timer (src)
+  "Not documented."
   (run-with-timer 0.1 nil (lambda () (helm-gtags--common (list src) nil))))
 
 (defun helm-gtags--select-tag-action (c)
+  "Not documented."
   (helm-gtags--action-by-timer (helm-gtags--source-select-tag c)))
 
 (defun helm-gtags--select-rtag-action (c)
+  "Not documented."
   (helm-gtags--action-by-timer (helm-gtags--source-select-rtag c)))
 
 (defun helm-gtags--select-cache-init-common (args tagfile)
+  "Not documented."
   (let ((cache (helm-gtags--get-result-cache tagfile)))
     (if cache
         (insert cache)
@@ -914,6 +996,7 @@ Always update if value of this variable is nil."
           (helm-gtags--put-result-cache tagfile cache))))))
 
 (defun helm-gtags--source-select-init ()
+  "Not documented."
   (with-current-buffer (helm-candidate-buffer 'global)
     (if (not helm-gtags-cache-select-result)
         (progn
@@ -933,9 +1016,11 @@ Always update if value of this variable is nil."
              (lambda (c)
                (setq helm-gtags--use-otherwin t)
                (helm-gtags--select-tag-action c))
-             "Move to the referenced point" #'helm-gtags--select-rtag-action)))
+             "Move to the referenced point" #'helm-gtags--select-rtag-action))
+  "Not documented.")
 
 (defun helm-gtags--select-path-init ()
+  "Not documented."
   (helm-gtags--find-tag-directory)
   (with-current-buffer (helm-candidate-buffer 'global)
     (let ((options (if (eq helm-gtags-path-style 'relative) "-Po" "-Poa")))
@@ -946,6 +1031,7 @@ Always update if value of this variable is nil."
         (helm-gtags--select-cache-init-common (list options) "GPATH")))))
 
 (defun helm-gtags--file-name (name)
+  "Not documented."
   (let ((remote (file-remote-p default-directory)))
     (if (not remote)
         name
@@ -954,21 +1040,26 @@ Always update if value of this variable is nil."
         (otherwise (concat remote name))))))
 
 (defun helm-gtags--find-file-common (open-fn cand)
+  "Not documented."
   (let ((default-directory (helm-gtags--base-directory)))
     (funcall open-fn (helm-gtags--file-name cand))))
 
 (defun helm-gtags--find-file (cand)
+  "Not documented."
   (helm-gtags--find-file-common #'find-file cand))
 
 (defun helm-gtags--find-file-other-window (cand)
+  "Not documented."
   (helm-gtags--find-file-common #'find-file-other-window cand))
 
 (defvar helm-gtags--file-util-action
   (helm-make-actions
    "Open file" #'helm-gtags--find-file
-   "Open file other window" #'helm-gtags--find-file-other-window))
+   "Open file other window" #'helm-gtags--find-file-other-window)
+  "Not documented.")
 
 (defun helm-gtags--file-persistent-action (cand)
+  "Not documented."
   (let ((default-directory (with-helm-current-buffer
                              default-directory)))
     (helm-ff-kill-or-find-buffer-fname (helm-gtags--file-name cand))))
@@ -980,18 +1071,22 @@ Always update if value of this variable is nil."
     :real-to-display 'helm-gtags--files-candidate-transformer
     :persistent-action #'helm-gtags--file-persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action helm-gtags--file-util-action))
+    :action helm-gtags--file-util-action)
+  "Not documented.")
 
 (defun helm-gtags--searched-directory ()
+  "Not documented."
   (cl-case (prefix-numeric-value current-prefix-arg)
     (4 (let ((dir (read-directory-name "Input Directory: ")))
          (setq helm-gtags--local-directory (file-name-as-directory dir))))
     (16 (file-name-directory (buffer-file-name)))))
 
 (defsubst helm-gtags--using-other-window-p ()
+  "Not documented."
   (< (prefix-numeric-value current-prefix-arg) 0))
 
 (defun helm-gtags--make-gtags-sentinel (action)
+  "Not documented."
   (lambda (process _event)
     (when (eq (process-status process) 'exit)
       (if (zerop (process-exit-status process))
@@ -999,14 +1094,17 @@ Always update if value of this variable is nil."
         (message "Failed: %s TAGS(%d)" action (process-exit-status process))))))
 
 (defsubst helm-gtags--read-gtagslabel ()
+  "Not documented."
   (let ((labels '("default" "native" "ctags" "new-ctags" "pygments")))
     (completing-read "GTAGSLABEL(Default: default): " labels nil t nil nil "default")))
 
 (defsubst helm-gtags--label-option (label)
+  "Not documented."
   (concat "--gtagslabel=" label))
 
 ;;;###autoload
 (defun helm-gtags-create-tags (dir label)
+  "Not documented."
   (interactive
    (list (read-directory-name "Root Directory: ")
          (helm-gtags--read-gtagslabel)))
@@ -1017,6 +1115,7 @@ Always update if value of this variable is nil."
       (set-process-sentinel proc (helm-gtags--make-gtags-sentinel 'create)))))
 
 (defun helm-gtags--find-tag-simple ()
+  "Not documented."
   (or (getenv "GTAGSROOT")
       (locate-dominating-file default-directory "GTAGS")
       (if (not (yes-or-no-p "File GTAGS not found. Run 'gtags'? "))
@@ -1031,6 +1130,7 @@ Always update if value of this variable is nil."
           tagroot))))
 
 (defun helm-gtags--current-file-and-line ()
+  "Not documented."
   (let* ((buffile (buffer-file-name))
          (path (cl-case helm-gtags-path-style
                  (absolute buffile)
@@ -1041,9 +1141,11 @@ Always update if value of this variable is nil."
     (format "%s:%d" path (line-number-at-pos))))
 
 (defsubst helm-gtags--clear-variables ()
+  "Not documented."
   (setq helm-gtags--last-default-directory nil))
 
 (defun helm-gtags--common (srcs tagname)
+  "Not documented."
   (helm-gtags--clear-variables)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
@@ -1128,6 +1230,7 @@ Always update if value of this variable is nil."
   (helm-gtags--common '(helm-source-gtags-pattern) pattern))
 
 (defun helm-gtags--find-file-after-hook ()
+  "Not documented."
   (helm-gtags--push-context helm-gtags--saved-context))
 
 (defvar helm-source-gtags-files
@@ -1137,7 +1240,8 @@ Always update if value of this variable is nil."
     :real-to-display #'helm-gtags--files-candidate-transformer
     :persistent-action #'helm-gtags--file-persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action helm-gtags--file-util-action))
+    :action helm-gtags--file-util-action)
+  "Not documented.")
 
 ;;;###autoload
 (defun helm-gtags-find-files (file)
@@ -1173,6 +1277,7 @@ Jump to reference point if curosr is on its definition"
         (call-interactively 'helm-gtags-find-tag)))))
 
 (defun helm-gtags--set-parsed-file ()
+  "Not documented."
   (let* ((this-file (file-name-nondirectory (buffer-file-name)))
          (file (if current-prefix-arg
                    (read-file-name "Parsed File: " nil this-file)
@@ -1180,6 +1285,7 @@ Jump to reference point if curosr is on its definition"
     (setq helm-gtags--parsed-file (expand-file-name file))))
 
 (defun helm-gtags--find-preselect-line ()
+  "Not documented."
   (let ((defun-bound (bounds-of-thing-at-point 'defun)))
     (if (not defun-bound)
         (line-number-at-pos)
@@ -1255,23 +1361,27 @@ You can jump definitions of functions, symbols in this file."
   (setq helm-gtags--context-stack (make-hash-table :test 'equal)))
 
 (defun helm-gtags--read-tag-directory ()
+  "Not documented."
   (let ((dir (read-directory-name "Directory tag generated: " nil nil t)))
     ;; On Windows, "gtags d:/tmp" work, but "gtags d:/tmp/" doesn't
     (directory-file-name (expand-file-name dir))))
 
 (defsubst helm-gtags--how-to-update-tags ()
+  "Not documented."
   (cl-case (prefix-numeric-value current-prefix-arg)
     (4 'entire-update)
     (16 'generate-other-directory)
     (otherwise 'single-update)))
 
 (defun helm-gtags--update-tags-command (how-to)
+  "Not documented."
   (cl-case how-to
     (entire-update '("global" "-u"))
     (generate-other-directory (list "gtags" (helm-gtags--read-tag-directory)))
     (single-update (list "global" "--single-update" (helm-gtags--real-file-name)))))
 
 (defun helm-gtags--update-tags-p (how-to interactive-p current-time)
+  "Not documented."
   (or interactive-p
       (and (eq how-to 'single-update)
            (buffer-file-name)
