@@ -17,10 +17,6 @@
 
 `helm-gtags.el` does not require `gtags.el`.
 
-#### Ubuntu/Debian users
-
-Please do not use Ubuntu/Debian GNU gtags package. It's too old.
-
 
 ## Installation
 
