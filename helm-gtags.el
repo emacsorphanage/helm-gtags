@@ -64,7 +64,7 @@
   :group 'helm)
 
 (defcustom helm-gtags-path-style 'root
-  "Style of file path"
+  "Style of file path."
   :type '(choice (const :tag "Root of the current project" root)
                  (const :tag "Relative from the current directory" relative)
                  (const :tag "Absolute Path" absolute)))
@@ -90,7 +90,7 @@
   :group 'helm-gtags)
 
 (defcustom helm-gtags-pulse-at-cursor t
-  "If non-nil, pulse at point after jumping"
+  "If non-nil, pulse at point after jumping."
   :type 'boolean
   :group 'helm-gtags)
 
@@ -105,19 +105,20 @@
   :group 'helm-gtags)
 
 (defcustom helm-gtags-update-interval-second 60
-  "Tags are updated in `after-save-hook' if this seconds is passed from last update.
+  "Tags are updated in `after-save-hook' if this seconds is passed from \
+last update.
 Always update if value of this variable is nil."
   :type '(choice (integer :tag "Update interval seconds")
                  (boolean :tag "Update every time" nil))
   :group 'helm-gtags)
 
 (defcustom helm-gtags-highlight-candidate t
-  "Highlight candidate or not"
+  "Highlight candidate or not."
   :type 'boolean
   :group 'helm-gtags)
 
 (defcustom helm-gtags-use-input-at-cursor nil
-  "Use input at cursor"
+  "Use input at cursor."
   :type 'boolean
   :group 'helm-gtags)
 
@@ -143,12 +144,12 @@ Always update if value of this variable is nil."
   :group 'helm-gtags)
 
 (defcustom helm-gtags-fuzzy-match nil
-  "Enable fuzzy match"
+  "Enable fuzzy match."
   :type 'boolean
   :group 'helm-gtags)
 
 (defcustom helm-gtags-maximum-candidates (if helm-gtags-fuzzy-match 100 9999)
-  "Maximum number of helm candidates"
+  "Maximum number of helm candidates."
   :type 'integer
   :group 'helm-gtags)
 
@@ -196,6 +197,7 @@ Always update if value of this variable is nil."
   "Not documented.")
 
 (defmacro helm-declare-obsolete-variable (old new version)
+  "Not documented, OLD, NEW, VERSION."
   `(progn
      (defvaralias ,old ,new)
      (make-obsolete-variable ,old ,new ,version)))
