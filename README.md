@@ -1,13 +1,17 @@
-# helm-gtags.el [![travis badge][travis-badge]][travis-link] [![melpa badge][melpa-badge]][melpa-link] [![melpa stable badge][melpa-stable-badge]][melpa-stable-link]
+[![melpa badge][melpa-badge]][melpa-link]
+[![melpa stable badge][melpa-stable-badge]][melpa-stable-link]
+
+# helm-gtags.el
+
+[![CI](https://github.com/emacsorphanage/helm-gtags/actions/workflows/test.yml/badge.svg)](https://github.com/emacsorphanage/helm-gtags/actions/workflows/test.yml)
+[![travis badge][travis-badge]][travis-link]
 
 ## Introduction
 `helm-gtags.el` is GNU GLOBAL helm interface.
 
-
 ## Screenshot
 
 ![helm-gtags](image/helm-gtags.png)
-
 
 ## Requirements
 
@@ -17,7 +21,6 @@
 
 `helm-gtags.el` does not require `gtags.el`.
 
-
 ## Installation
 
 `helm-gtags` is available on [MELPA](https://melpa.org/) and [MELPA stable](https://stable.melpa.org/)
@@ -25,7 +28,6 @@
 You can install `helm-gtags` with the following command.
 
 <kbd>M-x package-install [RET] helm-gtags [RET]</kbd>
-
 
 ## Use Ctags with helm-gtags
 
@@ -40,7 +42,6 @@ tags by following command.
 # universal ctags
 % gtags --gtagslabel=new-ctags
 ```
-
 
 ## Basic Usage
 
@@ -68,7 +69,6 @@ Input symbol and move to the locations.
 
 Input file name and open it.
 
-
 You can use those searching commands with prefix key.
 
 | Prefix Key  | Description                       |
@@ -76,7 +76,6 @@ You can use those searching commands with prefix key.
 | C-u         | Searches from specified directory |
 | C-u C-u     | Searches under current directory  |
 | C--         | Jump to symbol with other window  |
-
 
 #### `helm-gtags-select`
 
@@ -93,7 +92,6 @@ Find name by context.
 #### `helm-gtags-tags-in-this-function`
 
 Show tagnames which are referenced in this function and jump to them.
-
 
 #### `helm-gtags-update-tags`
 
@@ -285,7 +283,6 @@ Face of file name of candidates
 
 Face of line number of candidates
 
-
 ## anything-gtags.el
 
 **helm-gtags.el** is not compatible **anything-gtags.el**.
@@ -295,7 +292,6 @@ But `helm-gtags.el` is designed for faster search than `anything-gtags.el`.
 FreeBSD, Android etc. Because `anything-gtags.el` creates candidates
 by processing output of `gtags.el`. `helm-gtags.el` creates candidates
 by itself, so `helm-gtags.el` is faster than `anything-gtags.el`.
-
 
 ## Sample Configuration
 
