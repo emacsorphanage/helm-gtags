@@ -1,28 +1,30 @@
-.PHONY : test
+SHELL := /usr/bin/env bash
 
 EMACS ?= emacs
-CASK ?= cask
+EASK ?= eask
 
-LOADPATH = -L .
+TEST-FILES := $(shell ls test/helm-gtags-*.el)
 
-ELPA_DIR = $(shell EMACS=$(EMACS) $(CASK) package-directory)
+.PHONY: clean checkdoc lint install compile unix-test
 
-test: elpa
-	$(CASK) exec $(EMACS) -Q -batch $(LOADPATH) \
-		-l test/test-command.el -l test/test-util.el \
-		-f ert-run-tests-batch-and-exit
+ci: clean install compile
 
-test-util: elpa
-	$(CASK) exec $(EMACS) -Q -batch $(LOADPATH) \
-		-l test/test-util.el \
-		-f ert-run-tests-batch-and-exit
+clean:
+	@echo "Cleaning..."
+	$(EASK) clean-all
 
-test-command: elpa
-	$(CASK) exec $(EMACS) -Q -batch $(LOADPATH) \
-		-l test/test-command.el \
-		-f ert-run-tests-batch-and-exit
+install:
+	@echo "Installing..."
+	$(EASK) install
 
-elpa: $(ELPA_DIR)
-$(ELPA_DIR): Cask
-	$(CASK) install
-	touch $@
+compile:
+	@echo "Compiling..."
+	$(EASK) compile
+
+lint:
+	@echo "Linting..."
+	$(EASK) lint
+
+unix-test:
+	@echo "Testing..."
+	$(EASK) exec ert-runner -L . $(LOAD-TEST-FILES) -t '!no-win' -t '!org'
