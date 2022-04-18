@@ -5,26 +5,22 @@ EASK ?= eask
 
 TEST-FILES := $(shell ls test/helm-gtags-*.el)
 
-.PHONY: clean checkdoc lint install compile unix-test
+.PHONY: clean checkdoc lint install compile
 
 ci: clean install compile
 
-clean:
-	@echo "Cleaning..."
-	$(EASK) clean-all
-
 install:
 	@echo "Installing..."
+	$(EASK) package
 	$(EASK) install
 
 compile:
 	@echo "Compiling..."
 	$(EASK) compile
 
-lint:
-	@echo "Linting..."
-	$(EASK) lint
-
-unix-test:
+test:
 	@echo "Testing..."
 	$(EASK) exec ert-runner -L . $(LOAD-TEST-FILES) -t '!no-win' -t '!org'
+
+clean:
+	$(EASK) clean-all
