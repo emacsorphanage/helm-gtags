@@ -3,15 +3,16 @@ SHELL := /usr/bin/env bash
 EMACS ?= emacs
 EASK ?= eask
 
-TEST-FILES := $(shell ls test/helm-gtags-*.el)
+.PHONY: clean checkdoc lint package install compile test
 
-.PHONY: clean checkdoc lint install compile
+ci: clean package install compile
 
-ci: clean install compile
+package:
+	@echo "Packaging..."
+	$(EASK) package
 
 install:
 	@echo "Installing..."
-	$(EASK) package
 	$(EASK) install
 
 compile:
@@ -20,7 +21,15 @@ compile:
 
 test:
 	@echo "Testing..."
-	$(EASK) exec ert-runner -L . $(LOAD-TEST-FILES) -t '!no-win' -t '!org'
+	$(EASK) test ert ./test/*.el
+
+checkdoc:
+	@echo "Run checkdoc..."
+	$(EASK) lint checkdoc
+
+lint:
+	@echo "Run package-lint..."
+	$(EASK) lint package
 
 clean:
 	$(EASK) clean-all
