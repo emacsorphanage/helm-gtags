@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "helm-gtags"
          "1.5.7"
          "GNU GLOBAL helm interface")
