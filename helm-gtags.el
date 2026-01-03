@@ -1,7 +1,7 @@
 ;;; helm-gtags.el --- GNU GLOBAL helm interface -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016 by Syohei YOSHIDA
-;; Copyright (C) 2020-2024 Shen, Jen-Chieh
+;; Copyright (C) 2020-2026 Shen, Jen-Chieh
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
