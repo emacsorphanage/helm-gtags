@@ -65,6 +65,14 @@
   "GNU GLOBAL for helm."
   :group 'helm)
 
+;; Declare obsolete variable aliases before their referents
+(define-obsolete-variable-alias
+  'helm-c-gtags-path-style 'helm-gtags-path-style "0.8")
+(define-obsolete-variable-alias
+  'helm-c-gtags-ignore-case 'helm-gtags-ignore-case "0.8")
+(define-obsolete-variable-alias
+  'helm-c-gtags-read-only 'helm-gtags-read-only "0.8")
+
 (defcustom helm-gtags-path-style 'root
   "Style of file path."
   :type '(choice (const :tag "Root of the current project" root)
@@ -198,20 +206,7 @@ Always update if value of this variable is nil."
   "\\`\\s-*#\\(?:include\\|import\\)\\s-*[\"<]\\(?:[./]*\\)?\\(.*?\\)[\">]"
   "Not documented.")
 
-(defmacro helm-declare-obsolete-variable (old new version)
-  "Not documented, OLD, NEW, VERSION."
-  `(progn
-     (defvaralias ,old ,new)
-     (make-obsolete-variable ,old ,new ,version)))
-
-(helm-declare-obsolete-variable
- 'helm-c-gtags-path-style 'helm-gtags-path-style "0.8")
-(helm-declare-obsolete-variable
- 'helm-c-gtags-ignore-case 'helm-gtags-ignore-case  "0.8")
-(helm-declare-obsolete-variable
- 'helm-c-gtags-read-only 'helm-gtags-read-only "0.8")
-
-;; completsion function for completing-read.
+;; completion function for completing-read.
 (defun helm-gtags--completing-gtags (string predicate code)
   (helm-gtags--complete 'tag string predicate code))
 (defun helm-gtags--completing-pattern (string predicate code)
@@ -575,7 +570,7 @@ Always update if value of this variable is nil."
 (defun helm-gtags--construct-command (type &optional in)
   "Not documented."
   (setq helm-gtags--local-directory nil)
-  (let ((dir (helm-attr 'helm-gtags-base-directory (helm-get-current-source))))
+  (let ((dir (helm-get-attr 'helm-gtags-base-directory (helm-get-current-source))))
     (when (and dir (not (eq type 'find-file)))
       (setq helm-gtags--local-directory dir)))
   (let ((input (or in helm-gtags--query))
@@ -1171,9 +1166,9 @@ Always update if value of this variable is nil."
     (when tagname
       (setq helm-gtags--query tagname))
     (let ((tagroot (helm-gtags--find-tag-simple)))
-      (helm-attrset 'helm-gtags-base-directory dir src)
+      (helm-set-attr 'helm-gtags-base-directory dir src)
       (when tagname
-        (helm-attrset 'name (format "%s in %s" tagname (or dir tagroot)) src))
+        (helm-set-attr 'name (format "%s in %s" tagname (or dir tagroot)) src))
       (helm :sources srcs :buffer helm-gtags--buffer
             :preselect preselect-regexp))))
 
@@ -1322,7 +1317,7 @@ You can jump definitions of functions, symbols in this file."
   (helm-gtags--save-current-context)
   (setq helm-gtags--use-otherwin (helm-gtags--using-other-window-p))
   (helm-gtags--set-parsed-file)
-  (helm-attrset 'name
+  (helm-set-attr 'name
                 (format "Parsed File: %s"
                         (file-relative-name helm-gtags--parsed-file
                                             helm-gtags--tag-location))
@@ -1352,8 +1347,8 @@ You can jump definitions of functions, symbols in this file."
 (defun helm-gtags-show-stack ()
   "Show current context stack."
   (interactive)
-  (helm-other-buffer 'helm-source-gtags-show-stack
-                     (get-buffer-create helm-gtags--buffer)))
+  (helm :sources 'helm-source-gtags-show-stack
+        :buffer (get-buffer-create helm-gtags--buffer)))
 
 ;;;###autoload
 (defun helm-gtags-clear-stack ()
@@ -1449,8 +1444,8 @@ Generate new TAG file in selected directory with `C-u C-u'"
 (defvar helm-gtags-mode-map (make-sparse-keymap))
 
 ;;;###autoload
-(define-minor-mode helm-gtags-mode ()
-  "Enable helm-gtags"
+(define-minor-mode helm-gtags-mode
+  "Enable helm-gtags."
   :init-value nil
   :global     nil
   :keymap     helm-gtags-mode-map
