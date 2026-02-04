@@ -115,8 +115,8 @@
   :group 'helm-gtags)
 
 (defcustom helm-gtags-update-interval-second 60
-  "Tags are updated in `after-save-hook' if this seconds is passed from \
-last update.
+  "Update interval in seconds for tags in `after-save-hook'.
+Tags are updated if this many seconds have passed since last update.
 Always update if value of this variable is nil."
   :type '(choice (integer :tag "Update interval seconds")
                  (boolean :tag "Update every time" nil))
@@ -1194,7 +1194,8 @@ Always update if value of this variable is nil."
           (progn
             (fit-window-to-buffer win)
             (when (yes-or-no-p "Remove GNU Global tag files? ")
-              (with-demoted-errors (mapc #'delete-file files))))
+              (with-demoted-errors "Error deleting files: %S"
+                (mapc #'delete-file files))))
         (when (window-live-p win)
           (quit-window t win))))))
 
