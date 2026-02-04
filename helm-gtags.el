@@ -7,7 +7,7 @@
 ;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
 ;; Version: 1.5.7
-;; Package-Requires: ((emacs "24.4") (helm "2.0"))
+;; Package-Requires: ((emacs "27.1") (helm "3.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
